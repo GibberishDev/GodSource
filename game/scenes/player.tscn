@@ -1,0 +1,43 @@
+[gd_scene load_steps=9 format=3 uid="uid://2nmutw6t3gq1"]
+
+[ext_resource type="Script" path="res://game/scenes/player.gd" id="1_feh0e"]
+[ext_resource type="Shader" path="res://assets/shaders/wireframe.gdshader" id="2_8d7xa"]
+[ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/movementComponent.tscn" id="2_oelm3"]
+[ext_resource type="PackedScene" uid="uid://cyiu0e1dmxvm6" path="res://game/components/player/cameraComponent.tscn" id="3_eh4ln"]
+[ext_resource type="PackedScene" uid="uid://bxd7qx5wf5c8o" path="res://game/components/player/hudComponenet.tscn" id="5_w55t0"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_02tgl"]
+size = Vector3(0.93, 1.58, 0.93)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yvm3a"]
+render_priority = 0
+shader = ExtResource("2_8d7xa")
+shader_parameter/wireColor = Color(1, 0.667, 0, 1)
+shader_parameter/wireWidth = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7af0"]
+material = SubResource("ShaderMaterial_yvm3a")
+size = Vector3(0.93, 1.58, 0.93)
+
+[node name="playerRoot" type="CharacterBody3D"]
+collision_layer = 2
+floor_constant_speed = true
+script = ExtResource("1_feh0e")
+
+[node name="playerBoundingBox" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
+shape = SubResource("BoxShape3D_02tgl")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="playerBoundingBox"]
+transform = Transform3D(1.00298, 0, 0, 0, 1.00298, 0, 0, 0, 1.00298, 0, 0, 0)
+visible = false
+cast_shadow = 0
+mesh = SubResource("BoxMesh_w7af0")
+
+[node name="movementComponent" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
+bBox = NodePath("../playerBoundingBox")
+camComp = NodePath("../cameraComponent")
+
+[node name="cameraComponent" parent="." instance=ExtResource("3_eh4ln")]
+
+[node name="hudComponenet" parent="." instance=ExtResource("5_w55t0")]

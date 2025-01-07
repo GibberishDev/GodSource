@@ -1,0 +1,166 @@
+[gd_scene load_steps=12 format=3 uid="uid://duk4oplasqswk"]
+
+[ext_resource type="FontFile" uid="uid://dbrx4auyrdcv1" path="res://assets/fonts/JETBRAINSMONO-REGULAR.TTF" id="1_0xjmh"]
+[ext_resource type="FontFile" uid="uid://cxodriefperoh" path="res://assets/fonts/JetBrainsMono-Bold.ttf" id="2_o60tr"]
+[ext_resource type="FontFile" uid="uid://dk02m3j7lo2ik" path="res://assets/fonts/JETBRAINSMONO-BOLDITALIC.TTF" id="3_bnnl8"]
+[ext_resource type="FontFile" uid="uid://oij6fcekjxab" path="res://assets/fonts/JETBRAINSMONO-ITALIC.TTF" id="4_rtdcy"]
+[ext_resource type="Theme" uid="uid://cbcblqtgjnhon" path="res://assets/themes/hudComponenet.tres" id="5_fcbex"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8u5wm"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_depk3"]
+bg_color = Color(0.5, 0.25, 0.125, 0.196078)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6cg5i"]
+bg_color = Color(0, 0, 0, 0.501961)
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 0.25098)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jl66e"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg4pq"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="Theme" id="Theme_mjic6"]
+Label/colors/font_color = Color(1, 1, 1, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0)
+Label/constants/line_spacing = 3
+Label/constants/outline_size = 0
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 1
+Label/constants/shadow_outline_size = 1
+Label/font_sizes/font_size = 14
+Label/fonts/font = ExtResource("1_0xjmh")
+Label/styles/normal = SubResource("StyleBoxEmpty_8u5wm")
+Panel/styles/panel = SubResource("StyleBoxFlat_depk3")
+RichTextLabel/colors/default_color = Color(1, 1, 1, 1)
+RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 1)
+RichTextLabel/colors/font_selected_color = Color(0, 0, 0, 0)
+RichTextLabel/colors/font_shadow_color = Color(0, 0, 0, 0)
+RichTextLabel/colors/selection_color = Color(0.1, 0.1, 1, 0.8)
+RichTextLabel/colors/table_border = Color(0, 0, 0, 0)
+RichTextLabel/colors/table_even_row_bg = Color(0, 0, 0, 0)
+RichTextLabel/colors/table_odd_row_bg = Color(0, 0, 0, 0)
+RichTextLabel/constants/line_separation = 0
+RichTextLabel/constants/outline_size = 0
+RichTextLabel/constants/shadow_offset_x = 1
+RichTextLabel/constants/shadow_offset_y = 1
+RichTextLabel/constants/shadow_outline_size = 1
+RichTextLabel/constants/table_h_separation = 3
+RichTextLabel/constants/table_v_separation = 3
+RichTextLabel/constants/text_highlight_h_padding = 3
+RichTextLabel/constants/text_highlight_v_padding = 3
+RichTextLabel/font_sizes/bold_font_size = 14
+RichTextLabel/font_sizes/bold_italics_font_size = 14
+RichTextLabel/font_sizes/italics_font_size = 14
+RichTextLabel/font_sizes/mono_font_size = 14
+RichTextLabel/font_sizes/normal_font_size = 14
+RichTextLabel/fonts/bold_font = ExtResource("2_o60tr")
+RichTextLabel/fonts/bold_italics_font = ExtResource("3_bnnl8")
+RichTextLabel/fonts/italics_font = ExtResource("4_rtdcy")
+RichTextLabel/fonts/mono_font = ExtResource("1_0xjmh")
+RichTextLabel/fonts/normal_font = ExtResource("1_0xjmh")
+RichTextLabel/styles/background = SubResource("StyleBoxFlat_6cg5i")
+RichTextLabel/styles/focus = SubResource("StyleBoxFlat_jl66e")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_dg4pq")
+
+[node name="consoleContainer" type="Panel"]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_right = 748.0
+grow_horizontal = 2
+theme = SubResource("Theme_mjic6")
+
+[node name="BoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="dud" type="Control" parent="BoxContainer"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
+
+[node name="BoxContainer2" type="VBoxContainer" parent="BoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="dud" type="Control" parent="BoxContainer/BoxContainer2"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="consoleLabel" type="Label" parent="BoxContainer/BoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("5_fcbex")
+text = "Console"
+
+[node name="dud2" type="Control" parent="BoxContainer/BoxContainer2"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="consoleOutput" type="RichTextLabel" parent="BoxContainer/BoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("5_fcbex")
+bbcode_enabled = true
+text = "Test"
+scroll_following = true
+threaded = true
+
+[node name="dud3" type="Control" parent="BoxContainer/BoxContainer2"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="consoleInput" type="LineEdit" parent="BoxContainer/BoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme = ExtResource("5_fcbex")
+placeholder_text = "Enter command..."
+caret_blink = true
+
+[node name="dud4" type="Control" parent="BoxContainer/BoxContainer2"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="dud2" type="Control" parent="BoxContainer"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
