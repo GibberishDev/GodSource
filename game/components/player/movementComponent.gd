@@ -109,7 +109,6 @@ func processMovement(delta) -> void:
 	%dirScale.scale.y = wDir.length() * groundMaxSpeed * 0.25
 	%dirPointer.rotation = -wDir.angle_to(Vector2.DOWN)
 	P.velocity = newVel
-	
 	P.move_and_slide()
 	# print_rich("Speed: " + str((newVel * Vector3(1,0,1)).length() * 100 / 1.905) + " [color=red]X: " + str(newVel.x / 1.905 * 100) + "[/color] [color=#1080ff]Y: " + str(newVel.y / 1.905 * 100) + "[/color] [color=lime]Z: " + str(newVel.z / 1.905 * 100) + "[/color]")
 
@@ -191,15 +190,24 @@ func getWishDir() -> void:
 func accelGround(vel:Vector3,delta:float)->Vector3:
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
-	# var speedMult = getSpeedMult()
-	var addSpeed = clamp(0, groundAccel * delta, groundMaxSpeed - currSpeed) #TODO: apply speed multiplication to acceleration and max speed
+	var speedMult = getSpeedMult()
+	var addSpeed = clamp(0, groundAccel * delta * speedMult, groundMaxSpeed * speedMult - currSpeed)
 	vel += addSpeed * dir
 	return vel
+
+func getSpeedMult() -> float:
+	var mult = 1.0
+	if crouched:
+		mult *= crouchSpeedMultiplier
+	if wDir.y < 0:
+		mult *= 0.9
+	return mult
 
 func accelAir(vel:Vector3,delta:float)->Vector3:
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
-	if (vel * Vector3(1,0,1)).length()/5 < 0.25 and isWallTooSteep(P.get_wall_normal()): return vel #This measure is in place to stop players from climbing up non walkable walls
+	#This measure is in place to stop players from slowly climbing up non walkable walls but allow it when surfing with highj enough horizontal speed.
+	if (vel * Vector3(1,0,1)).length()/5 < 0.25 and isWallTooSteep(P.get_wall_normal()): return vel
 	var addSpeed = airMaxSpeed - currSpeed
 	if addSpeed >= 0:
 		vel += min(600 * delta, addSpeed) * dir
@@ -238,10 +246,12 @@ func handleJump(vel) -> Vector3:
 		grounded = false
 		if crouching:
 			crouchJump()
-			vel.y = jumpPower
+			if jumpCrouchBug: vel.y = jumpPower
+			else: vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 		elif uncrouching:
-			cTap()
 			vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
+			if cTapEnabled:
+				cTap()
 		else:
 			vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 		if limitMaxVel:
@@ -252,8 +262,19 @@ func handleJump(vel) -> Vector3:
 
 #region crouching
 #TODO: Move to variables space once done developing crouching
+@export_subgroup("Crouching")
 @export
 var crouchingAnimationTime : float = 0.15
+@export
+var crouchSpeedMultiplier : float = 0.3
+@export
+var bBoxHeightCrouched : float = 1.2
+##Enable TF2 bug that allows to jump 2 hammer units higher if player crouch-jumps than jump crouches. If false crouch jumping and jump crouching is the same height[br][color=#777][i]This bug stems from small code error made by Valve. Usually half of one tick of gravity substracted from jump power when jumping. In case of crouch jumping it just isnt. If gravity is 0 impulse from jumping is the same. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=7z_p_RqLhkA]here[/url]
+@export
+var jumpCrouchBug : bool = true
+##Enable TF2 bug that allows to jump, crouch in air and avoid upwards shift. If false player can jump as high as regular jump[br][color=#777][i]This bug stems from erronious behaviour. Regularly player should be shifted upwards when crouching in air. Since player havent finished uncrouching animation player then forced to stay crouched until space below player allows for uncrouching. That allows for closer to ground player origin calculation and explosions send player much highier. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=76HDJIWfVy4]here[/url]
+@export
+var cTapEnabled : bool = true
 var crouching : bool = false
 var uncrouching : bool = false
 var crouched : bool = false
@@ -267,8 +288,6 @@ var crouchTimer : Timer = $crouching
 var uncrouchCheckTop : ShapeCast3D = $uncrouchCastTop
 @onready
 var uncrouchCheckBottom : ShapeCast3D = $uncrouchCastBottom
-@export
-var bBoxHeightCrouched : float = 1.2
 @onready
 var bBoxSize : Vector3 = bBox.shape.size
 var crouchingStateLastFrame : bool = false
@@ -304,9 +323,7 @@ func crouch() -> void:
 	uncrouching = false
 	bBox.shape.size.y = bBoxHeightCrouched
 	bBox.position.y = bBoxHeightCrouched / 2
-	#TODO: move to camera component and call one function to shift camera
-	camComp.saveCamPos()
-	camComp.get_node("head").position.y = (1.905/100*45.0)
+	camComp.crouch()
 	if P.is_on_floor():
 		uncrouchTimer.stop()
 		crouchTimer.start()
@@ -325,17 +342,17 @@ func tryUncrouch() -> bool:
 		return false
 	crouched = false
 	crouching = false
-	bBox.shape.size.y = 1.58
-	bBox.position.y = 1.58 / 2
-	camComp.saveCamPos()
-	camComp.get_node("head").position.y = (1.905/100*68.0)
+	bBox.shape.size.y = bBoxSize.y
+	bBox.position.y = bBoxSize.y / 2
+	camComp.uncrouch()
+	crouchTimer.stop()
 	if P.is_on_floor():
 		uncrouching = true
-		crouchTimer.stop()
 		uncrouchTimer.start()
 	else:
+		uncrouchTimer.stop()
 		uncrouching = false
-		P.position.y -= 0.38
+		P.position.y -= bBoxSize.y - bBoxHeightCrouched
 	return true
 func endUncrouch() -> void:
 	crouched = false
@@ -345,11 +362,10 @@ func crouchJump() -> void:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = 1.2
-	bBox.position.y = 1.2 / 2
-	camComp.saveCamPos()
-	camComp.get_node("head").position.y = (1.905/100*45.0)
-	P.position.y += 0.38
+	bBox.shape.size.y = bBoxHeightCrouched
+	bBox.position.y = bBoxHeightCrouched / 2
+	camComp.crouch()
+	P.position.y += bBoxSize.y - bBoxHeightCrouched
 
 func cTap() -> void:
 	crouchTimer.stop()
@@ -357,10 +373,9 @@ func cTap() -> void:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = 1.2
-	bBox.position.y = 1.2 / 2
-	camComp.saveCamPos()
-	camComp.get_node("head").position.y = (1.905/100*45.0)
+	bBox.shape.size.y = bBoxHeightCrouched
+	bBox.position.y = bBoxHeightCrouched / 2
+	camComp.crouch()
 	queueUncrouching = true
 #endregion
 
