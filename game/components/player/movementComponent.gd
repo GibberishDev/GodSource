@@ -104,10 +104,6 @@ func processMovement(delta) -> void:
 	#step 13: Handle triggers collision
 	#step 14: Update bounding box
 	#step 15: Handle projectiles
-	%velScale.scale.y = (P.velocity * Vector3(1,0,1)).length() * 0.25
-	%velPointer.rotation = -Vector2(P.velocity.x,P.velocity.z).rotated(camComp.lookDir.y).angle_to(Vector2.DOWN)
-	%dirScale.scale.y = wDir.length() * groundMaxSpeed * 0.25
-	%dirPointer.rotation = -wDir.angle_to(Vector2.DOWN)
 	P.velocity = newVel
 	P.move_and_slide()
 	# print_rich("Speed: " + str((newVel * Vector3(1,0,1)).length() * 100 / 1.905) + " [color=red]X: " + str(newVel.x / 1.905 * 100) + "[/color] [color=#1080ff]Y: " + str(newVel.y / 1.905 * 100) + "[/color] [color=lime]Z: " + str(newVel.z / 1.905 * 100) + "[/color]")
@@ -144,7 +140,7 @@ func applyAcceleration(vel, delta) -> Vector3:
 ## PURPOSE: interprets user input
 var prevInputs := {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
 func getWishDir() -> void:
-	if P.uiFocused: return
+	if P.uiFocused: wDir = Vector2.ZERO;return
 	if !useNullMovement:
 		wDir = Vector2(
 			int(wishL) - int(wishR),
