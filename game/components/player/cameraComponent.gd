@@ -78,8 +78,10 @@ func smoothCamera(delta:float) -> void:
 	if $head/camSmoother.position.y == .0:
 		camSavedPos = null
 
-func duck() -> void:
+func crouch() -> void:
+	saveCamPos()
 	$head.position.y = cameraDuckViewheght
 
-func unduck() -> void:
+func uncrouch() -> void:
+	saveCamPos()
 	$head.position.y = cameraVewheight
