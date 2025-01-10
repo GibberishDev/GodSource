@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://brwq6f20wfij4"]
+
+[ext_resource type="PackedScene" uid="uid://cyytbhnphmppc" path="res://assets/cp_process/cp_process_mesh_displacement.fbx" id="1_umcko"]
+[ext_resource type="PackedScene" uid="uid://dmy4t4acyl3ol" path="res://assets/cp_process/cp_process_mesh_worldmesh.fbx" id="2_k3iob"]
+[ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/player.tscn" id="3_cpm0y"]
+[ext_resource type="PackedScene" uid="uid://jdia5m2rgqf1" path="res://assets/cp_process/cp_process_outside_clipbrushes.fbx" id="5_ag0dd"]
+
+[node name="cp_process" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.906308, 0, 0.422618, -0.365998, 0.5, 0.784886, -0.211309, -0.866025, 0.453154, 0, 14.7477, 0)
+rotation_order = 0
+light_color = Color(0.992157, 0.952941, 0.815686, 1)
+light_energy = 0.3
+
+[node name="playerRoot" parent="." instance=ExtResource("3_cpm0y")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -83.8607, 11.3713, 31.8376)
+
+[node name="cp_process_mesh_displacement" parent="." instance=ExtResource("1_umcko")]
+
+[node name="cp_process_mesh_worldmesh" parent="." instance=ExtResource("2_k3iob")]
+
+[node name="cp_process_outside_clipbrushes" parent="." instance=ExtResource("5_ag0dd")]
+
+[node name="clip" parent="cp_process_outside_clipbrushes" index="0"]
+collision_layer = 4
+collision_mask = 2
+
+[editable path="cp_process_outside_clipbrushes"]

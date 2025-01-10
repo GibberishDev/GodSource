@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://csqnb03ykde8d"]
+[gd_scene load_steps=5 format=3 uid="uid://csqnb03ykde8d"]
 
 [ext_resource type="Script" path="res://game/components/player/movementComponent.gd" id="1_wgakq"]
 
@@ -7,6 +7,9 @@ size = Vector3(0.93, 0.38, 0.93)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vgdm1"]
 size = Vector3(0.93, 0.38, 0.93)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_aw8uq"]
+size = Vector3(0.93, 0.15, 0.93)
 
 [node name="movementComponent" type="Node3D"]
 script = ExtResource("1_wgakq")
@@ -32,6 +35,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.39, 0)
 shape = SubResource("BoxShape3D_vgdm1")
 target_position = Vector3(0, 0, 0)
 collision_mask = 3
+
+[node name="stepDownShapeCast" type="ShapeCast3D" parent="."]
+shape = SubResource("BoxShape3D_aw8uq")
+target_position = Vector3(0, 0, 0)
+collision_mask = 5
+
+[node name="stepUpRayCast" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.565)
+collision_mask = 5
+hit_from_inside = true
 
 [connection signal="timeout" from="uncrouching" to="." method="endUncrouch"]
 [connection signal="timeout" from="crouching" to="." method="endCrouch"]

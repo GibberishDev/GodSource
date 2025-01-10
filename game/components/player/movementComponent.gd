@@ -54,6 +54,10 @@ var airMaxSpeed : float = 30.0 * 1.905 / 100
 @export_subgroup("Movement flags")
 ## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
 var useNullMovement : bool = true
+## Detrmines maximum step up/down height
+var maxStepUp := float(0.35)
+var snappedToStairsLastFrame := bool(false)
+var lastFloored := -INF
 
 #SCRIPT VARIABLES
 var wDir := Vector2.ZERO
@@ -105,15 +109,16 @@ func processMovement(delta) -> void:
 	#step 14: Update bounding box
 	#step 15: Handle projectiles
 	P.velocity = newVel
-	P.move_and_slide()
+	if !stepUpCheck(delta, newVel):
+		stepDownCheck()
+		if P.is_on_wall(): clipVel(newVel, P.get_wall_normal())
+		if (P.velocity * Vector3(1.0,0,1.0)).length() > groundMaxSpeed * 1.2: clipVel(newVel, P.get_floor_normal()) 
+		P.move_and_slide()
 	# print_rich("Speed: " + str((newVel * Vector3(1,0,1)).length() * 100 / 1.905) + " [color=red]X: " + str(newVel.x / 1.905 * 100) + "[/color] [color=#1080ff]Y: " + str(newVel.y / 1.905 * 100) + "[/color] [color=lime]Z: " + str(newVel.z / 1.905 * 100) + "[/color]")
 
 ## PURPOSE: Update player grounded state. If player is on floor and not moving up too fast function returns True
 func checkGrounded() -> bool:
-	return (
-		(P.is_on_floor()) and
-		(P.velocity.y <= 180 *1.905 / 100)
-		)# or snappedToStairLastFrame
+	return ((P.is_on_floor()) and (P.velocity.y <= 180 *1.905 / 100)) or snappedToStairsLastFrame
 
 
 ## PURPOSE: returns velocity affected by ground friction
@@ -234,6 +239,7 @@ func _unhandled_input(_event: InputEvent) -> void:
 
 func _ready() -> void:
 	setupCrouching()
+	setUpCastsStepCheck()
 
 
 
@@ -384,3 +390,54 @@ func clipVel(vel:Vector3,n: Vector3) -> Vector3:
 
 func isWallTooSteep(n) -> bool:
 	return n.angle_to(Vector3.UP) > P.floor_max_angle
+
+
+#region step up/down logic
+
+func setUpCastsStepCheck() -> void:
+	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp + 0.1, bBoxSize.z)
+	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.1 / -2, 0)
+	$stepUpRayCast.target_position.y = -(maxStepUp + 0.1)
+
+func stepDownCheck() -> void:
+	var steppedDown := bool(false)
+	var wasOnFloorLastFrame := bool(Engine.get_physics_frames() - lastFloored <= 2)
+	var isGroundBelow : bool = $stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0))
+	if !P.is_on_floor() and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+		var motionTestResult = PhysicsTestMotionResult3D.new()
+		if testMotion(P.global_transform, Vector3(0,-maxStepUp,0), motionTestResult) and isGroundBelow:
+			camComp.saveCamPos()
+			var translateY = motionTestResult.get_travel().y
+			P.position.y += translateY
+			P.apply_floor_snap()
+			steppedDown = true
+	snappedToStairsLastFrame = steppedDown
+
+func stepUpCheck(delta: float, newVel: Vector3) -> bool:
+	if not P.is_on_floor() and not snappedToStairsLastFrame: return false
+	if newVel.y > 0 or (newVel * Vector3(1,0,1)).length() == 0: return false
+	var expectedMotion = newVel * Vector3(1,0,1) * delta
+	var step_pos_with_clearance = P.global_transform.translated(expectedMotion + Vector3(0, maxStepUp * 2, 0))
+	var down_check_result = KinematicCollision3D.new()
+	if (P.test_move(step_pos_with_clearance, Vector3(0,-maxStepUp*2,0), down_check_result)
+	and (down_check_result.get_collider().is_class("StaticBody3D") or down_check_result.get_collider().is_class("CSGShape3D"))):
+		var step_height = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - P.global_position).y
+		if step_height > maxStepUp or step_height <= 0.01 or (down_check_result.get_position() - P.global_position).y > maxStepUp: return false
+		$stepUpRayCast.global_position = down_check_result.get_position() + Vector3(0,maxStepUp,0) + expectedMotion.normalized() * 0.1
+		$stepUpRayCast.force_raycast_update()
+		if $stepUpRayCast.is_colliding() and not isWallTooSteep($stepUpRayCast.get_collision_normal()):
+			camComp.saveCamPos()
+			P.global_position = step_pos_with_clearance.origin + down_check_result.get_travel()
+			P.apply_floor_snap()
+			snappedToStairsLastFrame = true
+			return true
+	return false
+
+func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
+	if !result: result = PhysicsTestMotionResult3D.new()
+	var params = PhysicsTestMotionParameters3D.new()
+	params.from = from
+	params.motion = motion
+	return PhysicsServer3D.body_test_motion(P.get_rid(), params, result)
+
+#endregion
