@@ -1,12 +1,21 @@
-[gd_scene load_steps=5 format=3 uid="uid://dhw3fl84sxq3n"]
+[gd_scene load_steps=8 format=3 uid="uid://dhw3fl84sxq3n"]
 
+[ext_resource type="Script" path="res://game/scenes/gameplay/Explosion.gd" id="1_3gyrs"]
 [ext_resource type="Shader" path="res://assets/shaders/wireframe.gdshader" id="1_qsr3j"]
+[ext_resource type="Script" path="res://game/scenes/gameplay/explosionVisualizer.gd" id="3_rafys"]
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_xn0ti"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_om51b"]
 radius = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0ymr2"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.666667, 0, 0.12549)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_78crr"]
 render_priority = 0
+next_pass = SubResource("StandardMaterial3D_0ymr2")
 shader = ExtResource("1_qsr3j")
 shader_parameter/wireColor = Color(1, 0.667, 0, 1)
 shader_parameter/wireWidth = 1.0
@@ -15,15 +24,23 @@ shader_parameter/wireWidth = 1.0
 material = SubResource("ShaderMaterial_78crr")
 radius = 1.0
 height = 2.0
-radial_segments = 16
-rings = 8
+radial_segments = 15
+rings = 15
 
 [node name="explosion" type="Node3D"]
+script = ExtResource("1_3gyrs")
 
-[node name="ShapeCast3D" type="ShapeCast3D" parent="."]
-shape = SubResource("SphereShape3D_xn0ti")
+[node name="detectionRange" type="ShapeCast3D" parent="."]
+shape = SubResource("SphereShape3D_om51b")
 target_position = Vector3(0, 0, 0)
 collision_mask = 2
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="vis" type="MeshInstance3D" parent="."]
 mesh = SubResource("SphereMesh_knkag")
+script = ExtResource("3_rafys")
+
+[node name="Timer" type="Timer" parent="vis"]
+wait_time = 5.0
+autostart = true
+
+[connection signal="timeout" from="vis/Timer" to="vis" method="delete"]

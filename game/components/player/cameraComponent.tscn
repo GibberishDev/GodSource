@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cyiu0e1dmxvm6"]
 
 [ext_resource type="Script" path="res://game/components/player/cameraComponent.gd" id="1_0jjcb"]
-[ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/cp_process/sky_trainyard_01.png" id="2_mrvaf"]
+[ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="2_mrvaf"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_0kdim"]
 panorama = ExtResource("2_mrvaf")
@@ -39,3 +39,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 environment = SubResource("Environment_vndf0")
 fov = 90.0
+
+[node name="RayCast3D" type="RayCast3D" parent="head/camSmoother/cam"]
+target_position = Vector3(0, 0, -50)
+debug_shape_thickness = 1

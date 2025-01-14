@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://xoo4gxbu2w3x"]
+
+[ext_resource type="Script" path="res://game/scenes/gameplay/projectiles/rocket.gd" id="1_qk3s1"]
+[ext_resource type="ArrayMesh" uid="uid://wbsmcd0p31r3" path="res://assets/meshes/rocket.res" id="2_fb8u4"]
+
+[node name="rocket" type="Node3D"]
+script = ExtResource("1_qk3s1")
+
+[node name="model" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_fb8u4")
+
+[node name="hitDetection" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.25)
+target_position = Vector3(0, 0, -0.55)
+collision_mask = 17

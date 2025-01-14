@@ -11,14 +11,15 @@ config_version=5
 [application]
 
 config/name="GodSource"
+config/version="0.0.1"
 run/main_scene="res://debug_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-PState="*res://game/classes/PlayerState.gd"
-CState="*res://game/classes/ClientState.gd"
+State="*res://game/classes/PlayerState.gd"
+ClientSettings="*res://game/classes/ClientState.gd"
 
 [display]
 
@@ -65,6 +66,15 @@ console={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":96,"key_label":0,"unicode":96,"location":0,"echo":false,"script":null)
 ]
 }
+attack1={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":1,"position":Vector2(162, 16),"global_position":Vector2(171, 62),"factor":1.0,"button_index":1,"canceled":false,"pressed":true,"double_click":false,"script":null)
+]
+}
+
+[input_devices]
+
+buffering/agile_event_flushing=true
 
 [layer_names]
 
@@ -73,11 +83,13 @@ console={
 3d_physics/layer_3="player_clip"
 3d_physics/layer_4="projectiles"
 3d_physics/layer_5="playerHurtBoxes"
+3d_physics/layer_6="triggers"
 
 [physics]
 
-3d/run_on_separate_thread=true
 common/physics_ticks_per_second=66
+common/max_physics_steps_per_frame=16
+3d/default_gravity=15.24
 
 [rendering]
 

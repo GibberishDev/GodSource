@@ -112,7 +112,6 @@ func processMovement(delta) -> void:
 	if !stepUpCheck(delta, newVel):
 		stepDownCheck()
 		if P.is_on_wall(): clipVel(newVel, P.get_wall_normal())
-		if (P.velocity * Vector3(1.0,0,1.0)).length() > groundMaxSpeed * 1.2: clipVel(newVel, P.get_floor_normal()) 
 		P.move_and_slide()
 	# print_rich("Speed: " + str((newVel * Vector3(1,0,1)).length() * 100 / 1.905) + " [color=red]X: " + str(newVel.x / 1.905 * 100) + "[/color] [color=#1080ff]Y: " + str(newVel.y / 1.905 * 100) + "[/color] [color=lime]Z: " + str(newVel.z / 1.905 * 100) + "[/color]")
 
@@ -207,8 +206,6 @@ func getSpeedMult() -> float:
 func accelAir(vel:Vector3,delta:float)->Vector3:
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
-	#This measure is in place to stop players from slowly climbing up non walkable walls but allow it when surfing with highj enough horizontal speed.
-	if (vel * Vector3(1,0,1)).length()/5 < 0.25 and isWallTooSteep(P.get_wall_normal()): return vel
 	var addSpeed = airMaxSpeed - currSpeed
 	if addSpeed >= 0:
 		vel += min(600 * delta, addSpeed) * dir
@@ -441,3 +438,23 @@ func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
 	return PhysicsServer3D.body_test_motion(P.get_rid(), params, result)
 
 #endregion
+
+func applyImpulse(dir: Vector3, amt: float) -> void:
+	print(Engine.get_process_frames(), " ", dir, " ", amt)
+	P.velocity += dir * amt
+
+@export_subgroup("Knockback")
+@export
+##General multiplier of knockback. each class in TF2 has their kncockback mult. Soldier while grounded has 5.0, while airborne 10.0, demoman has 9.0
+var knockbackMult := float(5.0)
+@export
+##Multiplier of knockback force.[br][color=#777][i]In source engine it is reffered as mass, despite being ratio to volume of bounding box while stanfing. And even then in tf2 it should be NOT 0.67 cause bounding box height got changed since release(from 55 hammer units to 62 hammer units high) but knockback mult kept as original to not mess up with mapping and knockback(explosive jumping in particular).  [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 13 Section 6 Projectiles and Knockback by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color]
+var crouchedKnockbackMult := float(0.67)
+@export
+##Multiplier of knockback while airborne
+var airborneKnockbackMult := float(10.0)
+@export
+##Damage resistance from self damage while explosive jumping. In TF2 explosions deal reduced self damage(If no enemies caught in the blast. Otherwise it deals full self damage). Soldier has 0.6 mult when airborne, 1.0 mult when NOT IN AIR(not in air makes way for super jumps from water. that way player takes most self damge which translates to most amount of knockback). Demoman has 75% no matter the state
+var selfBlastDamageReduction := float(1.0)
+@export
+var selfBlastDamageReductionAir := float(0.6)

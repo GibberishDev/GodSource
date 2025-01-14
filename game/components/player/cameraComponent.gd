@@ -85,3 +85,10 @@ func crouch() -> void:
 func uncrouch() -> void:
 	saveCamPos()
 	$head.position.y = cameraVewheight
+
+func getCamRot() -> Vector3:
+	return $head/camSmoother/cam.global_rotation
+
+func getCamDir() -> Vector3:
+	var dir : Vector3 = Vector3(0, 0, -1.0).rotated(Vector3.RIGHT, getCamRot().x).rotated(Vector3.UP,getCamRot().y)
+	return dir.normalized()
