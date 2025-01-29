@@ -1,7 +1,8 @@
-[gd_scene load_steps=22 format=3 uid="uid://dluhhxt83m48u"]
+[gd_scene load_steps=25 format=3 uid="uid://dluhhxt83m48u"]
 
 [ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/player.tscn" id="1_xgrqp"]
 [ext_resource type="Texture2D" uid="uid://bi3o0t61b5s8b" path="res://addons/kenney_prototype_textures/dark/texture_09.png" id="2_7a7cv"]
+[ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="3_4afoj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r7hnv"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -56,6 +57,12 @@ size = Vector3(0.953, 1.372, 0.953)
 [sub_resource type="BoxMesh" id="BoxMesh_jl5lc"]
 size = Vector3(0.953, 1.376, 0.953)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_5xxu7"]
+size = Vector3(2, 13.164, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b75a5"]
+size = Vector3(2, 13.164, 2)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_hqrbb"]
 size = Vector3(5, 5, 5)
 
@@ -75,7 +82,7 @@ shadow_enabled = true
 environment = SubResource("Environment_q7eai")
 
 [node name="playerRoot" parent="." instance=ExtResource("1_xgrqp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
 
 [node name="BOUNDARY GROUND" type="StaticBody3D" parent="."]
 
@@ -128,6 +135,14 @@ metadata/_edit_group_ = true
 [node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D6"]
 mesh = SubResource("BoxMesh_jl5lc")
 
+[node name="CollisionShape3D9" type="CollisionShape3D" parent="BOUNDARY GROUND"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 6.582, 2)
+shape = SubResource("BoxShape3D_5xxu7")
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D9"]
+mesh = SubResource("BoxMesh_b75a5")
+
 [node name="CollisionShape3D4" type="CollisionShape3D" parent="BOUNDARY GROUND"]
 transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 8, 0, 2)
 shape = SubResource("BoxShape3D_hqrbb")
@@ -143,3 +158,6 @@ shape = SubResource("ConvexPolygonShape3D_0qpd3")
 transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, 0, 0, 0)
 polygon = PackedVector2Array(-2.5, 0, 0, 2.6, 2.5, 0)
 depth = 20.0
+
+[node name="worldProp" parent="." instance=ExtResource("3_4afoj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.74281, 0.7, -1.32967)

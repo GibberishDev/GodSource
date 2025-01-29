@@ -21,7 +21,9 @@ size = Vector3(0.93, 1.58, 0.93)
 [node name="playerRoot" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 39
+floor_stop_on_slope = false
 floor_constant_speed = true
+floor_block_on_wall = false
 script = ExtResource("1_feh0e")
 
 [node name="playerBoundingBox" type="CollisionShape3D" parent="."]
@@ -37,5 +39,21 @@ mesh = SubResource("BoxMesh_w7af0")
 [node name="movementComponent" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
 bBox = NodePath("../playerBoundingBox")
 camComp = NodePath("../cameraComponent")
+bHopCheat = true
 
 [node name="cameraComponent" parent="." instance=ExtResource("3_eh4ln")]
+
+[node name="Control" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(2, 2)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

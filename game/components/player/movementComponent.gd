@@ -3,6 +3,7 @@
 class_name PlayerMovementComponent
 extends Node3D
 
+#region node references
 ## [CharacterBody3D] parent.
 @onready
 var P : CharacterBody3D = get_node("..")
@@ -12,12 +13,9 @@ var bBox : CollisionShape3D;
 ## Reference to camera component
 @export
 var camComp : Node3D
+#endregion
 
-
-func _physics_process(delta):
-	processMovement(delta)
-
-# Acceleration Variables
+#region Variables
 
 # [value] * 1.905 / 100 <- Closest conversion from hammer units to meters. "Hammer Unit" is Source Engine's distance measuring unit
 
@@ -25,61 +23,111 @@ func _physics_process(delta):
 
 ## Gravitational acceleration.[br][br]Gravity is applied each physics frame(unless grounded) in two parts to improve precision and mitigate difference caused by perfomance problems
 @export
-var gravity : float = 800 * 1.905 / 100
+var gravity := float(800 * 1.905 / 100)
 @export
-var jumpPower : float = 289 * 1.905 / 100
+## Impulse that given to player upon jumping.
+var jumpPower := float(289 * 1.905 / 100)
 @export_subgroup("Grounded Movement")
+@export
 ## Maximum speed while grounded. Default value is 240 HU/s which is TF2 Soldier's speed
+var groundMaxSpeed := float(240.0 * 1.905 / 100)
 @export
-var groundMaxSpeed : float = 240.0 * 1.905 / 100
 ## How fast player gains speed while grounded. Default value is just ten times bigger than groundMaxSpeed
+var groundAccel := float(2400.0 * 1.905 / 100)
 @export
-var groundAccel : float = 2400.0 * 1.905 / 100
 ## How fast player looses speed while grounded. Default value is 400 HU/s
+var groundFriction := float(400 * 1.905 / 100)
 @export
-var groundFriction : float = 400 * 1.905 / 100
 ## Any speed less than that value gets clipped. Player stops if moves slower than this value while on ground. Makes precise movements a bit more responsive
-@export
-var groundSpeedCutOff : float = 20 * 1.905 / 100
-## Limit Max velocity upon landing. This is to nerf bunnyhopping to stop players from achieveing speeds above limitMaxVelAmount values.
-@export
-var limitMaxVel : bool = false
-## Maximum velocity cap. If [i]limitMaxVel[/i] is set to [i][color=lime]true[/color][/i] this will make so player velocity limited to their groundMaxSpeed * limitMaxVelAmount
+var groundSpeedCutOff := float(20 * 1.905 / 100)
 @export_range(1.0, 2.0, 0.01, "or_greater")
-var limitMaxVelAmount : float = 1.2
-@export_subgroup("Airborne Movement")
-## Maximum speed player can get without air strafing. Default value is 30 HU/s
+## Maximum velocity cap. If [i]limitMaxVel[/i] is set to [i][color=lime]true[/color][/i] this will make so player velocity limited to their groundMaxSpeed * limitMaxVelAmount
+var limitMaxVelAmount := float(1.2)
 @export
-var airMaxSpeed : float = 30.0 * 1.905 / 100
-@export_subgroup("Movement flags")
-## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
-var useNullMovement : bool = true
 ## Detrmines maximum step up/down height
 var maxStepUp := float(0.35)
-var snappedToStairsLastFrame := bool(false)
-var lastFloored := -INF
+@export_subgroup("Airborne Movement")
+@export
+## Maximum speed player can get without air strafing. Default value is 30 HU/s
+var airMaxSpeed := float(30.0 * 1.905 / 100)
+@export
+##Determines how fast player needs to move upward to be considered airborne
+var upwardVelocityGate := float(180 * 1.905 /100);
+@export_subgroup("Movement flags")
+@export
+## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
+var useNullMovement := bool(true)
+@export
+## Enable and disable automatic BHopping. 
+var bHopCheat := bool(false)
+@export
+## Limit Max velocity upon landing. This is to nerf bunnyhopping to stop players from achieveing speeds above limitMaxVelAmount values.
+var limitMaxVel := bool(true)
 
-#SCRIPT VARIABLES
+## Variable that shows if player was snapped to floor due to step up/step down last frame
+var snappedToStairsLastFrame := bool(false)
+## variable of last physics frame when player was on floor to not apply floor snap more than needed
+var lastFloored := int(-INF)
+## This variable is Player grounded state. If TRUE player is grounded
+var grounded := bool(false)
+#endregion
+
+#region built-in functions and controlls
+var wishR := bool(false)
+var wishL := bool(false)
+var wishF := bool(false)
+var wishB := bool(false)
+var wishJump := bool(false)
+var wishCrouch := bool(false)
+##WishDir - player directional inputs mapped to vec2
 var wDir := Vector2.ZERO
 
-#STATE VARIABLES
-## This variable is Player grounded state. If TRUE player is grounded
-var grounded : bool = false
+func _ready() -> void:
+	setupCrouching()
+	setUpCastsStepCheck()
+	
+func _unhandled_input(_event: InputEvent) -> void:
+	if Input.is_action_pressed("crouch"):
+		wishCrouch = true
+	elif !Input.is_action_pressed("crouch"):
+		wishCrouch = false
+	wishR = Input.is_action_pressed("right")
+	wishL = Input.is_action_pressed("left")
+	wishF = Input.is_action_pressed("forward")
+	wishB = Input.is_action_pressed("back")
+	if Input.is_action_just_pressed("jump"):
+		wishJump = true
+	elif !Input.is_action_pressed("jump"):
+		wishJump = false
+	if Input.is_key_pressed(KEY_F1): Engine.time_scale = 0.1;
+	if Input.is_key_pressed(KEY_F2): Engine.time_scale = 1.0;
 
+func _physics_process(delta):
+	processMovement(delta)
+	#TODO: Move to hud component later.
+	%showpos.text = "Velocity [color=#f00]x: " + str(snapped(P.get_real_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_real_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_real_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped((P.get_real_velocity() * Vector3(1,0,1)).length() * 100 / 1.905, .01)) + " HU/s"
+#endregion
+
+#region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
 ## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
 func processMovement(delta) -> void:
 	#step 0: get current velocity
 	var newVel : Vector3 = P.velocity
 	#step 1: Check grounded
-	grounded = checkGrounded()
+	grounded = checkGrounded(newVel)
 	#step 2: Handle crouching
 	handleCrouching()
 	#step 3: Apply first half of gravity
 	if !grounded: newVel.y -= gravity / 2 * delta
 	#step 4: handle Jumping
 	newVel = handleJump(newVel)
-	#step 5: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
+	#stepo 5.1: added step to clip velocity here. Prevents velocity limiter from slowing down ramp sliding
+	if P.is_on_wall():
+		newVel = clipVel(newVel,P.get_wall_normal())
+	if P.is_on_floor() and (newVel * Vector3(1,0,1)).length() >= groundMaxSpeed * 1.2:
+		newVel = clipVel(newVel,P.get_floor_normal())
+	#step 5.2: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
 	if grounded and limitMaxVel:
 		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
 			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
@@ -89,37 +137,35 @@ func processMovement(delta) -> void:
 		newVel.y = 0.0
 	#step 7: apply acceleration
 	newVel = applyAcceleration(newVel, delta)
-	#step 8: Move and collide. In godot CharacterBody3D Does that automatically and without rewriting 3D physics it is close enough to just let move_and_slide() handle this
-	if P.is_on_wall():
-		newVel = clipVel(newVel,P.get_wall_normal())
-	if (newVel * Vector3(1.0,0,1.0)).length() > groundMaxSpeed * 1.2:
-		newVel = clipVel(newVel,P.get_floor_normal()) 
-	#step 9: Check for ground to stand on. Not the same implementation as in Source Engine
-	if grounded: P.apply_floor_snap()
+	#step 8: Move and collide
+	#step 9: Check for ground to stand on. Not the same implementation as in Source Engine. !!NOT NEEDED IN GODOT!!
 	#step 10: Apply second half of gravity
 	if !grounded: newVel.y -= gravity / 2 * delta
 	#step 11: Check grounded and if so set vertical velocity to 0
 	if grounded:
 		newVel.y = 0.0
-	#step 12: Limit max velocity
+	#step 12: Limit max velocity. Implemented to nerf bunny hopping in a week since TF2s release.
+	#Some games may benefit from bunny hopping but when heavy comes up to you with mach 5 speed, reved up and balsting your ass in 1 second... Nah...
 	if grounded and limitMaxVel:
 		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
 			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
-	#step 13: Handle triggers collision
-	#step 14: Update bounding box
-	#step 15: Handle projectiles
+	#step 13.1 Move and slide player here instaed of source engine table
 	P.velocity = newVel
 	if !stepUpCheck(delta, newVel):
 		stepDownCheck()
-		if P.is_on_wall(): clipVel(newVel, P.get_wall_normal())
 		P.move_and_slide()
-	# print_rich("Speed: " + str((newVel * Vector3(1,0,1)).length() * 100 / 1.905) + " [color=red]X: " + str(newVel.x / 1.905 * 100) + "[/color] [color=#1080ff]Y: " + str(newVel.y / 1.905 * 100) + "[/color] [color=lime]Z: " + str(newVel.z / 1.905 * 100) + "[/color]")
+	#step 13.2: Handle triggers collision - If hame has invisible triggers(like doors opening in tf2 this step is for checking the collision shapes with areas3D)
+	#step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
+	#step 15: Handle projectiles - !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! where server controll player movement and projectiles too
+#endregion
 
+#region grounded check
 ## PURPOSE: Update player grounded state. If player is on floor and not moving up too fast function returns True
-func checkGrounded() -> bool:
-	return ((P.is_on_floor()) and (P.velocity.y <= 180 *1.905 / 100)) or snappedToStairsLastFrame
+func checkGrounded(vel: Vector3) -> bool:
+	return ((P.is_on_floor()) and (vel.y <= upwardVelocityGate)) or snappedToStairsLastFrame
+#endregion
 
-
+#region friction
 ## PURPOSE: returns velocity affected by ground friction
 func applyFriction(vel, delta) -> Vector3:
 	var speed = (vel * Vector3(1,0,1)).length()
@@ -128,7 +174,9 @@ func applyFriction(vel, delta) -> Vector3:
 		var speedDrop = clippedSpeed * groundFriction * delta
 		vel *= max(speed - speedDrop, 0) / speed
 	return vel 
+#endregion
 
+#region acceleration
 ## PURPOSE: return modified velocity after accelerating
 func applyAcceleration(vel, delta) -> Vector3:
 	getWishDir()
@@ -203,54 +251,46 @@ func getSpeedMult() -> float:
 		mult *= 0.9
 	return mult
 
-func accelAir(vel:Vector3,delta:float)->Vector3:
+
+##PURPOSE: 
+func accelAir(vel: Vector3, delta: float) -> Vector3:
+	#roatating dir to face the camera direction
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	#getting current speed projection from velocity to desired direction
 	var currSpeed = vel.dot(dir)
-	var addSpeed = airMaxSpeed - currSpeed
+	var speedCap
+	if P.is_on_wall_only():
+		speedCap = min((600.0 * dir).length(), 0.85)
+	else:
+		speedCap = min((600.0 * dir).length(), airMaxSpeed)
+	var addSpeed = speedCap - currSpeed
+	#If we are not adding speed we are applying airFriction. That leads to uncapped speed while airborne
 	if addSpeed >= 0:
-		vel += min(600 * delta, addSpeed) * dir
+		vel += min(600.0 * delta, addSpeed) * dir
+	else:
+		var speed = (vel * Vector3(1,0,1)).length()
+		var speedDrop = speed * delta * 0.2
+		vel *= max(speed - speedDrop, 0) / speed
 	return vel
+#endregion
 
-var wishR := bool(false)
-var wishL := bool(false)
-var wishF := bool(false)
-var wishB := bool(false)
-var wishJump := bool(false)
-
-
-func _unhandled_input(_event: InputEvent) -> void:
-	if Input.is_action_pressed("crouch"):
-		wishCrouch = true
-	elif !Input.is_action_pressed("crouch"):
-		wishCrouch = false
-	wishR = Input.is_action_pressed("right")
-	wishL = Input.is_action_pressed("left")
-	wishF = Input.is_action_pressed("forward")
-	wishB = Input.is_action_pressed("back")
-	if Input.is_action_pressed("jump"):
-		wishJump = true
-	elif !Input.is_action_pressed("jump"):
-		wishJump = false
-	if Input.is_key_pressed(KEY_F1): Engine.time_scale = 0.1;
-	if Input.is_key_pressed(KEY_F2): Engine.time_scale = 1.0;
-
-func _ready() -> void:
-	setupCrouching()
-	setUpCastsStepCheck()
-
-
-
+#region jumping
 func handleJump(vel) -> Vector3:
+	if !grounded and wishJump and !bHopCheat:
+		wishJump = false
+		return vel
 	if wishJump and grounded and !crouched:
+		if !bHopCheat: wishJump = false
 		grounded = false
 		if crouching:
 			crouchJump()
-			if jumpCrouchBug: vel.y = jumpPower
+			if crouchJumpBug: vel.y = jumpPower
 			else: vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 		elif uncrouching:
-			vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 			if cTapEnabled:
-				cTap()
+				vel = cTap(vel)
+			else:
+				vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 		else:
 			vel.y = jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2)
 		if limitMaxVel:
@@ -258,37 +298,51 @@ func handleJump(vel) -> Vector3:
 				vel = ((vel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,vel.y,0)
 		return vel
 	return vel
+#endregion
 
 #region crouching
 #TODO: Move to variables space once done developing crouching
 @export_subgroup("Crouching")
 @export
+##How long it takes for player to coruch or ucrouch
 var crouchingAnimationTime : float = 0.15
 @export
+##How much ground movement sopeed is multiplied when crouching
 var crouchSpeedMultiplier : float = 0.3
 @export
 var bBoxHeightCrouched : float = 1.2
 ##Enable TF2 bug that allows to jump 2 hammer units higher if player crouch-jumps than jump crouches. If false crouch jumping and jump crouching is the same height[br][color=#777][i]This bug stems from small code error made by Valve. Usually half of one tick of gravity substracted from jump power when jumping. In case of crouch jumping it just isnt. If gravity is 0 impulse from jumping is the same. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=7z_p_RqLhkA]here[/url]
 @export
-var jumpCrouchBug : bool = true
+##Enables bugged behavior when crouch jumping is highier than jump crouching [color=#888]This behavior stem from Valve forgetting to substract 1 gravity tick from jump power. In TF2 that results in 2 hammer unit difference in jump height 0.04m  
+var crouchJumpBug : bool = true
 ##Enable TF2 bug that allows to jump, crouch in air and avoid upwards shift. If false player can jump as high as regular jump[br][color=#777][i]This bug stems from erronious behaviour. Regularly player should be shifted upwards when crouching in air. Since player havent finished uncrouching animation player then forced to stay crouched until space below player allows for uncrouching. That allows for closer to ground player origin calculation and explosions send player much highier. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=76HDJIWfVy4]here[/url]
 @export
+##Enable or disable bug from source engine that allows to crouch and shrink hitbox right on ground and bypass upwards shift to allows to get maximum blast foprce from explosive jumping
 var cTapEnabled : bool = true
+##State variable to show that player is in crouching down animation
 var crouching : bool = false
+##State variable to show that player is in uncrouching animation
 var uncrouching : bool = false
+##State variable that shows that player is crouched
 var crouched : bool = false
+##state variable that shows that player should be uncrouched as soon as world geometry allows it 
 var queueUncrouching : bool = false
-var wishCrouch : bool = false
 @onready
+##Timer node reference
 var uncrouchTimer : Timer = $uncrouching
 @onready
+##Timer node reference
 var crouchTimer : Timer = $crouching
 @onready
+##Reference to the shpaecast node that checks if uncrouching on ground is blocked
 var uncrouchCheckTop : ShapeCast3D = $uncrouchCastTop
 @onready
+##Reference to the shpaecast node that checks if uncrouching in air is blocked
 var uncrouchCheckBottom : ShapeCast3D = $uncrouchCastBottom
 @onready
+##Gets Vec3 size of player bounding box
 var bBoxSize : Vector3 = bBox.shape.size
+##State variable that shows that player was snapped to groun in last frame, aka should be grounded
 var crouchingStateLastFrame : bool = false
 
 func setupCrouching() -> void:
@@ -366,7 +420,7 @@ func crouchJump() -> void:
 	camComp.crouch()
 	P.position.y += bBoxSize.y - bBoxHeightCrouched
 
-func cTap() -> void:
+func cTap(vel: Vector3) -> Vector3:
 	crouchTimer.stop()
 	uncrouchTimer.stop()
 	crouched = true
@@ -376,25 +430,30 @@ func cTap() -> void:
 	bBox.position.y = bBoxHeightCrouched / 2
 	camComp.crouch()
 	queueUncrouching = true
+	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
 #endregion
 
-		
+#region velocity clip
+
+##PURPOSE: aligns velocity to the collideable geometry and reduces velocity based on angle of attack
 func clipVel(vel:Vector3,n: Vector3) -> Vector3:
 	var pushBack := vel.dot(n)
 	if pushBack >= 0: return vel
 	var change := n * pushBack
-	return (vel - change)
+	vel -= change
+	if vel.y >= upwardVelocityGate: grounded = false
+	return vel
+#endregion
 
-func isWallTooSteep(n) -> bool:
-	return n.angle_to(Vector3.UP) > P.floor_max_angle
-
-
-#region step up/down logic
+#region step up/down logic. Honestly some sort of black magic with testing motion before doing it...
 
 func setUpCastsStepCheck() -> void:
 	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp + 0.1, bBoxSize.z)
 	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.1 / -2, 0)
 	$stepUpRayCast.target_position.y = -(maxStepUp + 0.1)
+
+func isWallTooSteep(n) -> bool:
+	return n.angle_to(Vector3.UP) > P.floor_max_angle
 
 func stepDownCheck() -> void:
 	var steppedDown := bool(false)
@@ -439,11 +498,14 @@ func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
 
 #endregion
 
-func applyImpulse(dir: Vector3, amt: float) -> void:
-	print(Engine.get_process_frames(), " ", dir, " ", amt)
-	P.velocity += dir * amt
+#region external forces
 
-@export_subgroup("Knockback")
+func applyImpulse(dir: Vector3, amt: float) -> void:
+	P.velocity += dir * amt
+#endregion
+
+
+@export_subgroup("Knockback variables")
 @export
 ##General multiplier of knockback. each class in TF2 has their kncockback mult. Soldier while grounded has 5.0, while airborne 10.0, demoman has 9.0
 var knockbackMult := float(5.0)
@@ -457,4 +519,5 @@ var airborneKnockbackMult := float(10.0)
 ##Damage resistance from self damage while explosive jumping. In TF2 explosions deal reduced self damage(If no enemies caught in the blast. Otherwise it deals full self damage). Soldier has 0.6 mult when airborne, 1.0 mult when NOT IN AIR(not in air makes way for super jumps from water. that way player takes most self damge which translates to most amount of knockback). Demoman has 75% no matter the state
 var selfBlastDamageReduction := float(1.0)
 @export
+##Damage resistance from self damage while explosive jumping while airborne.
 var selfBlastDamageReductionAir := float(0.6)

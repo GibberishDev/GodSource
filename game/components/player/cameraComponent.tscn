@@ -38,7 +38,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 [node name="cam" type="Camera3D" parent="head/camSmoother"]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 environment = SubResource("Environment_vndf0")
-fov = 90.0
 
 [node name="RayCast3D" type="RayCast3D" parent="head/camSmoother/cam"]
 target_position = Vector3(0, 0, -50)

@@ -46,5 +46,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.565)
 collision_mask = 5
 hit_from_inside = true
 
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="showpos" type="RichTextLabel" parent="Control"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+bbcode_enabled = true
+fit_content = true
+
 [connection signal="timeout" from="uncrouching" to="." method="endUncrouch"]
 [connection signal="timeout" from="crouching" to="." method="endCrouch"]

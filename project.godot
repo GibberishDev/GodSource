@@ -29,6 +29,18 @@ window/size/mode=2
 
 enabled=PackedStringArray("res://addons/Todo_Manager/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg", "res://addons/kanban_tasks/plugin.cfg")
 
+[global_group]
+
+worldPropWeapon=""
+
+[importer_defaults]
+
+scene={
+"blender/materials/unpack_enabled": false,
+"gltf/embedded_image_handling": 3,
+"gltf/naming_version": 0
+}
+
 [input]
 
 forward={
@@ -84,6 +96,7 @@ buffering/agile_event_flushing=true
 3d_physics/layer_4="projectiles"
 3d_physics/layer_5="playerHurtBoxes"
 3d_physics/layer_6="triggers"
+3d_physics/layer_7="worldProps"
 
 [physics]
 

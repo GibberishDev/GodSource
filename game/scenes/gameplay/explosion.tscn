@@ -29,13 +29,15 @@ rings = 15
 
 [node name="explosion" type="Node3D"]
 script = ExtResource("1_3gyrs")
+debugShape = false
 
 [node name="detectionRange" type="ShapeCast3D" parent="."]
 shape = SubResource("SphereShape3D_om51b")
 target_position = Vector3(0, 0, 0)
-collision_mask = 2
+collision_mask = 66
 
 [node name="vis" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("SphereMesh_knkag")
 script = ExtResource("3_rafys")
 
