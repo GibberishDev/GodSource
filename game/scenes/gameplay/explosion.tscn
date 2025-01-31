@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dhw3fl84sxq3n"]
+[gd_scene load_steps=9 format=3 uid="uid://dhw3fl84sxq3n"]
 
 [ext_resource type="Script" path="res://game/scenes/gameplay/Explosion.gd" id="1_3gyrs"]
 [ext_resource type="Shader" path="res://assets/shaders/wireframe.gdshader" id="1_qsr3j"]
@@ -27,9 +27,12 @@ height = 2.0
 radial_segments = 15
 rings = 15
 
+[sub_resource type="SphereMesh" id="SphereMesh_dx0gw"]
+radius = 0.1
+height = 0.2
+
 [node name="explosion" type="Node3D"]
 script = ExtResource("1_3gyrs")
-debugShape = false
 
 [node name="detectionRange" type="ShapeCast3D" parent="."]
 shape = SubResource("SphereShape3D_om51b")
@@ -44,5 +47,8 @@ script = ExtResource("3_rafys")
 [node name="Timer" type="Timer" parent="vis"]
 wait_time = 5.0
 autostart = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="vis"]
+mesh = SubResource("SphereMesh_dx0gw")
 
 [connection signal="timeout" from="vis/Timer" to="vis" method="delete"]

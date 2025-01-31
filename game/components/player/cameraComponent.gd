@@ -61,7 +61,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func firstPersonCamera(e: InputEventMouseMotion) -> void:
 	$head.rotation.y -= e.screen_relative.x * sensX
-	$head/camSmoother/cam.rotation.x = clamp($head/camSmoother/cam.rotation.x - e.screen_relative.y * sensY, -deg_to_rad(89), deg_to_rad(90))
+	$head/camSmoother/cam.rotation.x = clamp($head/camSmoother/cam.rotation.x - e.screen_relative.y * sensY, -deg_to_rad(89), deg_to_rad(89))
 	lookDir = Vector3($head/camSmoother/cam.rotation.x, $head.rotation.y, 0)
 
 func saveCamPos() -> void:

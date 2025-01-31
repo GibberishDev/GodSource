@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://csqnb03ykde8d"]
+[gd_scene load_steps=6 format=3 uid="uid://csqnb03ykde8d"]
 
 [ext_resource type="Script" path="res://game/components/player/movementComponent.gd" id="1_wgakq"]
 
@@ -10,6 +10,13 @@ size = Vector3(0.93, 0.38, 0.93)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_aw8uq"]
 size = Vector3(0.93, 0.15, 0.93)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uexqq"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [node name="movementComponent" type="Node3D"]
 script = ExtResource("1_wgakq")
@@ -61,6 +68,7 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_uexqq")
 bbcode_enabled = true
 fit_content = true
 

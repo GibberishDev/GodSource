@@ -26,10 +26,10 @@ func _physics_process(_delta: float) -> void:
 		rocket.speed = 1100 * 1.905 / 100
 		var offset := Vector3.ZERO
 		if mvtComp.crouched:
-			offset = (Vector3(-12, 8, 23.5) * 1.905 / 100).rotated(Vector3.RIGHT, camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y)
+			offset = (Vector3(12, 8, -23.5) * 1.905 / 100).rotated(Vector3.RIGHT, camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y)
 		else:
-			offset = (Vector3(-12, -3, 23.5) * 1.905 / 100).rotated(Vector3.RIGHT, camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y)
-		rocket.position = camComp.get_node("head/camSmoother/cam").global_position + Vector3(8*1.905/100,-3*1.905/100,-23.5*1.905/100).rotated(Vector3.RIGHT, camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y)
+			offset = (Vector3(12, -3, -23.5) * 1.905 / 100).rotated(Vector3.RIGHT, camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y)
+		rocket.position = camComp.get_node("head/camSmoother/cam").global_position + offset
 		get_tree().root.add_child(rocket)
 		await get_tree().create_timer(attackDelay).timeout
 		attackDelayActive = false

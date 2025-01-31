@@ -39,7 +39,7 @@ var groundAccel := float(2400.0 * 1.905 / 100)
 var groundFriction := float(400 * 1.905 / 100)
 @export
 ## Any speed less than that value gets clipped. Player stops if moves slower than this value while on ground. Makes precise movements a bit more responsive
-var groundSpeedCutOff := float(20 * 1.905 / 100)
+var groundSpeedCutOff := float(100 * 1.905 / 100)
 @export_range(1.0, 2.0, 0.01, "or_greater")
 ## Maximum velocity cap. If [i]limitMaxVel[/i] is set to [i][color=lime]true[/color][/i] this will make so player velocity limited to their groundMaxSpeed * limitMaxVelAmount
 var limitMaxVelAmount := float(1.2)
@@ -105,7 +105,10 @@ func _unhandled_input(_event: InputEvent) -> void:
 func _physics_process(delta):
 	processMovement(delta)
 	#TODO: Move to hud component later.
-	%showpos.text = "Velocity [color=#f00]x: " + str(snapped(P.get_real_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_real_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_real_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped((P.get_real_velocity() * Vector3(1,0,1)).length() * 100 / 1.905, .01)) + " HU/s"
+	var text_comp = "Velocity: [color=#f00]x: " + str(snapped(P.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped((P.get_velocity() * Vector3(1,0,1)).length() * 100 / 1.905, .01)) + " HU/s"
+	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(P.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(P.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(P.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
+	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
+	%showpos.text = text_comp
 #endregion
 
 #region Main movement processor
@@ -126,6 +129,7 @@ func processMovement(delta) -> void:
 	if P.is_on_wall():
 		newVel = clipVel(newVel,P.get_wall_normal())
 	if P.is_on_floor() and (newVel * Vector3(1,0,1)).length() >= groundMaxSpeed * 1.2:
+		print("clipping ground")
 		newVel = clipVel(newVel,P.get_floor_normal())
 	#step 5.2: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
 	if grounded and limitMaxVel:
@@ -168,11 +172,20 @@ func checkGrounded(vel: Vector3) -> bool:
 #region friction
 ## PURPOSE: returns velocity affected by ground friction
 func applyFriction(vel, delta) -> Vector3:
-	var speed = (vel * Vector3(1,0,1)).length()
+	#if waterMove: return
+	var speed = vel.length()
+	var drop = 0
+	if speed < 0.001905: return Vector3.ZERO
 	if speed != 0.0:
-		var clippedSpeed = max(groundSpeedCutOff, speed)
-		var speedDrop = clippedSpeed * groundFriction * delta
-		vel *= max(speed - speedDrop, 0) / speed
+		var control = max(groundSpeedCutOff, speed)
+		drop = control * 4 * 0.8 * delta
+	var newSpeed = speed - drop
+	if newSpeed < 0 :
+		newSpeed = 0
+	if newSpeed != speed:
+		newSpeed /= speed 
+		vel *= newSpeed
+	vel -= (1.0 - newSpeed) * vel
 	return vel 
 #endregion
 
@@ -234,7 +247,6 @@ func getWishDir() -> void:
 		prevInputs = {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
 	wDir = wDir.normalized()
 
-
 func accelGround(vel:Vector3,delta:float)->Vector3:
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
@@ -251,9 +263,18 @@ func getSpeedMult() -> float:
 		mult *= 0.9
 	return mult
 
+#region air move
+
+func airMove(vel: Vector3, delta: float) -> Vector3:
+	
+	var move := Vector3(vel)
+	var forward = Vector3.BACK.rotated(Vector3.UP, camComp.getCamRot().y)
+	var side = forward.rotated(Vector3.UP, deg_to_rad(90.0))
+	return vel
 
 ##PURPOSE: 
 func accelAir(vel: Vector3, delta: float) -> Vector3:
+	airMove(vel, delta)
 	#roatating dir to face the camera direction
 	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	#getting current speed projection from velocity to desired direction

@@ -39,7 +39,6 @@ mesh = SubResource("BoxMesh_w7af0")
 [node name="movementComponent" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
 bBox = NodePath("../playerBoundingBox")
 camComp = NodePath("../cameraComponent")
-bHopCheat = true
 
 [node name="cameraComponent" parent="." instance=ExtResource("3_eh4ln")]
 

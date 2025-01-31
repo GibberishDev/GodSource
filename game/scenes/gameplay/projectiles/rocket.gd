@@ -18,7 +18,7 @@ func _physics_process(delta: float) -> void:
 		var expl = explosionScene.instantiate()
 		expl.position = $hitDetection.get_collision_point()
 		expl.baseDamage = 90.0 #TODO replace with weapon stats reading when inventory sytem is in place
-		expl.radius = 146 * 1.905 / 100 #TODO replace with weapon stats reading when inventory sytem is in place
+		expl.radius = 121.0 * 1.905 / 100.0 #TODO replace with weapon stats reading when inventory sytem is in place
 		get_tree().root.add_child(expl)
 		$trailParticles.end()
 		
