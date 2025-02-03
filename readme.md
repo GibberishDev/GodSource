@@ -18,6 +18,7 @@ KinematicBody3D movement template...
 * Inventory system ( or equipable items and weapons )
 * Code clean-up and exported variables for ease of use in-engine
 * In-engine documentation and readable code comments >.>
+* Basic health system
 
 ## Unplanned features but developer has wet dreams about em ( aka I would prob need to be full time dev, way about my paygrade(5 cookies and one mug of MUG) and knowledge ([me:](https://giphy.com/gifs/talk-warming-rpt-Q1aRmd8e90WIw)) to implement them. ) :
 * Netcode for Server <-> Client structure 💀
