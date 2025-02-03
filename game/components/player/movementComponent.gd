@@ -1,4 +1,4 @@
-##[b][color=#f0b000]!!! IMPORTANT !!![/color] - This component requires to be a child of [CharacterBody3D] to function properly[b][br][br]
+##[b][color=gold]!!! IMPORTANT !!![/color] - This component requires to be a child of [CharacterBody3D] to function properly[b][br][br]
 ##This component listens to user inputs to move parent node in 3D space. All default values aren an example implementation and are converted from TF2 and correspond to default movement of Soldier
 class_name PlayerMovementComponent
 extends Node3D
@@ -16,11 +16,8 @@ var camComp : Node3D
 #endregion
 
 #region Variables
-
 # [value] * 1.905 / 100 <- Closest conversion from hammer units to meters. "Hammer Unit" is Source Engine's distance measuring unit
-
 @export_category("Acceleration Variables")
-
 ## Gravitational acceleration.[br][br]Gravity is applied each physics frame(unless grounded) in two parts to improve precision and mitigate difference caused by perfomance problems
 @export
 var gravity := float(800 * 1.905 / 100)
@@ -63,16 +60,12 @@ var bHopCheat := bool(false)
 @export
 ## Limit Max velocity upon landing. This is to nerf bunnyhopping to stop players from achieveing speeds above limitMaxVelAmount values.
 var limitMaxVel := bool(true)
-
 ## Variable that shows if player was snapped to floor due to step up/step down last frame
 var snappedToStairsLastFrame := bool(false)
 ## variable of last physics frame when player was on floor to not apply floor snap more than needed
 var lastFloored := int(-INF)
 ## This variable is Player grounded state. If TRUE player is grounded
 var grounded := bool(false)
-#endregion
-
-#region built-in functions and controlls
 var wishR := bool(false)
 var wishL := bool(false)
 var wishF := bool(false)
@@ -81,7 +74,28 @@ var wishJump := bool(false)
 var wishCrouch := bool(false)
 ##WishDir - player directional inputs mapped to vec2
 var wDir := Vector2.ZERO
+##Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0 
+var stackedKnockback : Vector3 = Vector3.ZERO
+@export_subgroup("Knockback variables")
+@export
+##General multiplier of knockback. each class in TF2 has their kncockback mult. Soldier while grounded has 5.0, while airborne 10.0, demoman has 9.0
+var knockbackMult := float(5.0)
+@export
+##Multiplier of knockback force.[br][color=#777][i]In source engine it is reffered as mass, despite being ratio to volume of bounding box while stanfing. And even then in tf2 it should be NOT 0.67 cause bounding box height got changed since release(from 55 hammer units to 62 hammer units high) but knockback mult kept as original to not mess up with mapping and knockback(explosive jumping in particular).  [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 13 Section 6 Projectiles and Knockback by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color]
+var crouchedKnockbackMult := float(0.67)
+@export
+##Multiplier of knockback while airborne
+var airborneKnockbackMult := float(10.0)
+@export
+##Damage resistance from self damage while explosive jumping. In TF2 explosions deal reduced self damage(If no enemies caught in the blast. Otherwise it deals full self damage). Soldier has 0.6 mult when airborne, 1.0 mult when NOT IN AIR(not in air makes way for super jumps from water. that way player takes most self damge which translates to most amount of knockback). Demoman has 75% no matter the state
+var selfBlastDamageReduction := float(1.0)
+@export
+##Damage resistance from self damage while explosive jumping while airborne.
+var selfBlastDamageReductionAir := float(0.6)
+var justJumped := bool(false)
+#endregion
 
+#region built-in functions
 func _ready() -> void:
 	setupCrouching()
 	setUpCastsStepCheck()
@@ -110,42 +124,42 @@ func _physics_process(delta):
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
 	%showpos.text = text_comp
 #endregion
-var stackedKnockback : Vector3 = Vector3.ZERO
+
 #region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
 ## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
 func processMovement(delta) -> void:
 	#step 0: get current velocity
-	var newVel : Vector3 = P.velocity
-	#step 1: Check grounded
-	grounded = checkGrounded(newVel)
+	var newVel : Vector3 = P.get_velocity()
+	#step 1: become airborne if moving up too fast
+	if newVel.y >= upwardVelocityGate: grounded = false
 	#step 2: Handle crouching
 	handleCrouching()
 	#step 3: Apply first half of gravity
 	if !grounded: newVel.y -= gravity / 2 * delta
 	#step 4: handle Jumping
 	newVel = handleJump(newVel)
-	#stepo 5.1: added step to clip velocity here. Prevents velocity limiter from slowing down ramp sliding
-	if P.is_on_wall():
-		newVel = clipVel(newVel,P.get_wall_normal())
-	if P.is_on_floor() and (newVel * Vector3(1,0,1)).length() >= groundMaxSpeed * 1.2:
-		newVel = clipVel(newVel,P.get_floor_normal())
-	#step 5.2: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
+	#step 5: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
 	if grounded and limitMaxVel:
 		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
 			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
 	#step 6: if grounded - apply friction and set vertical velocity to 0
-	if grounded:
+	if grounded and !justJumped:
 		newVel = applyFriction(newVel, delta)
 		newVel.y = 0.0
 	#step 7: apply acceleration
 	newVel = applyAcceleration(newVel, delta)
 	#step 8: Move and collide
-	#step 9: Check for ground to stand on. Not the same implementation as in Source Engine. !!NOT NEEDED IN GODOT!!
-	#step 10: Apply second half of gravity
+	if P.is_on_wall():
+		newVel = clipVel(newVel,P.get_wall_normal())
+	if P.is_on_floor() and newVel.length() > (groundMaxSpeed + 0.01):
+		newVel = clipVel(newVel,P.get_floor_normal())
+	#step 9: Check for ground to stand on.
+	grounded = checkGrounded(newVel)
+	#step 10: Apply second half of gravity 
 	if !grounded: newVel.y -= gravity / 2 * delta
 	#step 11: Check grounded and if so set vertical velocity to 0
-	if grounded:
+	if grounded and !justJumped:
 		newVel.y = 0.0
 	#step 12: Limit max velocity. Implemented to nerf bunny hopping in a week since TF2s release.
 	#Some games may benefit from bunny hopping but when heavy comes up to you with mach 5 speed, reved up and balsting your ass in 1 second... Nah...
@@ -159,6 +173,7 @@ func processMovement(delta) -> void:
 	if !stepUpCheck(delta, newVel):
 		stepDownCheck()
 		P.move_and_slide()
+	justJumped = false
 	#step 13.2: Handle triggers collision - If hame has invisible triggers(like doors opening in tf2 this step is for checking the collision shapes with areas3D)
 	#step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
 	#step 15: Handle projectiles
@@ -190,6 +205,7 @@ func applyFriction(vel, delta) -> Vector3:
 	return vel 
 #endregion
 
+#TODO: Rename to player move for clarity
 #region acceleration
 ## PURPOSE: return modified velocity after accelerating
 func applyAcceleration(vel, delta) -> Vector3:
@@ -199,8 +215,9 @@ func applyAcceleration(vel, delta) -> Vector3:
 	else:
 		vel = airMove(vel, delta)
 	return vel
+#endregion
 
-
+#region ground movement
 #right is negative X, left is positive
 #back is negative Y, forward is positive
 ## PURPOSE: interprets user input
@@ -260,9 +277,10 @@ func getSpeedMult() -> float:
 	var mult = 1.0
 	if crouched:
 		mult *= crouchSpeedMultiplier
-	if wDir.y < 0:
+	if wDir == Vector2(0, -1):
 		mult *= 0.9
 	return mult
+#endregion
 
 #region air move
 
@@ -273,12 +291,10 @@ func airMove(vel: Vector3, delta: float) -> Vector3:
 	wishDir = wishDir.normalized()
 	#clamp to defined movespeed variable
 	if wishSpeed != 0 and (wishSpeed > 320 * 1.905 / 100):
-		wishVel *= 320 * 1.905 / 100/wishSpeed
+		wishVel *= 320 * 1.905 / 100 / wishSpeed
 		wishSpeed = 320 * 1.905 / 100
 	vel = accelAir(vel, wishDir, wishSpeed, 10, delta)
-
 	return vel
-
 
 func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: float) -> Vector3:
 	wSpeed = min(wSpeed, airMaxSpeed)
@@ -287,7 +303,6 @@ func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: fl
 	if addSpeed <= 0 : return vel
 	var accelSpeed = accel * 320 * 1.905 / 100 * delta
 	accelSpeed = min(accelSpeed, addSpeed)
-	print(accelSpeed * dir, " : ", Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y))
 	vel += accelSpeed * dir
 	return vel
 #endregion
@@ -299,7 +314,7 @@ func handleJump(vel) -> Vector3:
 		return vel
 	if wishJump and grounded and !crouched:
 		if !bHopCheat: wishJump = false
-		grounded = false
+		justJumped = true
 		if crouching:
 			crouchJump()
 			if crouchJumpBug: vel.y = jumpPower
@@ -452,59 +467,109 @@ func cTap(vel: Vector3) -> Vector3:
 #endregion
 
 #region velocity clip
-
 ##PURPOSE: aligns velocity to the collideable geometry and reduces velocity based on angle of attack
 func clipVel(vel:Vector3,n: Vector3) -> Vector3:
 	var pushBack := vel.dot(n)
 	if pushBack >= 0: return vel
 	var change := n * pushBack
 	vel -= change
-	if vel.y >= upwardVelocityGate: grounded = false
 	return vel
 #endregion
 
-#region step up/down logic. Honestly some sort of black magic with testing motion before doing it...
+#region step up/down logic. Honestly some sort of black magic with testing motion before doing it... 
 
+# In general its good if game can get by without step up or down. Its all tested over the years
+# and turns our sidden shot elevation changes and movement shooters do not mix well
+
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Method executed in [method _ready]. Sets up transforms of step up raycast and stepdown shapecast
+##[br]----------------------------------------
 func setUpCastsStepCheck() -> void:
-	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp + 0.1, bBoxSize.z)
-	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.1 / -2, 0)
-	$stepUpRayCast.target_position.y = -(maxStepUp + 0.1)
+	#making step down ShapeCast3D same saze as player bounding box and height of max step up length
+	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp, bBoxSize.z)
+	#positioning step down ShapeCast3D at the bottom of player bounding box
+	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.01/ -2, 0)
+	#making step up RayCast3d length be max step up length
+	$stepUpRayCast.target_position.y = -(maxStepUp)
 
-func isWallTooSteep(n) -> bool:
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
+##[b][u]ARGS[/u][/b]:[br] n - [Vector3] - normal of the wall
+##[br]----------------------------------------
+func isWallTooSteep(n: Vector3) -> bool:
+	#testing if surface angle is more than max walkable surface angle
 	return n.angle_to(Vector3.UP) > P.floor_max_angle
 
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Snaps player to ground upon walking off ledges shorter than max step up length
+##[br]----------------------------------------
 func stepDownCheck() -> void:
+	#reset state of stepping down
 	var steppedDown := bool(false)
-	var wasOnFloorLastFrame := bool(Engine.get_physics_frames() - lastFloored <= 2)
-	var isGroundBelow : bool = $stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0))
-	if !P.is_on_floor() and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+	#determine if player was on floor in last frame or current frame
+	var wasOnFloorLastFrame := bool(Engine.get_physics_frames() - lastFloored <= 1)
+	#see if ground below is close enough and wlkable to be stepped down
+	var isGroundBelow := bool($stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0)))
+	#if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
+	if !grounded and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+		#create new physics server test object
 		var motionTestResult = PhysicsTestMotionResult3D.new()
+		#ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
 		if testMotion(P.global_transform, Vector3(0,-maxStepUp,0), motionTestResult) and isGroundBelow:
+			#call camera smoothing method from [PlayerCameraComponent]
 			camComp.saveCamPos()
+			#get travel distance from motion test
 			var translateY = motionTestResult.get_travel().y
+			#tp player down
 			P.position.y += translateY
+			#align player to floor, just in case
 			P.apply_floor_snap()
+			#stepdown success
 			steppedDown = true
+	#Update if player was snapped to ground with state of the method
 	snappedToStairsLastFrame = steppedDown
 
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Moves player up if ledge height within step up length margin.[br][b][color=gold]!!IMPORTANT!! THIS METHOD MOVES PLAYER!
+##EXECUTING [method CharacterBody3D.move_and_slide] WILL RESULT IN ERRONIOS DOUBLE MOVEMENT![/color][br]
+##[b][u]ARGS[/u][/b]:[br] delta - [float] - delta time of last physics frame[br] newVel - [Vector3] - currently modifiable parent [CharacterBody3D] velocity[br]
+##[b][u]RETURN[/u][/b]:[br] [bool] - returns if step up was successful. Use this return to prevent double movent with [method CharacterBody3D.move_and_slide]
+##[br]----------------------------------------
 func stepUpCheck(delta: float, newVel: Vector3) -> bool:
-	if not P.is_on_floor() and not snappedToStairsLastFrame: return false
+	#if player is not grounded and wasnt snapped to floor: cancell
+	if !grounded and !snappedToStairsLastFrame: return false
+	#if moving up or not moving horizontally: cancell
 	if newVel.y > 0 or (newVel * Vector3(1,0,1)).length() == 0: return false
+	#project next motion using delta and current velocity
 	var expectedMotion = newVel * Vector3(1,0,1) * delta
+	#Predict next motion with step up in mind
 	var step_pos_with_clearance = P.global_transform.translated(expectedMotion + Vector3(0, maxStepUp * 2, 0))
+	#new physics collision check instance
 	var down_check_result = KinematicCollision3D.new()
+	#test if player can fit in desegnated place and ground is either StaticBody3D or god forbid CSGShape3D. I guess rn you couldnt step up other players...
 	if (P.test_move(step_pos_with_clearance, Vector3(0,-maxStepUp*2,0), down_check_result)
 	and (down_check_result.get_collider().is_class("StaticBody3D") or down_check_result.get_collider().is_class("CSGShape3D"))):
+		#determine travel distance
 		var step_height = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - P.global_position).y
+		#if travel distance is invalid: cancell
 		if step_height > maxStepUp or step_height <= 0.01 or (down_check_result.get_position() - P.global_position).y > maxStepUp: return false
+		#move raycast to the predicted motion destination
 		$stepUpRayCast.global_position = down_check_result.get_position() + Vector3(0,maxStepUp,0) + expectedMotion.normalized() * 0.1
+		#update raycast
 		$stepUpRayCast.force_raycast_update()
+		#check if step up spot is valid
 		if $stepUpRayCast.is_colliding() and not isWallTooSteep($stepUpRayCast.get_collision_normal()):
+			#call camera smoothing method from [PlayerCameraComponent]
 			camComp.saveCamPos()
+			#move player up the ledge
 			P.global_position = step_pos_with_clearance.origin + down_check_result.get_travel()
+			#align with the floor
 			P.apply_floor_snap()
+			#update state
 			snappedToStairsLastFrame = true
+			#on success send true which will cancell out move_and_slide
 			return true
+	#in case of fail just pass the method
 	return false
 
 func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
@@ -516,26 +581,14 @@ func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
 
 #endregion
 
-#region external forces
-
+#region applyImpulse(dir: Vector3, amt: float) -> void
+##----------------------------------------[br]
+## [u][b]PURPOSE[/u][/b]:[br] Adds knockback Vector3 impulses to be processed inside [method processMovement] at step 13[br]
+## [u][b]ARGS[/u][/b]:[br] dir - [Vector3] - direction of knockback[br] amt - [float] - multiplier of dir
+##[br]----------------------------------------
 func applyImpulse(dir: Vector3, amt: float) -> void:
 	stackedKnockback += dir * amt
 #endregion
 
-
-@export_subgroup("Knockback variables")
-@export
-##General multiplier of knockback. each class in TF2 has their kncockback mult. Soldier while grounded has 5.0, while airborne 10.0, demoman has 9.0
-var knockbackMult := float(5.0)
-@export
-##Multiplier of knockback force.[br][color=#777][i]In source engine it is reffered as mass, despite being ratio to volume of bounding box while stanfing. And even then in tf2 it should be NOT 0.67 cause bounding box height got changed since release(from 55 hammer units to 62 hammer units high) but knockback mult kept as original to not mess up with mapping and knockback(explosive jumping in particular).  [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 13 Section 6 Projectiles and Knockback by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color]
-var crouchedKnockbackMult := float(0.67)
-@export
-##Multiplier of knockback while airborne
-var airborneKnockbackMult := float(10.0)
-@export
-##Damage resistance from self damage while explosive jumping. In TF2 explosions deal reduced self damage(If no enemies caught in the blast. Otherwise it deals full self damage). Soldier has 0.6 mult when airborne, 1.0 mult when NOT IN AIR(not in air makes way for super jumps from water. that way player takes most self damge which translates to most amount of knockback). Demoman has 75% no matter the state
-var selfBlastDamageReduction := float(1.0)
-@export
-##Damage resistance from self damage while explosive jumping while airborne.
-var selfBlastDamageReductionAir := float(0.6)
+##----------------------------------------[br]
+##[br]----------------------------------------
