@@ -33,6 +33,7 @@ height = 0.2
 
 [node name="explosion" type="Node3D"]
 script = ExtResource("1_3gyrs")
+debugShape = false
 
 [node name="detectionRange" type="ShapeCast3D" parent="."]
 shape = SubResource("SphereShape3D_om51b")

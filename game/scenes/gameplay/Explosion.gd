@@ -61,7 +61,7 @@ func getTargets() -> Array:
 	return targets
 
 func explodePlayer(plr: Player) -> void:
-	#TODO: add health calculation
+	#TODO: add health damage calculation
 	var kbDir = getKnockbackDir(plr)
 	var kbAmt = getKnockbackAmt(plr)
 	plr.mvtComp.applyImpulse(kbDir, kbAmt)

@@ -12,7 +12,7 @@ config_version=5
 
 config/name="GodSource"
 config/version="0.0.1"
-run/main_scene="res://debug_scene.tscn"
+run/main_scene="res://assets/cp_process/cp_process_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -29,6 +29,12 @@ window/size/mode=2
 
 enabled=PackedStringArray("res://addons/Todo_Manager/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg", "res://addons/kanban_tasks/plugin.cfg")
 
+[file_customization]
+
+folder_colors={
+"res://assets/blender/": "orange"
+}
+
 [global_group]
 
 worldPropWeapon=""
@@ -39,6 +45,25 @@ scene={
 "blender/materials/unpack_enabled": false,
 "gltf/embedded_image_handling": 3,
 "gltf/naming_version": 0
+}
+texture={
+"compress/channel_pack": 0,
+"compress/hdr_compression": 1,
+"compress/high_quality": true,
+"compress/lossy_quality": 0.7,
+"compress/mode": 2,
+"compress/normal_map": 0,
+"detect_3d/compress_to": 0,
+"mipmaps/generate": true,
+"mipmaps/limit": -1,
+"process/fix_alpha_border": true,
+"process/hdr_as_srgb": false,
+"process/hdr_clamp_exposure": false,
+"process/normal_map_invert_y": false,
+"process/premult_alpha": false,
+"process/size_limit": 0,
+"roughness/mode": 0,
+"roughness/src_normal": ""
 }
 
 [input]
@@ -90,6 +115,7 @@ buffering/agile_event_flushing=true
 
 [layer_names]
 
+3d_render/layer_1="World"
 3d_physics/layer_1="world"
 3d_physics/layer_2="playerBBox"
 3d_physics/layer_3="player_clip"
@@ -102,7 +128,9 @@ buffering/agile_event_flushing=true
 
 common/physics_ticks_per_second=66
 3d/default_gravity=15.24
+jolt_3d/collisions/use_enhanced_internal_edge_removal=false
 
 [rendering]
 
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/screen_space_aa=1
+occlusion_culling/use_occlusion_culling=true

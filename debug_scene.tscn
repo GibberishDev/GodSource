@@ -1,163 +1,97 @@
-[gd_scene load_steps=25 format=3 uid="uid://dluhhxt83m48u"]
+[gd_scene load_steps=14 format=3 uid="uid://dluhhxt83m48u"]
 
+[ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="1_0pf3c"]
+[ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]
 [ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/player.tscn" id="1_xgrqp"]
-[ext_resource type="Texture2D" uid="uid://bi3o0t61b5s8b" path="res://addons/kenney_prototype_textures/dark/texture_09.png" id="2_7a7cv"]
-[ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="3_4afoj"]
+[ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="3_m8vag"]
+[ext_resource type="Shader" path="res://assets/simple_playground.gdshader" id="4_2dlc0"]
+[ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="5_2selr"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r7hnv"]
-sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
-ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21hgi"]
+panorama = ExtResource("1_0pf3c")
+energy_multiplier = 1.25
 
-[sub_resource type="Sky" id="Sky_ejxi4"]
-sky_material = SubResource("ProceduralSkyMaterial_r7hnv")
+[sub_resource type="Sky" id="Sky_v5lg0"]
+sky_material = SubResource("PanoramaSkyMaterial_21hgi")
 
-[sub_resource type="Environment" id="Environment_q7eai"]
+[sub_resource type="Environment" id="Environment_wn2uj"]
 background_mode = 2
-sky = SubResource("Sky_ejxi4")
-tonemap_mode = 2
-glow_enabled = true
+sky = SubResource("Sky_v5lg0")
 
-[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_by5qm"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6725u"]
+render_priority = 0
+shader = ExtResource("4_2dlc0")
+shader_parameter/M_PI = 3.14159
+shader_parameter/panorama_texture = ExtResource("1_0pf3c")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ry27d"]
-albedo_texture = ExtResource("2_7a7cv")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g733n"]
+albedo_texture = ExtResource("3_m8vag")
+metallic_specular = 0.0
+uv1_scale = Vector3(5.247, 5.247, 5.247)
 uv1_triplanar = true
 
-[sub_resource type="BoxMesh" id="BoxMesh_41n5f"]
-material = SubResource("StandardMaterial3D_ry27d")
-size = Vector3(60, 1, 60)
+[sub_resource type="QuadMesh" id="QuadMesh_5swpv"]
+material = SubResource("StandardMaterial3D_g733n")
+size = Vector2(255, 255)
+orientation = 1
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_27epp"]
-size = Vector3(0.953, 0.953, 0.953)
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_vqg8c"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_vl1e5"]
-size = Vector3(0.953, 0.953, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_b6qnh"]
-size = Vector3(0.953, 0.573, 0.953)
-
-[sub_resource type="BoxMesh" id="BoxMesh_1rcos"]
-size = Vector3(0.953, 0.573, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_tlx7u"]
-size = Vector3(5.047, 0.171, 0.953)
-
-[sub_resource type="BoxMesh" id="BoxMesh_s1jnx"]
-size = Vector3(5.047, 0.172, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_1msui"]
-size = Vector3(0.953, 1.333, 0.953)
-
-[sub_resource type="BoxMesh" id="BoxMesh_2neey"]
-size = Vector3(0.953, 1.333, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ru3hm"]
-size = Vector3(0.953, 1.372, 0.953)
-
-[sub_resource type="BoxMesh" id="BoxMesh_jl5lc"]
-size = Vector3(0.953, 1.376, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_5xxu7"]
-size = Vector3(2, 13.164, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_b75a5"]
-size = Vector3(2, 13.164, 2)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_hqrbb"]
-size = Vector3(5, 5, 5)
-
-[sub_resource type="BoxMesh" id="BoxMesh_fpj8d"]
-size = Vector3(5, 5, 5)
-
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_0qpd3"]
-points = PackedVector3Array(0, 0, -2.5, 0, 0, 2.5, 0, 2.6, 0, 20, 0, -2.5, 20, 0, 2.5, 20, 2.6, 0)
-
-[node name="Node3D" type="Node3D"]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
-shadow_enabled = true
+[node name="world" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_q7eai")
+environment = SubResource("Environment_wn2uj")
 
 [node name="playerRoot" parent="." instance=ExtResource("1_xgrqp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+floor_snap_length = 0.0
 
-[node name="BOUNDARY GROUND" type="StaticBody3D" parent="."]
+[node name="testmap" parent="." instance=ExtResource("1_ef8vj")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-shape = SubResource("WorldBoundaryShape3D_by5qm")
-metadata/_edit_group_ = true
+[node name="skybox" parent="testmap" index="0"]
+material_override = SubResource("ShaderMaterial_6725u")
+cast_shadow = 0
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-mesh = SubResource("BoxMesh_41n5f")
-skeleton = NodePath("../..")
+[node name="StaticBody3D" parent="testmap/skybox" index="0"]
+collision_mask = 90
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.477, 2)
-shape = SubResource("BoxShape3D_27epp")
-metadata/_edit_group_ = true
+[node name="sun" parent="testmap" index="3"]
+transform = Transform3D(0.422618, 0.694272, 0.582563, -8.752e-08, -0.642788, 0.766044, 0.906308, -0.323745, -0.271654, 0, 1.71728, 0)
+shadow_enabled = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D2"]
-mesh = SubResource("BoxMesh_vl1e5")
+[node name="Spot" parent="testmap/house" index="0"]
+light_bake_mode = 1
+shadow_enabled = true
+distance_fade_enabled = true
+distance_fade_begin = 19.05
+distance_fade_shadow = 28.58
+spot_range = 5.0
 
-[node name="CollisionShape3D8" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.287, 2)
-shape = SubResource("BoxShape3D_b6qnh")
-metadata/_edit_group_ = true
+[node name="Spot_001" parent="testmap/house" index="1"]
+light_bake_mode = 1
+shadow_enabled = true
+distance_fade_enabled = true
+distance_fade_begin = 19.05
+distance_fade_shadow = 28.58
+spot_range = 5.0
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D8"]
-mesh = SubResource("BoxMesh_1rcos")
+[node name="Spot_002" parent="testmap/house" index="2"]
+light_bake_mode = 1
+shadow_enabled = true
+distance_fade_enabled = true
+distance_fade_begin = 19.05
+distance_fade_shadow = 28.58
+spot_range = 5.0
 
-[node name="CollisionShape3D7" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.287, 2)
-shape = SubResource("BoxShape3D_tlx7u")
-metadata/_edit_group_ = true
+[node name="ground" type="StaticBody3D" parent="."]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D7"]
-mesh = SubResource("BoxMesh_s1jnx")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ground"]
+mesh = SubResource("QuadMesh_5swpv")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.667, 2)
-shape = SubResource("BoxShape3D_1msui")
-metadata/_edit_group_ = true
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ground"]
+shape = SubResource("WorldBoundaryShape3D_vqg8c")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D3"]
-mesh = SubResource("BoxMesh_2neey")
+[node name="weaponPropPipe" parent="." instance=ExtResource("5_2selr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 1, 8)
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.686, 2)
-shape = SubResource("BoxShape3D_ru3hm")
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D6"]
-mesh = SubResource("BoxMesh_jl5lc")
-
-[node name="CollisionShape3D9" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 6.582, 2)
-shape = SubResource("BoxShape3D_5xxu7")
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D9"]
-mesh = SubResource("BoxMesh_b75a5")
-
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 8, 0, 2)
-shape = SubResource("BoxShape3D_hqrbb")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="BOUNDARY GROUND/CollisionShape3D4"]
-mesh = SubResource("BoxMesh_fpj8d")
-
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="BOUNDARY GROUND"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, 2)
-shape = SubResource("ConvexPolygonShape3D_0qpd3")
-
-[node name="MeshInstance3D" type="CSGPolygon3D" parent="BOUNDARY GROUND/CollisionShape3D5"]
-transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, 0, 0, 0)
-polygon = PackedVector2Array(-2.5, 0, 0, 2.6, 2.5, 0)
-depth = 20.0
-
-[node name="worldProp" parent="." instance=ExtResource("3_4afoj")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.74281, 0.7, -1.32967)
+[editable path="testmap"]

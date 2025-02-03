@@ -2,27 +2,26 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnpns81nigm36"
-path.s3tc="res://.godot/imported/texture_01.png-2bf7db98e09b5b5073e8e8ca66419718.s3tc.ctex"
+uid="uid://bi42mg8x5ttcw"
+path="res://.godot/imported/white.png-f49db8f2bc85ecbb077d2442ae3933c2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/kenney_prototype_textures/orange/texture_01.png"
-dest_files=["res://.godot/imported/texture_01.png-2bf7db98e09b5b5073e8e8ca66419718.s3tc.ctex"]
+source_file="res://assets/blender/textures/white.png"
+dest_files=["res://.godot/imported/white.png-f49db8f2bc85ecbb077d2442ae3933c2.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

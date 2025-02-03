@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnpns81nigm36"
-path.s3tc="res://.godot/imported/texture_01.png-2bf7db98e09b5b5073e8e8ca66419718.s3tc.ctex"
+uid="uid://m013m1odiklx"
+path.bptc="res://.godot/imported/gray100.png-a6114fb8bd2cbafddbb7f9b14ec691a2.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,13 +11,13 @@ metadata={
 
 [deps]
 
-source_file="res://addons/kenney_prototype_textures/orange/texture_01.png"
-dest_files=["res://.godot/imported/texture_01.png-2bf7db98e09b5b5073e8e8ca66419718.s3tc.ctex"]
+source_file="res://assets/blender/textures/gray100.png"
+dest_files=["res://.godot/imported/gray100.png-a6114fb8bd2cbafddbb7f9b14ec691a2.bptc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

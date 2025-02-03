@@ -110,7 +110,7 @@ func _physics_process(delta):
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
 	%showpos.text = text_comp
 #endregion
-
+var stackedKnockback : Vector3 = Vector3.ZERO
 #region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
 ## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
@@ -129,7 +129,6 @@ func processMovement(delta) -> void:
 	if P.is_on_wall():
 		newVel = clipVel(newVel,P.get_wall_normal())
 	if P.is_on_floor() and (newVel * Vector3(1,0,1)).length() >= groundMaxSpeed * 1.2:
-		print("clipping ground")
 		newVel = clipVel(newVel,P.get_floor_normal())
 	#step 5.2: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
 	if grounded and limitMaxVel:
@@ -154,13 +153,15 @@ func processMovement(delta) -> void:
 		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
 			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
 	#step 13.1 Move and slide player here instaed of source engine table
+	newVel += stackedKnockback
+	stackedKnockback = Vector3.ZERO
 	P.velocity = newVel
 	if !stepUpCheck(delta, newVel):
 		stepDownCheck()
 		P.move_and_slide()
 	#step 13.2: Handle triggers collision - If hame has invisible triggers(like doors opening in tf2 this step is for checking the collision shapes with areas3D)
 	#step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
-	#step 15: Handle projectiles - !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! where server controll player movement and projectiles too
+	#step 15: Handle projectiles
 #endregion
 
 #region grounded check
@@ -196,7 +197,7 @@ func applyAcceleration(vel, delta) -> Vector3:
 	if grounded:
 		vel = accelGround(vel, delta)
 	else:
-		vel = accelAir(vel, delta)
+		vel = airMove(vel, delta)
 	return vel
 
 
@@ -266,32 +267,28 @@ func getSpeedMult() -> float:
 #region air move
 
 func airMove(vel: Vector3, delta: float) -> Vector3:
-	
-	var move := Vector3(vel)
-	var forward = Vector3.BACK.rotated(Vector3.UP, camComp.getCamRot().y)
-	var side = forward.rotated(Vector3.UP, deg_to_rad(90.0))
+	var wishVel = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	var wishDir = wishVel
+	var wishSpeed = wishDir.length()
+	wishDir = wishDir.normalized()
+	#clamp to defined movespeed variable
+	if wishSpeed != 0 and (wishSpeed > 320 * 1.905 / 100):
+		wishVel *= 320 * 1.905 / 100/wishSpeed
+		wishSpeed = 320 * 1.905 / 100
+	vel = accelAir(vel, wishDir, wishSpeed, 10, delta)
+
 	return vel
 
-##PURPOSE: 
-func accelAir(vel: Vector3, delta: float) -> Vector3:
-	airMove(vel, delta)
-	#roatating dir to face the camera direction
-	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
-	#getting current speed projection from velocity to desired direction
+
+func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: float) -> Vector3:
+	wSpeed = min(wSpeed, airMaxSpeed)
 	var currSpeed = vel.dot(dir)
-	var speedCap
-	if P.is_on_wall_only():
-		speedCap = min((600.0 * dir).length(), 0.85)
-	else:
-		speedCap = min((600.0 * dir).length(), airMaxSpeed)
-	var addSpeed = speedCap - currSpeed
-	#If we are not adding speed we are applying airFriction. That leads to uncapped speed while airborne
-	if addSpeed >= 0:
-		vel += min(600.0 * delta, addSpeed) * dir
-	else:
-		var speed = (vel * Vector3(1,0,1)).length()
-		var speedDrop = speed * delta * 0.2
-		vel *= max(speed - speedDrop, 0) / speed
+	var addSpeed = wSpeed - currSpeed
+	if addSpeed <= 0 : return vel
+	var accelSpeed = accel * 320 * 1.905 / 100 * delta
+	accelSpeed = min(accelSpeed, addSpeed)
+	print(accelSpeed * dir, " : ", Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y))
+	vel += accelSpeed * dir
 	return vel
 #endregion
 
@@ -522,7 +519,7 @@ func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
 #region external forces
 
 func applyImpulse(dir: Vector3, amt: float) -> void:
-	P.velocity += dir * amt
+	stackedKnockback += dir * amt
 #endregion
 
 

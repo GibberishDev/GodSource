@@ -1,31 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://cyiu0e1dmxvm6"]
+[gd_scene load_steps=2 format=3 uid="uid://cyiu0e1dmxvm6"]
 
 [ext_resource type="Script" path="res://game/components/player/cameraComponent.gd" id="1_0jjcb"]
-[ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="2_mrvaf"]
-
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_0kdim"]
-panorama = ExtResource("2_mrvaf")
-
-[sub_resource type="Sky" id="Sky_ovptd"]
-sky_material = SubResource("PanoramaSkyMaterial_0kdim")
-
-[sub_resource type="Environment" id="Environment_vndf0"]
-background_mode = 2
-sky = SubResource("Sky_ovptd")
-ambient_light_source = 3
-reflected_light_source = 2
-tonemap_mode = 1
-ssao_enabled = true
-ssil_enabled = true
-fog_mode = 1
-fog_light_color = Color(0.992157, 0.952941, 0.815686, 1)
-fog_density = 0.4
-fog_sky_affect = 0.0
-fog_depth_begin = 22.9
-fog_depth_end = 76.2
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.01
-volumetric_fog_sky_affect = 0.0
 
 [node name="cameraComponent" type="Node3D"]
 script = ExtResource("1_0jjcb")
@@ -37,7 +12,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [node name="cam" type="Camera3D" parent="head/camSmoother"]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
-environment = SubResource("Environment_vndf0")
 
 [node name="RayCast3D" type="RayCast3D" parent="head/camSmoother/cam"]
 target_position = Vector3(0, 0, -50)
