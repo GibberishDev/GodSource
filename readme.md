@@ -1,6 +1,9 @@
 KinematicBody3D movement template...
 <h1><center>GODSOURCE!</center></h1>
 
+## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
+
+
 ## As of this current commit this template has following features:
 * Ground movement
 * Null-movement ( or pesky modern name of SnapTap ) input interpretation

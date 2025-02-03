@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]
 [ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/player.tscn" id="1_xgrqp"]
 [ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="3_m8vag"]
-[ext_resource type="Shader" path="res://assets/simple_playground.gdshader" id="4_2dlc0"]
+[ext_resource type="Shader" path="res://assets/shaders/Skybox2D.gdshader" id="4_vnpp7"]
 [ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="5_2selr"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21hgi"]
@@ -18,10 +18,9 @@ sky_material = SubResource("PanoramaSkyMaterial_21hgi")
 background_mode = 2
 sky = SubResource("Sky_v5lg0")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_6725u"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0sw4b"]
 render_priority = 0
-shader = ExtResource("4_2dlc0")
-shader_parameter/M_PI = 3.14159
+shader = ExtResource("4_vnpp7")
 shader_parameter/panorama_texture = ExtResource("1_0pf3c")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g733n"]
@@ -49,7 +48,7 @@ floor_snap_length = 0.0
 [node name="testmap" parent="." instance=ExtResource("1_ef8vj")]
 
 [node name="skybox" parent="testmap" index="0"]
-material_override = SubResource("ShaderMaterial_6725u")
+material_override = SubResource("ShaderMaterial_0sw4b")
 cast_shadow = 0
 
 [node name="StaticBody3D" parent="testmap/skybox" index="0"]

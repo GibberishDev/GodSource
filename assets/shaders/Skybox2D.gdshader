@@ -2,7 +2,6 @@ shader_type spatial;
 render_mode blend_mix,depth_draw_opaque,cull_disabled,diffuse_burley,specular_disabled,unshaded,shadows_disabled,world_vertex_coords,ambient_light_disabled,depth_prepass_alpha;
 
 uniform sampler2D panorama_texture : source_color;
-uniform float M_PI = 3.14159265359;
 
 // Function from Godot source:  godot/drivers/gles3/shaders/cubemap_filter.glsl
 vec4 texturePanorama(vec3 normal, sampler2D pano) {
@@ -11,9 +10,9 @@ vec4 texturePanorama(vec3 normal, sampler2D pano) {
 			acos(normal.y));
 
 	if (st.x < 0.0)
-		st.x += M_PI * 2.0;
+		st.x += PI * 2.0;
 
-	st /= vec2(M_PI * 2.0, M_PI);
+	st /= vec2(PI * 2.0, PI);
 
 	return textureLod(pano, st, 0.0);
 }

@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://w1b60x55kb7s"]
 
 [ext_resource type="ArrayMesh" uid="uid://1gow8qouluug" path="res://assets/meshes/weapon_pipe.res" id="1_q2q3w"]
-[ext_resource type="Shader" path="res://game/scenes/worldProps/weapons/highlight.gdshader" id="1_v78jg"]
+[ext_resource type="Shader" path="res://assets/shaders/highlight.gdshader" id="1_v78jg"]
 [ext_resource type="Script" path="res://game/components/world/weaponPickupComponenet.gd" id="2_bih2o"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d3ogq"]
