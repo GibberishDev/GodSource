@@ -1,0 +1,24 @@
+KinematicBody3D movement template...
+<h1><center>GODSOURCE!</center></h1>
+
+## As of this current commit this template has following features:
+* Ground movement
+* Null-movement ( or pesky modern name of SnapTap ) input interpretation
+* Air strafing and source like gravity
+* Velocity clip
+* Explosion template which has TF2 values baked into it for as close as possible Soldier rocket jumping
+* Source engine crouch and jump system ( Including toggleable bugged behaviour 😉 )
+
+## Planned features that are not in code rn or being worked on:
+* water movement and object water physics similar to source engine
+* Physics props and source engine like prop grabbing
+* Inventory system ( or equipable items and weapons )
+* Code clean-up and exported variables for ease of use in-engine
+* In-engine documentation and readable code comments >.>
+
+## Unplanned features but developer has wet dreams about em ( aka I would prob need to be full time dev, way about my paygrade(5 cookies and one mug of MUG) and knowledge ([me:](https://giphy.com/gifs/talk-warming-rpt-Q1aRmd8e90WIw)) to implement them. ) :
+* Netcode for Server <-> Client structure 💀
+* Example model of character with inverse kinematics for 3rd person view or said multiplayer representation
+* (Optional module) Map creating tool with custom "brushes" for non-developers being able to contribute. Might be a plugin for Blender and Godot.
+* Custom classes for Player to declutter Player set-up
+
