@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://csqnb03ykde8d"]
 
-[ext_resource type="Script" path="res://game/components/player/movementComponent.gd" id="1_wgakq"]
+[ext_resource type="Script" path="res://game/components/player/GSMvtComp.gd" id="1_wgakq"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_jf4hd"]
 size = Vector3(0.93, 0.38, 0.93)
@@ -18,7 +18,7 @@ content_margin_right = 8.0
 content_margin_bottom = 8.0
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[node name="movementComponent" type="Node3D"]
+[node name="GSMvtComp" type="Node3D"]
 script = ExtResource("1_wgakq")
 
 [node name="uncrouching" type="Timer" parent="."]

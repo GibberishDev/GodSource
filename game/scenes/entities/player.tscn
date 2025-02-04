@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://game/scenes/entities/player.gd" id="1_feh0e"]
 [ext_resource type="Shader" path="res://assets/shaders/wireframe.gdshader" id="2_8d7xa"]
-[ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/movementComponent.tscn" id="2_oelm3"]
+[ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/GSMvtComp.tscn" id="2_oelm3"]
 [ext_resource type="PackedScene" uid="uid://cyiu0e1dmxvm6" path="res://game/components/player/cameraComponent.tscn" id="3_eh4ln"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_02tgl"]
@@ -36,7 +36,7 @@ visible = false
 cast_shadow = 0
 mesh = SubResource("BoxMesh_w7af0")
 
-[node name="movementComponent" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
+[node name="GSMvtComp" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
 bBox = NodePath("../playerBoundingBox")
 camComp = NodePath("../cameraComponent")
 

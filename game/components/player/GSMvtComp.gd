@@ -1,6 +1,6 @@
 ##[b][color=gold]!!! IMPORTANT !!![/color] - This component requires to be a child of [CharacterBody3D] to function properly[b][br][br]
 ##This component listens to user inputs to move parent node in 3D space. All default values aren an example implementation and are converted from TF2 and correspond to default movement of Soldier
-class_name PlayerMovementComponent
+class_name PlayerGSMvtComp
 extends Node3D
 
 #region node references
@@ -16,6 +16,9 @@ var camComp : Node3D
 #endregion
 
 #region Variables
+
+#TODO-IMPORTANT: MOVE MOST OF THE VARIABLES THAT ARE CONSIDERED CLASS SPECIFIC TO PLAYER SCRIPT AND CREATE METHODS FOR SET/GET THEM
+
 # [value] * 1.905 / 100 <- Closest conversion from hammer units to meters. "Hammer Unit" is Source Engine's distance measuring unit
 @export_category("Acceleration Variables")
 ## Gravitational acceleration.[br][br]Gravity is applied each physics frame(unless grounded) in two parts to improve precision and mitigate difference caused by perfomance problems
@@ -93,6 +96,48 @@ var selfBlastDamageReduction := float(1.0)
 ##Damage resistance from self damage while explosive jumping while airborne.
 var selfBlastDamageReductionAir := float(0.6)
 var justJumped := bool(false)
+@export_subgroup("Crouching")
+@export
+##How long it takes for player to coruch or ucrouch
+var crouchingAnimationTime : float = 0.15
+@export
+##How much ground movement sopeed is multiplied when crouching
+var crouchSpeedMultiplier : float = 0.3
+@export
+var bBoxHeightCrouched : float = 1.2
+##Enable TF2 bug that allows to jump 2 hammer units higher if player crouch-jumps than jump crouches. If false crouch jumping and jump crouching is the same height[br][color=#777][i]This bug stems from small code error made by Valve. Usually half of one tick of gravity substracted from jump power when jumping. In case of crouch jumping it just isnt. If gravity is 0 impulse from jumping is the same. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=7z_p_RqLhkA]here[/url]
+@export
+##Enables bugged behavior when crouch jumping is highier than jump crouching [color=#888]This behavior stem from Valve forgetting to substract 1 gravity tick from jump power. In TF2 that results in 2 hammer unit difference in jump height 0.04m  
+var crouchJumpBug : bool = true
+##Enable TF2 bug that allows to jump, crouch in air and avoid upwards shift. If false player can jump as high as regular jump[br][color=#777][i]This bug stems from erronious behaviour. Regularly player should be shifted upwards when crouching in air. Since player havent finished uncrouching animation player then forced to stay crouched until space below player allows for uncrouching. That allows for closer to ground player origin calculation and explosions send player much highier. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=76HDJIWfVy4]here[/url]
+@export
+##Enable or disable bug from source engine that allows to crouch and shrink hitbox right on ground and bypass upwards shift to allows to get maximum blast foprce from explosive jumping
+var cTapEnabled : bool = true
+##State variable to show that player is in crouching down animation
+var crouching : bool = false
+##State variable to show that player is in uncrouching animation
+var uncrouching : bool = false
+##State variable that shows that player is crouched
+var crouched : bool = false
+##state variable that shows that player should be uncrouched as soon as world geometry allows it 
+var queueUncrouching : bool = false
+@onready
+##Timer node reference
+var uncrouchTimer : Timer = $uncrouching
+@onready
+##Timer node reference
+var crouchTimer : Timer = $crouching
+@onready
+##Reference to the shpaecast node that checks if uncrouching on ground is blocked
+var uncrouchCheckTop : ShapeCast3D = $uncrouchCastTop
+@onready
+##Reference to the shpaecast node that checks if uncrouching in air is blocked
+var uncrouchCheckBottom : ShapeCast3D = $uncrouchCastBottom
+@onready
+##Gets Vec3 size of player bounding box
+var bBoxSize : Vector3 = bBox.shape.size
+##State variable that shows that player was snapped to groun in last frame, aka should be grounded
+var crouchingStateLastFrame : bool = false
 #endregion
 
 #region built-in functions
@@ -283,7 +328,6 @@ func getSpeedMult() -> float:
 #endregion
 
 #region air move
-
 func airMove(vel: Vector3, delta: float) -> Vector3:
 	var wishVel = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
 	var wishDir = wishVel
@@ -334,59 +378,15 @@ func handleJump(vel) -> Vector3:
 #endregion
 
 #region crouching
-#TODO: Move to variables space once done developing crouching
-@export_subgroup("Crouching")
-@export
-##How long it takes for player to coruch or ucrouch
-var crouchingAnimationTime : float = 0.15
-@export
-##How much ground movement sopeed is multiplied when crouching
-var crouchSpeedMultiplier : float = 0.3
-@export
-var bBoxHeightCrouched : float = 1.2
-##Enable TF2 bug that allows to jump 2 hammer units higher if player crouch-jumps than jump crouches. If false crouch jumping and jump crouching is the same height[br][color=#777][i]This bug stems from small code error made by Valve. Usually half of one tick of gravity substracted from jump power when jumping. In case of crouch jumping it just isnt. If gravity is 0 impulse from jumping is the same. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=7z_p_RqLhkA]here[/url]
-@export
-##Enables bugged behavior when crouch jumping is highier than jump crouching [color=#888]This behavior stem from Valve forgetting to substract 1 gravity tick from jump power. In TF2 that results in 2 hammer unit difference in jump height 0.04m  
-var crouchJumpBug : bool = true
-##Enable TF2 bug that allows to jump, crouch in air and avoid upwards shift. If false player can jump as high as regular jump[br][color=#777][i]This bug stems from erronious behaviour. Regularly player should be shifted upwards when crouching in air. Since player havent finished uncrouching animation player then forced to stay crouched until space below player allows for uncrouching. That allows for closer to ground player origin calculation and explosions send player much highier. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=76HDJIWfVy4]here[/url]
-@export
-##Enable or disable bug from source engine that allows to crouch and shrink hitbox right on ground and bypass upwards shift to allows to get maximum blast foprce from explosive jumping
-var cTapEnabled : bool = true
-##State variable to show that player is in crouching down animation
-var crouching : bool = false
-##State variable to show that player is in uncrouching animation
-var uncrouching : bool = false
-##State variable that shows that player is crouched
-var crouched : bool = false
-##state variable that shows that player should be uncrouched as soon as world geometry allows it 
-var queueUncrouching : bool = false
-@onready
-##Timer node reference
-var uncrouchTimer : Timer = $uncrouching
-@onready
-##Timer node reference
-var crouchTimer : Timer = $crouching
-@onready
-##Reference to the shpaecast node that checks if uncrouching on ground is blocked
-var uncrouchCheckTop : ShapeCast3D = $uncrouchCastTop
-@onready
-##Reference to the shpaecast node that checks if uncrouching in air is blocked
-var uncrouchCheckBottom : ShapeCast3D = $uncrouchCastBottom
-@onready
-##Gets Vec3 size of player bounding box
-var bBoxSize : Vector3 = bBox.shape.size
-##State variable that shows that player was snapped to groun in last frame, aka should be grounded
-var crouchingStateLastFrame : bool = false
-
 func setupCrouching() -> void:
-	uncrouchCheckTop.position.y = bBoxHeightCrouched + (bBoxSize.y - bBoxHeightCrouched) / 2
+	crouchTimer.wait_time          = crouchingAnimationTime
+	uncrouchTimer.wait_time        = crouchingAnimationTime
+	uncrouchCheckTop.position.y    = bBoxHeightCrouched + (bBoxSize.y - bBoxHeightCrouched) / 2
 	uncrouchCheckBottom.position.y = (bBoxSize.y - bBoxHeightCrouched) / -2
-	uncrouchCheckTop.shape.size = Vector3(bBoxSize.x,bBoxSize.y - bBoxHeightCrouched,bBoxSize.z)
+	uncrouchCheckTop.shape.size    = Vector3(bBoxSize.x,bBoxSize.y - bBoxHeightCrouched,bBoxSize.z)
 	uncrouchCheckBottom.shape.size = Vector3(bBoxSize.x,bBoxSize.y - bBoxHeightCrouched,bBoxSize.z)
 	uncrouchCheckTop.add_exception(P)
 	uncrouchCheckBottom.add_exception(P)
-	crouchTimer.wait_time = crouchingAnimationTime
-	uncrouchTimer.wait_time = crouchingAnimationTime
 
 func handleCrouching() -> void:
 	if crouched and !wishCrouch:
@@ -394,7 +394,6 @@ func handleCrouching() -> void:
 	if queueUncrouching:
 		if tryUncrouch():
 			queueUncrouching = false
-		else: pass
 	if crouchingStateLastFrame == wishCrouch : return
 	if wishCrouch:
 		queueUncrouching = false
@@ -467,20 +466,24 @@ func cTap(vel: Vector3) -> Vector3:
 #endregion
 
 #region velocity clip
-##PURPOSE: aligns velocity to the collideable geometry and reduces velocity based on angle of attack
-func clipVel(vel:Vector3,n: Vector3) -> Vector3:
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Method that alignes velocity along surface that allows for sliding along it. Leads to several bugs in source engine that define expressive movement. Among most importanat ones are "rampsliding" and "surfing"[br]
+##[b][u]ARGS[/u][/b]:[br] vel - [Vector3] - incoming velocity[br] n - [Vector3] - surface normal[br] overbounce - [float] - [color=gold]NULLABLE[/color] - multiplier of pushback force. In source engine games controlled with "sv_bounce" cheat[br]
+##[b][u]RETURN[/u][/b]:[br] [Vector3] - velocity aligned along the surface
+##[br]----------------------------------------
+func clipVel(vel: Vector3, n: Vector3, overbounce : float = 1.0) -> Vector3:
+	#get modified velocity
 	var pushBack := vel.dot(n)
+	#if negative - cancell
 	if pushBack >= 0: return vel
-	var change := n * pushBack
-	vel -= change
-	return vel
+	#get reflected velocity component
+	var change := n * pushBack * overbounce
+	#modify and return velocity
+	return vel - change
 #endregion
-
 #region step up/down logic. Honestly some sort of black magic with testing motion before doing it... 
-
-# In general its good if game can get by without step up or down. Its all tested over the years
-# and turns our sidden shot elevation changes and movement shooters do not mix well
-
+# -- In general its good if game can get by without step up or down. Its all tested over the years
+# -- and turns our sidden shot elevation changes and movement shooters do not mix well. use ramps instead.
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Method executed in [method _ready]. Sets up transforms of step up raycast and stepdown shapecast
 ##[br]----------------------------------------
@@ -491,7 +494,6 @@ func setUpCastsStepCheck() -> void:
 	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.01/ -2, 0)
 	#making step up RayCast3d length be max step up length
 	$stepUpRayCast.target_position.y = -(maxStepUp)
-
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
 ##[b][u]ARGS[/u][/b]:[br] n - [Vector3] - normal of the wall
@@ -499,7 +501,6 @@ func setUpCastsStepCheck() -> void:
 func isWallTooSteep(n: Vector3) -> bool:
 	#testing if surface angle is more than max walkable surface angle
 	return n.angle_to(Vector3.UP) > P.floor_max_angle
-
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Snaps player to ground upon walking off ledges shorter than max step up length
 ##[br]----------------------------------------
@@ -528,7 +529,6 @@ func stepDownCheck() -> void:
 			steppedDown = true
 	#Update if player was snapped to ground with state of the method
 	snappedToStairsLastFrame = steppedDown
-
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Moves player up if ledge height within step up length margin.[br][b][color=gold]!!IMPORTANT!! THIS METHOD MOVES PLAYER!
 ##EXECUTING [method CharacterBody3D.move_and_slide] WILL RESULT IN ERRONIOS DOUBLE MOVEMENT![/color][br]
@@ -571,16 +571,22 @@ func stepUpCheck(delta: float, newVel: Vector3) -> bool:
 			return true
 	#in case of fail just pass the method
 	return false
-
-func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
+##----------------------------------------[br]
+##[b][u]PURPOSE[/u][/b]:[br] Perfoms a test motion of Player parent with [method PhysicsServer3D.body_test_motion][br]
+##[b][u]ARGS[/u][/b]:[br] from - [Transform3D] - original body transform[br] motion - [Vector3D] - test motion destination[br] result - [PhysicsTestMotionResult3D] - [color=gold]NULLABLE[/color] - Describes the motion and collision result[br]
+##[b][u]RETURN[/u][/b]:[br] [bool] - returns if motion was successful 
+##[br]----------------------------------------
+func testMotion(from: Transform3D, motion: Vector3, result : PhysicsTestMotionResult3D = null) -> bool:
+	#if result is null instance new one
 	if !result: result = PhysicsTestMotionResult3D.new()
+	#instance new physcs motion params
 	var params = PhysicsTestMotionParameters3D.new()
+	#define motion in prams
 	params.from = from
 	params.motion = motion
+	#test motion
 	return PhysicsServer3D.body_test_motion(P.get_rid(), params, result)
-
 #endregion
-
 #region applyImpulse(dir: Vector3, amt: float) -> void
 ##----------------------------------------[br]
 ## [u][b]PURPOSE[/u][/b]:[br] Adds knockback Vector3 impulses to be processed inside [method processMovement] at step 13[br]
@@ -589,6 +595,3 @@ func testMotion(from: Transform3D, motion: Vector3, result = null) -> bool:
 func applyImpulse(dir: Vector3, amt: float) -> void:
 	stackedKnockback += dir * amt
 #endregion
-
-##----------------------------------------[br]
-##[br]----------------------------------------

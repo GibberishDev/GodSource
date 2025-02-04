@@ -72,7 +72,7 @@ func smoothCamera(delta:float) -> void:
 	if camSavedPos == null: return
 	$head/camSmoother.global_position.y = camSavedPos.y
 	$head/camSmoother.position.y = clampf($head/camSmoother.position.y, -.5, .5)
-	var moveAmt = max(P.velocity.length() * delta, P.get_node("movementComponent").groundMaxSpeed * P.get_node("movementComponent").getSpeedMult() / 2 * delta)
+	var moveAmt = max(P.velocity.length() * delta, P.get_node("GSMvtComp").groundMaxSpeed * P.get_node("GSMvtComp").getSpeedMult() / 2 * delta)
 	$head/camSmoother.position.y = move_toward($head/camSmoother.position.y, 0.0, moveAmt)
 	camSavedPos = $head/camSmoother.global_position
 	if $head/camSmoother.position.y == .0:

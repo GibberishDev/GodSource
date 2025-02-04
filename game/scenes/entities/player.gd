@@ -1,4 +1,4 @@
-class_name Player
+class_name GSPlayer
 extends CharacterBody3D
 
 ## This Is root of player class. It is what get modified by components.
@@ -11,7 +11,7 @@ var attackDelay := float(0.8)
 var attackDelayActive := bool(false)
 
 @onready
-var mvtComp : Node3D = get_node("movementComponent")
+var mvtComp : Node3D = get_node("GSMvtComp")
 @onready
 var camComp : Node3D = get_node("cameraComponent")
 @onready

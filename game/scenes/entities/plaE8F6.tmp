@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://game/scenes/entities/player.gd" id="1_feh0e"]
 [ext_resource type="Shader" path="res://assets/shaders/wireframe.gdshader" id="2_8d7xa"]
-[ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/GSMvtComp.tscn" id="2_oelm3"]
+[ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/movementComponent.tscn" id="2_oelm3"]
 [ext_resource type="PackedScene" uid="uid://cyiu0e1dmxvm6" path="res://game/components/player/cameraComponent.tscn" id="3_eh4ln"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_02tgl"]
@@ -21,7 +21,9 @@ size = Vector3(0.93, 1.58, 0.93)
 [node name="playerRoot" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 39
+floor_stop_on_slope = false
 floor_constant_speed = true
+floor_block_on_wall = false
 script = ExtResource("1_feh0e")
 
 [node name="playerBoundingBox" type="CollisionShape3D" parent="."]
@@ -39,3 +41,18 @@ bBox = NodePath("../playerBoundingBox")
 camComp = NodePath("../cameraComponent")
 
 [node name="cameraComponent" parent="." instance=ExtResource("3_eh4ln")]
+
+[node name="Control" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(2, 2)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

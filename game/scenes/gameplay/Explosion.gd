@@ -14,7 +14,7 @@ var baseDamage: float = 0.0
 @export
 var debugShape := bool(true)
 var damage: float = 0.0
-var projectileOwner: Player = null
+var projectileOwner: GSPlayer = null
 var particleScene = preload("res://game/scenes/particles/explosion.tscn")
 
 func _ready() -> void:
@@ -35,7 +35,7 @@ func explode() -> void:
 	var targets : Array = getTargets()
 	if targets == []: return
 	for i in range(targets.size()):
-		if targets[i] is Player:
+		if targets[i] is GSPlayer:
 			explodePlayer(targets[i])
 		if targets[i].is_in_group("worldPropWeapon") and targets[i] is RigidBody3D:
 			explodePhysProps(targets[i])
@@ -60,18 +60,18 @@ func getTargets() -> Array:
 		targets.append($detectionRange.get_collider(i))
 	return targets
 
-func explodePlayer(plr: Player) -> void:
+func explodePlayer(plr: GSPlayer) -> void:
 	#TODO: add health damage calculation
 	var kbDir = getKnockbackDir(plr)
 	var kbAmt = getKnockbackAmt(plr)
 	plr.mvtComp.applyImpulse(kbDir, kbAmt)
 
-func getKnockbackDir(plr: Player) -> Vector3:
+func getKnockbackDir(plr: GSPlayer) -> Vector3:
 	var explosionOrigin = self.global_position - Vector3(0, 10 * 1.905 / 100, 0) #Shift explosion oprigin down 10 hammer units to make it easier for explosions to "pop" players into air
 	$vis.global_position = explosionOrigin
 	return explosionOrigin.direction_to(plr.global_position + Vector3(0, plr.mvtComp.bBox.shape.size.y / 2.0, 0)) #return normalized vec3 with direction from shifted explosion origin to player
 
-func getKnockbackAmt(plr: Player) -> float:
+func getKnockbackAmt(plr: GSPlayer) -> float:
 	var kbDamage : float = baseDamage * (1 - 0.5 * min(global_position.distance_to(plr.global_position) / radius, 1)) #no falloff damage claculation for knockback power.
 	#Player mass is actually a scam and not mass at all. It is knockback multplier based on size of bounding box. and even then in TF2 its still a scam as it is now a fixed value
 	#Upon release it was ratio to "volume" of standing bOunding box size. In TF2 back then bounding box shrunk to 55 hammer units high instead of 62 nowadays. Original ratio was kept to be consistent with mapping

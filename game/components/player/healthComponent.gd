@@ -3,7 +3,7 @@ extends Node
 @onready
 var P : CharacterBody3D = get_node("..")
 @onready
-var mvmtComp : Node3D = P.get_node("movementComponent")
+var mvmtComp : Node3D = P.get_node("GSMvtComp")
 
 @export_category("Health")
 @export
