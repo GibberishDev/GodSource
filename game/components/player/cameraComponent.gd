@@ -5,6 +5,8 @@ extends Node3D
 ## [CharacterBody3D] parent.
 @onready
 var P : CharacterBody3D = get_node("..")
+@onready
+var mvtComp : PlayerGSMvtComp = P.get_node("GSMvtComp")
 
 
 @export_subgroup("Camera Settings")
@@ -32,6 +34,11 @@ var camSavedPos = null
 
 func _physics_process(delta: float) -> void:
 	smoothCamera(delta)
+	$vis.rotation.y = getCamRot().y + deg_to_rad(90)
+	var wDir : Vector3 = mvtComp.wDir
+	%flForwardMove.scale.z = wDir.x
+	%flUpMove.scale.y = wDir.y
+	%flSideMove.scale.x = -wDir.z
 
 func togglePointerLock() -> void:
 	if mouseCaptured:
@@ -52,6 +59,7 @@ func releasePointer() -> void:
 
 func _ready() -> void:
 	grabPointer()
+	$vis.visible = showAxis
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and mouseCaptured:
@@ -92,3 +100,6 @@ func getCamRot() -> Vector3:
 func getCamDir() -> Vector3:
 	var dir : Vector3 = Vector3(0, 0, -1.0).rotated(Vector3.RIGHT, getCamRot().x).rotated(Vector3.UP,getCamRot().y)
 	return dir.normalized()
+
+@export
+var showAxis := bool(false)

@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dij1ai2yttqy5" path="res://assets/cp_process/cp_process_final_worldspawn.glb" id="2_873o2"]
 [ext_resource type="PackedScene" uid="uid://dd7fbjg2vpv1a" path="res://assets/cp_process/cp_process_final_decals.glb" id="3_5exlb"]
 [ext_resource type="PackedScene" uid="uid://datkjmvmo4bps" path="res://assets/cp_process/cp_process_final_props.glb" id="4_c0lin"]
-[ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/player.tscn" id="5_oge5t"]
+[ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/GSPlayer.tscn" id="5_oge5t"]
 
 [node name="cp_process" type="Node3D"]
 

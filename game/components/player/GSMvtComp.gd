@@ -2,7 +2,6 @@
 ##This component listens to user inputs to move parent node in 3D space. All default values aren an example implementation and are converted from TF2 and correspond to default movement of Soldier
 class_name PlayerGSMvtComp
 extends Node3D
-
 #region node references
 ## [CharacterBody3D] parent.
 @onready
@@ -14,7 +13,6 @@ var bBox : CollisionShape3D;
 @export
 var camComp : Node3D
 #endregion
-
 #region Variables
 
 #TODO-IMPORTANT: MOVE MOST OF THE VARIABLES THAT ARE CONSIDERED CLASS SPECIFIC TO PLAYER SCRIPT AND CREATE METHODS FOR SET/GET THEM
@@ -76,7 +74,7 @@ var wishB := bool(false)
 var wishJump := bool(false)
 var wishCrouch := bool(false)
 ##WishDir - player directional inputs mapped to vec2
-var wDir := Vector2.ZERO
+var wDir := Vector3.ZERO
 ##Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0 
 var stackedKnockback : Vector3 = Vector3.ZERO
 @export_subgroup("Knockback variables")
@@ -139,7 +137,6 @@ var bBoxSize : Vector3 = bBox.shape.size
 ##State variable that shows that player was snapped to groun in last frame, aka should be grounded
 var crouchingStateLastFrame : bool = false
 #endregion
-
 #region built-in functions
 func _ready() -> void:
 	setupCrouching()
@@ -169,7 +166,6 @@ func _physics_process(delta):
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
 	%showpos.text = text_comp
 #endregion
-
 #region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
 ## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
@@ -223,13 +219,13 @@ func processMovement(delta) -> void:
 	#step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
 	#step 15: Handle projectiles
 #endregion
-
 #region grounded check
 ## PURPOSE: Update player grounded state. If player is on floor and not moving up too fast function returns True
 func checkGrounded(vel: Vector3) -> bool:
-	return ((P.is_on_floor()) and (vel.y <= upwardVelocityGate)) or snappedToStairsLastFrame
+	var state = ((P.is_on_floor()) and (vel.y <= upwardVelocityGate)) or snappedToStairsLastFrame
+	if state: lastFloored = Engine.get_physics_frames()
+	return state
 #endregion
-
 #region friction
 ## PURPOSE: returns velocity affected by ground friction
 func applyFriction(vel, delta) -> Vector3:
@@ -249,7 +245,6 @@ func applyFriction(vel, delta) -> Vector3:
 	vel -= (1.0 - newSpeed) * vel
 	return vel 
 #endregion
-
 #TODO: Rename to player move for clarity
 #region acceleration
 ## PURPOSE: return modified velocity after accelerating
@@ -261,57 +256,57 @@ func applyAcceleration(vel, delta) -> Vector3:
 		vel = airMove(vel, delta)
 	return vel
 #endregion
-
 #region ground movement
 #right is negative X, left is positive
 #back is negative Y, forward is positive
 ## PURPOSE: interprets user input
 var prevInputs := {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
 func getWishDir() -> void:
-	if P.uiFocused: wDir = Vector2.ZERO;return
+	if P.uiFocused: wDir = Vector3.ZERO;return
 	if !useNullMovement:
-		wDir = Vector2(
-			int(wishL) - int(wishR),
-			int(wishF) - int(wishB)
+		wDir = Vector3(
+			int(wishF) - int(wishB),
+			0,
+			int(wishR) - int(wishL)
 		)
 	else:
-		if !wishR:
-			if wishL: wDir.x = 1
-			else: wDir.x = 0
-		if !wishL:
-			if wishR: wDir.x = -1
-			else: wDir.x = 0
-		if !wishF:
-			if wishB: wDir.y = -1
-			else: wDir.y = 0
-		if !wishB:
-			if wishF: wDir.y = 1
-			else: wDir.y = 0
-		if prevInputs["R"] == false and wishR:
-			wDir.x = -1
-		if prevInputs["R"] == true and !wishR:
-			if wishL: wDir.x = 1
-			else: wDir.x = 0
-		if prevInputs["L"] == false and wishL:
-			wDir.x = 1
-		if prevInputs["L"] == true and !wishL:
-			if wishR: wDir.x = -1
-			else: wDir.x = 0
-		if prevInputs["F"] == false and wishF:
-			wDir.y = 1
-		if prevInputs["F"] == true and !wishF:
-			if wishB: wDir.y = -1
-			else: wDir.y = 0
-		if prevInputs["B"] == false and wishB:
-			wDir.y = -1
-		if prevInputs["B"] == true and !wishB:
-			if wishF: wDir.y = 1
-			else: wDir.y = 0
+		#right is +z
+		#left is -z
+		#forward is +x
+		#back is -x
+		if prevInputs["R"] != wishR:
+			if wishR:
+				wDir.z = 1
+			elif wishL:
+				wDir.z = -1
+			else:
+				wDir.z = 0
+		if prevInputs["L"] != wishL:
+			if wishL:
+				wDir.z = -1
+			elif wishR:
+				wDir.z = 1
+			else:
+				wDir.z = 0
+		if prevInputs["F"] != wishF:
+			if wishF:
+				wDir.x = 1
+			elif wishB:
+				wDir.x = -1
+			else:
+				wDir.x = 0
+		if prevInputs["B"] != wishB:
+			if wishB:
+				wDir.x = -1
+			elif wishF:
+				wDir.x = 1
+			else:
+				wDir.x = 0
 		prevInputs = {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
-	wDir = wDir.normalized()
+	# wDir = wDir.normalized()
 
 func accelGround(vel:Vector3,delta:float)->Vector3:
-	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	var dir = wDir.normalized().rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
 	var speedMult = getSpeedMult()
 	var addSpeed = clamp(0, groundAccel * delta * speedMult, groundMaxSpeed * speedMult - currSpeed)
@@ -322,14 +317,13 @@ func getSpeedMult() -> float:
 	var mult = 1.0
 	if crouched:
 		mult *= crouchSpeedMultiplier
-	if wDir == Vector2(0, -1):
+	if wDir.normalized() == Vector3( -1, wDir.y, 0):
 		mult *= 0.9
 	return mult
 #endregion
-
 #region air move
 func airMove(vel: Vector3, delta: float) -> Vector3:
-	var wishVel = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	var wishVel = wDir.normalized().rotated(Vector3.UP, camComp.lookDir.y)
 	var wishDir = wishVel
 	var wishSpeed = wishDir.length()
 	wishDir = wishDir.normalized()
@@ -350,7 +344,6 @@ func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: fl
 	vel += accelSpeed * dir
 	return vel
 #endregion
-
 #region jumping
 func handleJump(vel) -> Vector3:
 	if !grounded and wishJump and !bHopCheat:
@@ -376,8 +369,10 @@ func handleJump(vel) -> Vector3:
 		return vel
 	return vel
 #endregion
-
 #region crouching
+
+#TODO: try to consolidate methods to shrink code
+
 func setupCrouching() -> void:
 	crouchTimer.wait_time          = crouchingAnimationTime
 	uncrouchTimer.wait_time        = crouchingAnimationTime
@@ -464,8 +459,9 @@ func cTap(vel: Vector3) -> Vector3:
 	queueUncrouching = true
 	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
 #endregion
-
 #region velocity clip
+#TODO: Check valve implementation. I suspect some differences with how friction is applied,
+#      which leads to behavior different from source engine ramp sliding
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Method that alignes velocity along surface that allows for sliding along it. Leads to several bugs in source engine that define expressive movement. Among most importanat ones are "rampsliding" and "surfing"[br]
 ##[b][u]ARGS[/u][/b]:[br] vel - [Vector3] - incoming velocity[br] n - [Vector3] - surface normal[br] overbounce - [float] - [color=gold]NULLABLE[/color] - multiplier of pushback force. In source engine games controlled with "sv_bounce" cheat[br]
@@ -512,7 +508,7 @@ func stepDownCheck() -> void:
 	#see if ground below is close enough and wlkable to be stepped down
 	var isGroundBelow := bool($stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0)))
 	#if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
-	if !P.is_on_floor() and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+	if !grounded and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
 		#create new physics server test object
 		var motionTestResult = PhysicsTestMotionResult3D.new()
 		#ask physics server testmotion if player can conplete step down movement and if there is ground to step down to

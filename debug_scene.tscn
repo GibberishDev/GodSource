@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="1_0pf3c"]
 [ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]
-[ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/player.tscn" id="1_xgrqp"]
+[ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/GSPlayer.tscn" id="1_xgrqp"]
 [ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="3_m8vag"]
 [ext_resource type="Shader" path="res://assets/shaders/Skybox2D.gdshader" id="4_vnpp7"]
 [ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="5_2selr"]
