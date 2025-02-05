@@ -1,3 +1,9 @@
 .godot/
 .vscode/
 .valveSourceCode/
+addons/script-ide
+addons/gd-blender-3d-shortcuts
+addons/Todo_Manager
+temp/
+tests/
+
