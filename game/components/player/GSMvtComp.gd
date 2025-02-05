@@ -489,11 +489,11 @@ func clipVel(vel: Vector3, n: Vector3, overbounce : float = 1.0) -> Vector3:
 ##[br]----------------------------------------
 func setUpCastsStepCheck() -> void:
 	#making step down ShapeCast3D same saze as player bounding box and height of max step up length
-	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp, bBoxSize.z)
+	$stepDownShapeCast.shape.size = Vector3(bBoxSize.x, maxStepUp + 0.1, bBoxSize.z)
 	#positioning step down ShapeCast3D at the bottom of player bounding box
-	$stepDownShapeCast.position = Vector3(0, maxStepUp + 0.01/ -2, 0)
+	$stepDownShapeCast.position = Vector3(0, (maxStepUp + 0.1)/ -2, 0)
 	#making step up RayCast3d length be max step up length
-	$stepUpRayCast.target_position.y = -(maxStepUp)
+	$stepUpRayCast.target_position.y = -(maxStepUp + 0.1)
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
 ##[b][u]ARGS[/u][/b]:[br] n - [Vector3] - normal of the wall
@@ -508,11 +508,11 @@ func stepDownCheck() -> void:
 	#reset state of stepping down
 	var steppedDown := bool(false)
 	#determine if player was on floor in last frame or current frame
-	var wasOnFloorLastFrame := bool(Engine.get_physics_frames() - lastFloored <= 1)
+	var wasOnFloorLastFrame := bool(Engine.get_physics_frames() - lastFloored <= 2)
 	#see if ground below is close enough and wlkable to be stepped down
 	var isGroundBelow := bool($stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0)))
 	#if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
-	if !grounded and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+	if !P.is_on_floor() and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
 		#create new physics server test object
 		var motionTestResult = PhysicsTestMotionResult3D.new()
 		#ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
@@ -537,7 +537,7 @@ func stepDownCheck() -> void:
 ##[br]----------------------------------------
 func stepUpCheck(delta: float, newVel: Vector3) -> bool:
 	#if player is not grounded and wasnt snapped to floor: cancell
-	if !grounded and !snappedToStairsLastFrame: return false
+	if !P.is_on_floor() and !snappedToStairsLastFrame: return false
 	#if moving up or not moving horizontally: cancell
 	if newVel.y > 0 or (newVel * Vector3(1,0,1)).length() == 0: return false
 	#project next motion using delta and current velocity
