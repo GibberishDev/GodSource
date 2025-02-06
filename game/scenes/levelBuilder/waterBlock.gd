@@ -12,8 +12,12 @@ func setSize(val: Vector3i) -> void:
 	%vis.position.y = cubeSize.y * 1.905 / 200
 	%shape.shape.size = cubeSize * 1.905 / 100
 	%shape.position.y = cubeSize.y * 1.905 / 200
-	bot = global_position.y
-	top = bot + (val.y * 1.905 / 100)
 
+func _ready() -> void:
+	bot = global_position.y
+	top = bot + (cubeSize.y * 1.905 / 100)
+
+@export
+var waterDrag : float = 0.0
 var top : float = 0.0
 var bot : float = 0.0

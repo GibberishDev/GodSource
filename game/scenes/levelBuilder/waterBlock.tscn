@@ -9,9 +9,11 @@ shading_mode = 0
 albedo_color = Color(0.1833, 0.248755, 0.39, 0.462745)
 
 [sub_resource type="BoxMesh" id="BoxMesh_q558r"]
+resource_local_to_scene = true
 size = Vector3(0.9525, 0.9525, 0.9525)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_si5no"]
+resource_local_to_scene = true
 size = Vector3(0.9525, 0.9525, 0.9525)
 
 [node name="WaterBlock" type="Node3D"]

@@ -15,3 +15,11 @@ enum WATER_LEVEL {
 	WL_WAIST, #in water waist high, watermove rules apply plus can extinguish players
 	WL_EYES #fully submerged. swimming and sinking
 }
+
+enum MOVE_TYPE {
+	NOCLIP,
+	WALK,
+	SWIM,
+	AIRBORNE,
+	BLAST
+}
