@@ -18,8 +18,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-State="*res://game/classes/PlayerState.gd"
-ClientSettings="*res://game/classes/ClientState.gd"
+GSCSettings="*res://game/classes/ClientState.gd"
 
 [display]
 
@@ -38,6 +37,7 @@ folder_colors={
 [global_group]
 
 worldPropWeapon=""
+liquid="Group for player passable areas that will force player into water movement"
 
 [importer_defaults]
 
@@ -123,6 +123,7 @@ buffering/agile_event_flushing=true
 3d_physics/layer_5="playerHurtBoxes"
 3d_physics/layer_6="triggers"
 3d_physics/layer_7="worldProps"
+3d_physics/layer_9="playerTrigger"
 
 [physics]
 

@@ -250,6 +250,9 @@ func applyFriction(vel, delta) -> Vector3:
 ## PURPOSE: return modified velocity after accelerating
 func applyAcceleration(vel, delta) -> Vector3:
 	getWishDir()
+
+	vel = waterMove(vel, delta)
+
 	if grounded:
 		vel = accelGround(vel, delta)
 	else:
@@ -374,6 +377,7 @@ func handleJump(vel) -> Vector3:
 #TODO: try to consolidate methods to shrink code
 
 func setupCrouching() -> void:
+	updateBBox(bBoxSize)
 	crouchTimer.wait_time          = crouchingAnimationTime
 	uncrouchTimer.wait_time        = crouchingAnimationTime
 	uncrouchCheckTop.position.y    = bBoxHeightCrouched + (bBoxSize.y - bBoxHeightCrouched) / 2
@@ -401,8 +405,7 @@ func handleCrouching() -> void:
 
 func crouch() -> void:
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	if P.is_on_floor():
 		uncrouchTimer.stop()
@@ -422,8 +425,7 @@ func tryUncrouch() -> bool:
 		return false
 	crouched = false
 	crouching = false
-	bBox.shape.size.y = bBoxSize.y
-	bBox.position.y = bBoxSize.y / 2
+	updateBBox(bBoxSize)
 	camComp.uncrouch()
 	crouchTimer.stop()
 	if P.is_on_floor():
@@ -442,8 +444,7 @@ func crouchJump() -> void:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	P.position.y += bBoxSize.y - bBoxHeightCrouched
 
@@ -453,8 +454,7 @@ func cTap(vel: Vector3) -> Vector3:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	queueUncrouching = true
 	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
@@ -469,13 +469,20 @@ func cTap(vel: Vector3) -> Vector3:
 ##[br]----------------------------------------
 func clipVel(vel: Vector3, n: Vector3, overbounce : float = 1.0) -> Vector3:
 	#get modified velocity
-	var pushBack := vel.dot(n)
+	var backoff := vel.dot(n)
 	#if negative - cancell
-	if pushBack >= 0: return vel
+	if backoff >= 0: return vel
 	#get reflected velocity component
-	var change := n * pushBack * overbounce
+	var change := n * backoff * overbounce
 	#modify and return velocity
-	return vel - change
+	vel - change
+	#iterate once to make sure we aren't still moving through the plane <- Valve
+	var adjust = vel.dot(n)
+	if adjust < 0.0:
+		vel -= n * adjust
+	return vel
+	
+
 #endregion
 #region step up/down logic. Honestly some sort of black magic with testing motion before doing it... 
 # -- In general its good if game can get by without step up or down. Its all tested over the years
@@ -590,4 +597,60 @@ func testMotion(from: Transform3D, motion: Vector3, result : PhysicsTestMotionRe
 ##[br]----------------------------------------
 func applyImpulse(dir: Vector3, amt: float) -> void:
 	stackedKnockback += dir * amt
+#endregion
+
+#region wateMove
+
+# 2 water movement
+# 3 jumping out of water
+# 4 water shader
+
+# BBox is 63 WL_waist is 44
+# BBox is 83 WL_WAIST is 54 
+
+# WATER_LEVEL.WL_NotInWater is not touching water box with the water collision on players
+# WATER_LEVEL.WL_FEET touching water with trigger in any other way
+# WATER_LEVEL.WL_WAIST when 
+# WATER_LEVEL.WL_EYES is camera height
+#
+
+func updateBBox(size: Vector3) -> void:
+	bBox.shape.size = size
+	bBox.position.y = size.y / 2.0
+	%triggerboxCollision.shape.size.y = size.y
+	%triggerboxCollision.position.y = size.y / 2.0
+
+
+var inWater := bool(false)
+var waistLevel
+
+func getWaterLevel() -> GSPlayerState.WATER_LEVEL:
+	var box : Area3D = %waterTrigger
+	if !box.has_overlapping_areas() : return GSPlayerState.WATER_LEVEL.WL_NotInWater
+	var areas : Array[Area3D] = box.get_overlapping_areas()
+	for i in range(areas.size()):
+		if !areas[i].is_in_group("liquid"):
+			inWater = false
+		if areas[i].is_in_group("liquid"):
+			var water = areas[i].get_parent()
+			if !(water is GSLiquidBrush): break
+			var yExtends : Vector2 = Vector2(water.bot, water.top)
+			var eyesHeight : float = camComp.get_node("head").global_position.y
+			var waistHeight : float = bBox.global_position.y + 12.5 * 1.905 / 100
+			print("Eyes: ", eyesHeight, " Waist: ", waistHeight, " Bot: ", yExtends.x, " Top: ", yExtends.y)
+			if eyesHeight > yExtends.x and eyesHeight < yExtends.y:
+				#run extinguish and other being submerged in watter effects
+				if crouched: tryUncrouch()
+				return GSPlayerState.WATER_LEVEL.WL_EYES
+			elif waistHeight > yExtends.x and waistHeight < yExtends.y:
+				#run extinguish and other being submerged in watter effects
+				return GSPlayerState.WATER_LEVEL.WL_WAIST
+			return GSPlayerState.WATER_LEVEL.WL_FEET
+	return GSPlayerState.WATER_LEVEL.WL_NotInWater
+
+func waterMove(vel: Vector3, delta: float) -> Vector3:
+	print(getWaterLevel())
+	
+	return vel
+
 #endregion

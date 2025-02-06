@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dluhhxt83m48u"]
+[gd_scene load_steps=15 format=3 uid="uid://dluhhxt83m48u"]
 
 [ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="1_0pf3c"]
 [ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="3_m8vag"]
 [ext_resource type="Shader" path="res://assets/shaders/Skybox2D.gdshader" id="4_vnpp7"]
 [ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="5_2selr"]
+[ext_resource type="PackedScene" uid="uid://b8815xku58uht" path="res://game/scenes/levelBuilder/waterBlock.tscn" id="7_v4x6a"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21hgi"]
 panorama = ExtResource("1_0pf3c")
@@ -92,5 +93,15 @@ shape = SubResource("WorldBoundaryShape3D_vqg8c")
 
 [node name="weaponPropPipe" parent="." instance=ExtResource("5_2selr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 1, 8)
+
+[node name="water" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.525, 0, 0)
+
+[node name="WaterBlock" parent="water" instance=ExtResource("7_v4x6a")]
+cubeSize = Vector3i(50, 46, 50)
+
+[node name="WaterBlock2" parent="water" instance=ExtResource("7_v4x6a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+cubeSize = Vector3i(50, 45, 50)
 
 [editable path="testmap"]

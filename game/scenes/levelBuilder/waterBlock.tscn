@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://b8815xku58uht"]
+
+[ext_resource type="Script" path="res://game/scenes/levelBuilder/waterBlock.gd" id="1_fnfwo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5uy6f"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.1833, 0.248755, 0.39, 0.462745)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q558r"]
+size = Vector3(0.9525, 0.9525, 0.9525)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_si5no"]
+size = Vector3(0.9525, 0.9525, 0.9525)
+
+[node name="WaterBlock" type="Node3D"]
+script = ExtResource("1_fnfwo")
+metadata/_edit_group_ = true
+
+[node name="vis" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47625, 0)
+material_override = SubResource("StandardMaterial3D_5uy6f")
+mesh = SubResource("BoxMesh_q558r")
+
+[node name="area" type="Area3D" parent="." groups=["liquid"]]
+
+[node name="shape" type="CollisionShape3D" parent="area"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47625, 0)
+shape = SubResource("BoxShape3D_si5no")

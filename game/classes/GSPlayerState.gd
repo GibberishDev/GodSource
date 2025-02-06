@@ -10,7 +10,7 @@ var scale := Vector3(1.0,1.0,1.0);
 var velocity := Vector3.ZERO;
 
 enum WATER_LEVEL {
-	WL_OUTSIDE, #not in water
+	WL_NotInWater, #not in water
 	WL_FEET, #standing in water but not submerged, regular walking rules apply. can be used to idk transmit electricity i guess
 	WL_WAIST, #in water waist high, watermove rules apply plus can extinguish players
 	WL_EYES #fully submerged. swimming and sinking
