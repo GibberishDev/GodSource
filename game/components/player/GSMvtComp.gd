@@ -674,10 +674,13 @@ func waterMove(vel: Vector3, delta: float) -> Vector3:
 	
 	if !canSwim:
 		vecWishVelocity.x *= 0.1
-		vecWishVelocity.y -= 60 * 1.905 / 100
+		vecWishVelocity.y = -60 * 1.905 / 100
 		vecWishVelocity.z *= 0.1
-	elif Input.is_action_pressed("jump"):
-		vecWishVelocity.y += 300 * 1.905 / 100 #server default class speed
+	
+	if Input.is_action_pressed("jump"):
+		#TODO: why it aint working as in tf2? idk
+		#      should be server default class speed which is 320 hu but its way too fast
+		vecWishVelocity.y += 132.125 * 1.905 / 100
 	elif vecWishVelocity == Vector3.ZERO:
 		vecWishVelocity.y -= 60 * 1.905 / 100
 	else:

@@ -2,11 +2,29 @@
 
 [ext_resource type="Script" path="res://game/scenes/levelBuilder/waterBlock.gd" id="1_fnfwo"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5uy6f"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rv47k"]
 transparency = 1
 cull_mode = 2
-shading_mode = 0
-albedo_color = Color(0.1833, 0.248755, 0.39, 0.462745)
+diffuse_mode = 3
+specular_mode = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.1344, 0.276267, 0.56, 0.623529)
+metallic = 0.5
+metallic_specular = 1.0
+roughness = 0.13
+anisotropy_enabled = true
+anisotropy = -0.5
+ao_enabled = true
+ao_light_affect = 1.0
+heightmap_scale = -0.87
+heightmap_deep_parallax = true
+heightmap_min_layers = 8
+heightmap_max_layers = 32
+subsurf_scatter_strength = 1.0
+backlight = Color(0.1344, 0.276267, 0.56, 0.623529)
+refraction_enabled = true
+grow_amount = -0.5
+proximity_fade_enabled = true
 
 [sub_resource type="BoxMesh" id="BoxMesh_q558r"]
 resource_local_to_scene = true
@@ -23,7 +41,7 @@ metadata/_edit_group_ = true
 [node name="vis" type="MeshInstance3D" parent="."]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47625, 0)
-material_override = SubResource("StandardMaterial3D_5uy6f")
+material_override = SubResource("StandardMaterial3D_rv47k")
 mesh = SubResource("BoxMesh_q558r")
 
 [node name="area" type="Area3D" parent="." groups=["liquid"]]
