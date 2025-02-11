@@ -2,7 +2,6 @@
 ##This component listens to user inputs to move parent node in 3D space. All default values aren an example implementation and are converted from TF2 and correspond to default movement of Soldier
 class_name PlayerGSMvtComp
 extends Node3D
-
 #region node references
 ## [CharacterBody3D] parent.
 @onready
@@ -14,7 +13,6 @@ var bBox : CollisionShape3D;
 @export
 var camComp : Node3D
 #endregion
-
 #region Variables
 
 #TODO-IMPORTANT: MOVE MOST OF THE VARIABLES THAT ARE CONSIDERED CLASS SPECIFIC TO PLAYER SCRIPT AND CREATE METHODS FOR SET/GET THEM
@@ -76,7 +74,8 @@ var wishB := bool(false)
 var wishJump := bool(false)
 var wishCrouch := bool(false)
 ##WishDir - player directional inputs mapped to vec2
-var wDir := Vector2.ZERO
+var wDir := Vector3.ZERO
+var moveType := GSPlayerState.MOVE_TYPE.WALK
 ##Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0 
 var stackedKnockback : Vector3 = Vector3.ZERO
 @export_subgroup("Knockback variables")
@@ -139,7 +138,6 @@ var bBoxSize : Vector3 = bBox.shape.size
 ##State variable that shows that player was snapped to groun in last frame, aka should be grounded
 var crouchingStateLastFrame : bool = false
 #endregion
-
 #region built-in functions
 func _ready() -> void:
 	setupCrouching()
@@ -160,76 +158,83 @@ func _unhandled_input(_event: InputEvent) -> void:
 		wishJump = false
 	if Input.is_key_pressed(KEY_F1): Engine.time_scale = 0.1;
 	if Input.is_key_pressed(KEY_F2): Engine.time_scale = 1.0;
+	if Input.is_action_just_pressed("noclip"): toggleNoclip();
 
 func _physics_process(delta):
-	processMovement(delta)
 	#TODO: Move to hud component later.
-	var text_comp = "Velocity: [color=#f00]x: " + str(snapped(P.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped((P.get_velocity() * Vector3(1,0,1)).length() * 100 / 1.905, .01)) + " HU/s"
+	var text_comp = "Velocity: [color=#f00]x: " + str(snapped(P.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(P.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
 	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(P.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(P.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(P.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
 	%showpos.text = text_comp
+	processMovement(delta)
 #endregion
-
 #region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
 ## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
 func processMovement(delta) -> void:
 	#step 0: get current velocity
 	var newVel : Vector3 = P.get_velocity()
-	#step 1: become airborne if moving up too fast
-	if newVel.y >= upwardVelocityGate: grounded = false
-	#step 2: Handle crouching
-	handleCrouching()
-	#step 3: Apply first half of gravity
-	if !grounded: newVel.y -= gravity / 2 * delta
-	#step 4: handle Jumping
-	newVel = handleJump(newVel)
-	#step 5: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
-	if grounded and limitMaxVel:
-		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
-			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
-	#step 6: if grounded - apply friction and set vertical velocity to 0
-	if grounded and !justJumped:
-		newVel = applyFriction(newVel, delta)
-		newVel.y = 0.0
+	if moveType != GSPlayerState.MOVE_TYPE.NOCLIP:
+		#step 1: become airborne if moving up too fast
+		if newVel.y >= upwardVelocityGate: grounded = false
+		#step 2: Handle crouching
+		handleCrouching()
+		#step 3: Apply first half of gravity
+		if !grounded and moveType != GSPlayerState.MOVE_TYPE.SWIM: newVel.y -= gravity / 2 * delta
+		#step 4: handle Jumping
+		if moveType != GSPlayerState.MOVE_TYPE.SWIM:
+			newVel = handleJump(newVel)
+		#step 5: Limit max velocity. This was implemented in TF2 to heavily nerf BunnyHopping. Max velocity is limited to 120% of groundMaxSpeed
+		if grounded and limitMaxVel:
+			if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
+				newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
+		#step 6: if grounded - apply friction and set vertical velocity to 0
+		
+		if grounded and !justJumped and moveType != GSPlayerState.MOVE_TYPE.SWIM:
+			newVel = applyFriction(newVel, delta)
+			newVel.y = 0.0
 	#step 7: apply acceleration
 	newVel = applyAcceleration(newVel, delta)
-	#step 8: Move and collide
-	if P.is_on_wall():
-		newVel = clipVel(newVel,P.get_wall_normal())
-	if P.is_on_floor() and newVel.length() > (groundMaxSpeed + 0.01):
-		newVel = clipVel(newVel,P.get_floor_normal())
-	#step 9: Check for ground to stand on.
-	grounded = checkGrounded(newVel)
-	#step 10: Apply second half of gravity 
-	if !grounded: newVel.y -= gravity / 2 * delta
-	#step 11: Check grounded and if so set vertical velocity to 0
-	if grounded and !justJumped:
-		newVel.y = 0.0
-	#step 12: Limit max velocity. Implemented to nerf bunny hopping in a week since TF2s release.
-	#Some games may benefit from bunny hopping but when heavy comes up to you with mach 5 speed, reved up and balsting your ass in 1 second... Nah...
-	if grounded and limitMaxVel:
-		if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
-			newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
-	#step 13.1 Move and slide player here instaed of source engine table
-	newVel += stackedKnockback
+	if moveType != GSPlayerState.MOVE_TYPE.NOCLIP:
+		#step 8: Move and collide
+		if P.is_on_wall():
+			newVel = clipVel(newVel,P.get_wall_normal())
+		if P.is_on_floor() and newVel.length() > (groundMaxSpeed + 0.01):
+			newVel = clipVel(newVel,P.get_floor_normal())
+		#step 9: Check for ground to stand on.
+		grounded = checkGrounded(newVel)
+		#step 10: Apply second half of gravity 
+		if !grounded and moveType != GSPlayerState.MOVE_TYPE.SWIM: newVel.y -= gravity / 2 * delta
+		#step 11: Check grounded and if so set vertical velocity to 0
+		if grounded and !justJumped and moveType != GSPlayerState.MOVE_TYPE.SWIM:
+			newVel.y = 0.0
+		#step 12: Limit max velocity. Implemented to nerf bunny hopping in a week since TF2s release.
+		#Some games may benefit from bunny hopping but when heavy comes up to you with mach 5 speed, reved up and balsting your ass in 1 second... Nah...
+		if grounded and limitMaxVel and moveType != GSPlayerState.MOVE_TYPE.SWIM:
+			if (newVel * Vector3(1,0,1)).length() > groundMaxSpeed * limitMaxVelAmount:
+				newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
+		#step 13.1 Move and slide player here instaed of source engine tabl
+		newVel += stackedKnockback
 	stackedKnockback = Vector3.ZERO
 	P.velocity = newVel
-	if !stepUpCheck(delta, newVel):
-		stepDownCheck()
+	if moveType == GSPlayerState.MOVE_TYPE.NOCLIP:
 		P.move_and_slide()
+	elif moveType != GSPlayerState.MOVE_TYPE.NOCLIP:
+		if !stepUpCheck(delta, newVel):
+			stepDownCheck()
+			P.move_and_slide()
 	justJumped = false
 	#step 13.2: Handle triggers collision - If hame has invisible triggers(like doors opening in tf2 this step is for checking the collision shapes with areas3D)
 	#step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
 	#step 15: Handle projectiles
 #endregion
-
 #region grounded check
 ## PURPOSE: Update player grounded state. If player is on floor and not moving up too fast function returns True
 func checkGrounded(vel: Vector3) -> bool:
-	return ((P.is_on_floor()) and (vel.y <= upwardVelocityGate)) or snappedToStairsLastFrame
+	var state = ((P.is_on_floor()) and (vel.y <= upwardVelocityGate)) or snappedToStairsLastFrame
+	if state: lastFloored = Engine.get_physics_frames()
+	return state
 #endregion
-
 #region friction
 ## PURPOSE: returns velocity affected by ground friction
 func applyFriction(vel, delta) -> Vector3:
@@ -249,69 +254,76 @@ func applyFriction(vel, delta) -> Vector3:
 	vel -= (1.0 - newSpeed) * vel
 	return vel 
 #endregion
-
 #TODO: Rename to player move for clarity
 #region acceleration
 ## PURPOSE: return modified velocity after accelerating
 func applyAcceleration(vel, delta) -> Vector3:
 	getWishDir()
+	#get how deep player is in water
+	if moveType == GSPlayerState.MOVE_TYPE.NOCLIP:
+		vel = noclipMove(vel, delta)
+		return vel
+	var wl = getWaterLevel()
+	if wl == GSPlayerState.WATER_LEVEL.WL_WAIST or wl == GSPlayerState.WATER_LEVEL.WL_EYES:
+		vel = waterMove(vel, delta)
+		return vel
 	if grounded:
 		vel = accelGround(vel, delta)
 	else:
 		vel = airMove(vel, delta)
 	return vel
 #endregion
-
 #region ground movement
 #right is negative X, left is positive
 #back is negative Y, forward is positive
 ## PURPOSE: interprets user input
 var prevInputs := {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
 func getWishDir() -> void:
-	if P.uiFocused: wDir = Vector2.ZERO;return
+	if P.uiFocused: wDir = Vector3.ZERO;return
 	if !useNullMovement:
-		wDir = Vector2(
-			int(wishL) - int(wishR),
-			int(wishF) - int(wishB)
+		wDir = Vector3(
+			int(wishF) - int(wishB),
+			0,
+			int(wishR) - int(wishL)
 		)
 	else:
-		if !wishR:
-			if wishL: wDir.x = 1
-			else: wDir.x = 0
-		if !wishL:
-			if wishR: wDir.x = -1
-			else: wDir.x = 0
-		if !wishF:
-			if wishB: wDir.y = -1
-			else: wDir.y = 0
-		if !wishB:
-			if wishF: wDir.y = 1
-			else: wDir.y = 0
-		if prevInputs["R"] == false and wishR:
-			wDir.x = -1
-		if prevInputs["R"] == true and !wishR:
-			if wishL: wDir.x = 1
-			else: wDir.x = 0
-		if prevInputs["L"] == false and wishL:
-			wDir.x = 1
-		if prevInputs["L"] == true and !wishL:
-			if wishR: wDir.x = -1
-			else: wDir.x = 0
-		if prevInputs["F"] == false and wishF:
-			wDir.y = 1
-		if prevInputs["F"] == true and !wishF:
-			if wishB: wDir.y = -1
-			else: wDir.y = 0
-		if prevInputs["B"] == false and wishB:
-			wDir.y = -1
-		if prevInputs["B"] == true and !wishB:
-			if wishF: wDir.y = 1
-			else: wDir.y = 0
+		#right is +z
+		#left is -z
+		#forward is +x
+		#back is -x
+		if prevInputs["R"] != wishR:
+			if wishR:
+				wDir.z = 1
+			elif wishL:
+				wDir.z = -1
+			else:
+				wDir.z = 0
+		if prevInputs["L"] != wishL:
+			if wishL:
+				wDir.z = -1
+			elif wishR:
+				wDir.z = 1
+			else:
+				wDir.z = 0
+		if prevInputs["F"] != wishF:
+			if wishF:
+				wDir.x = 1
+			elif wishB:
+				wDir.x = -1
+			else:
+				wDir.x = 0
+		if prevInputs["B"] != wishB:
+			if wishB:
+				wDir.x = -1
+			elif wishF:
+				wDir.x = 1
+			else:
+				wDir.x = 0
 		prevInputs = {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
-	wDir = wDir.normalized()
+	# wDir = wDir.normalized()
 
 func accelGround(vel:Vector3,delta:float)->Vector3:
-	var dir = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	var dir = wDir.normalized().rotated(Vector3.UP, camComp.lookDir.y)
 	var currSpeed = vel.dot(dir)
 	var speedMult = getSpeedMult()
 	var addSpeed = clamp(0, groundAccel * delta * speedMult, groundMaxSpeed * speedMult - currSpeed)
@@ -322,14 +334,13 @@ func getSpeedMult() -> float:
 	var mult = 1.0
 	if crouched:
 		mult *= crouchSpeedMultiplier
-	if wDir == Vector2(0, -1):
+	if wDir.normalized() == Vector3( -1, wDir.y, 0):
 		mult *= 0.9
 	return mult
 #endregion
-
 #region air move
 func airMove(vel: Vector3, delta: float) -> Vector3:
-	var wishVel = Vector3(wDir.x,0,wDir.y).rotated(Vector3.UP, camComp.lookDir.y)
+	var wishVel = wDir.normalized().rotated(Vector3.UP, camComp.lookDir.y)
 	var wishDir = wishVel
 	var wishSpeed = wishDir.length()
 	wishDir = wishDir.normalized()
@@ -350,7 +361,6 @@ func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: fl
 	vel += accelSpeed * dir
 	return vel
 #endregion
-
 #region jumping
 func handleJump(vel) -> Vector3:
 	if !grounded and wishJump and !bHopCheat:
@@ -376,9 +386,12 @@ func handleJump(vel) -> Vector3:
 		return vel
 	return vel
 #endregion
-
 #region crouching
+
+#TODO: try to consolidate methods to shrink code
+
 func setupCrouching() -> void:
+	updateBBox(bBoxSize)
 	crouchTimer.wait_time          = crouchingAnimationTime
 	uncrouchTimer.wait_time        = crouchingAnimationTime
 	uncrouchCheckTop.position.y    = bBoxHeightCrouched + (bBoxSize.y - bBoxHeightCrouched) / 2
@@ -406,8 +419,7 @@ func handleCrouching() -> void:
 
 func crouch() -> void:
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	if P.is_on_floor():
 		uncrouchTimer.stop()
@@ -427,8 +439,7 @@ func tryUncrouch() -> bool:
 		return false
 	crouched = false
 	crouching = false
-	bBox.shape.size.y = bBoxSize.y
-	bBox.position.y = bBoxSize.y / 2
+	updateBBox(bBoxSize)
 	camComp.uncrouch()
 	crouchTimer.stop()
 	if P.is_on_floor():
@@ -447,8 +458,7 @@ func crouchJump() -> void:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	P.position.y += bBoxSize.y - bBoxHeightCrouched
 
@@ -458,14 +468,14 @@ func cTap(vel: Vector3) -> Vector3:
 	crouched = true
 	crouching = false
 	uncrouching = false
-	bBox.shape.size.y = bBoxHeightCrouched
-	bBox.position.y = bBoxHeightCrouched / 2
+	updateBBox(Vector3(bBoxSize.x, bBoxHeightCrouched, bBoxSize.z ))
 	camComp.crouch()
 	queueUncrouching = true
 	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
 #endregion
-
 #region velocity clip
+#TODO: Check valve implementation. I suspect some differences with how friction is applied,
+#      which leads to behavior different from source engine ramp sliding
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Method that alignes velocity along surface that allows for sliding along it. Leads to several bugs in source engine that define expressive movement. Among most importanat ones are "rampsliding" and "surfing"[br]
 ##[b][u]ARGS[/u][/b]:[br] vel - [Vector3] - incoming velocity[br] n - [Vector3] - surface normal[br] overbounce - [float] - [color=gold]NULLABLE[/color] - multiplier of pushback force. In source engine games controlled with "sv_bounce" cheat[br]
@@ -473,13 +483,20 @@ func cTap(vel: Vector3) -> Vector3:
 ##[br]----------------------------------------
 func clipVel(vel: Vector3, n: Vector3, overbounce : float = 1.0) -> Vector3:
 	#get modified velocity
-	var pushBack := vel.dot(n)
+	var backoff := vel.dot(n)
 	#if negative - cancell
-	if pushBack >= 0: return vel
+	if backoff >= 0: return vel
 	#get reflected velocity component
-	var change := n * pushBack * overbounce
+	var change := n * backoff * overbounce
 	#modify and return velocity
-	return vel - change
+	vel -= change
+	#iterate once to make sure we aren't still moving through the plane <- Valve
+	var adjust = vel.dot(n)
+	if adjust < 0.0:
+		vel -= n * adjust
+	return vel
+	
+
 #endregion
 #region step up/down logic. Honestly some sort of black magic with testing motion before doing it... 
 # -- In general its good if game can get by without step up or down. Its all tested over the years
@@ -512,7 +529,7 @@ func stepDownCheck() -> void:
 	#see if ground below is close enough and wlkable to be stepped down
 	var isGroundBelow := bool($stepDownShapeCast.is_colliding() and !isWallTooSteep($stepDownShapeCast.get_collision_normal(0)))
 	#if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
-	if !P.is_on_floor() and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
+	if !grounded and (steppedDown or wasOnFloorLastFrame) and !wishJump and P.velocity.y <= 0.1:
 		#create new physics server test object
 		var motionTestResult = PhysicsTestMotionResult3D.new()
 		#ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
@@ -573,7 +590,7 @@ func stepUpCheck(delta: float, newVel: Vector3) -> bool:
 	return false
 ##----------------------------------------[br]
 ##[b][u]PURPOSE[/u][/b]:[br] Perfoms a test motion of Player parent with [method PhysicsServer3D.body_test_motion][br]
-##[b][u]ARGS[/u][/b]:[br] from - [Transform3D] - original body transform[br] motion - [Vector3D] - test motion destination[br] result - [PhysicsTestMotionResult3D] - [color=gold]NULLABLE[/color] - Describes the motion and collision result[br]
+##[b][u]ARGS[/u][/b]:[br] from - [Transform3D] - original body transform[br] motion - [Vector3] - test motion destination[br] result - [PhysicsTestMotionResult3D] - [color=gold]NULLABLE[/color] - Describes the motion and collision result[br]
 ##[b][u]RETURN[/u][/b]:[br] [bool] - returns if motion was successful 
 ##[br]----------------------------------------
 func testMotion(from: Transform3D, motion: Vector3, result : PhysicsTestMotionResult3D = null) -> bool:
@@ -594,4 +611,134 @@ func testMotion(from: Transform3D, motion: Vector3, result : PhysicsTestMotionRe
 ##[br]----------------------------------------
 func applyImpulse(dir: Vector3, amt: float) -> void:
 	stackedKnockback += dir * amt
+#endregion
+
+#region wateMove
+
+# 2 water movement
+# 3 jumping out of water
+# 4 water shader
+
+# BBox is 63 WL_waist is 44
+# BBox is 83 WL_WAIST is 54 
+
+# WATER_LEVEL.WL_NotInWater is not touching water box with the water collision on players
+# WATER_LEVEL.WL_FEET touching water with trigger in any other way
+# WATER_LEVEL.WL_WAIST when 
+# WATER_LEVEL.WL_EYES is camera height
+#
+
+func updateBBox(size: Vector3) -> void:
+	bBox.shape.size = size
+	bBox.position.y = size.y / 2.0
+	%triggerboxCollision.shape.size.y = size.y
+	%triggerboxCollision.position.y = size.y / 2.0
+
+
+var inWater := bool(false)
+var canSwim := bool(true)
+
+var swimmingMastery := bool(false) ##This variable defined by valve but never used. If true 20% slowdown in water isnt applied
+
+func getWaterLevel() -> GSPlayerState.WATER_LEVEL:
+	var box : Area3D = %waterTrigger
+	if !box.has_overlapping_areas():
+		moveType = GSPlayerState.MOVE_TYPE.WALK
+		return GSPlayerState.WATER_LEVEL.WL_NotInWater
+	var areas : Array[Area3D] = box.get_overlapping_areas()
+	for i in range(areas.size()):
+		if !areas[i].is_in_group("liquid"):
+			inWater = false
+		if areas[i].is_in_group("liquid"):
+			var water = areas[i].get_parent()
+			if !(water is GSLiquidBrush): break
+			var yExtends : Vector2 = Vector2(water.bot, water.top)
+			var eyesHeight : float = camComp.get_node("head").global_position.y
+			var waistHeight : float = bBox.global_position.y + 12.5 * 1.905 / 100
+			if eyesHeight > yExtends.x and eyesHeight < yExtends.y:
+				#run extinguish and other being submerged in watter effects
+				moveType = GSPlayerState.MOVE_TYPE.SWIM
+				if crouched: tryUncrouch()
+				return GSPlayerState.WATER_LEVEL.WL_EYES
+			elif waistHeight > yExtends.x and waistHeight < yExtends.y:
+				#run extinguish and other being submerged in watter effects
+				moveType = GSPlayerState.MOVE_TYPE.SWIM
+				return GSPlayerState.WATER_LEVEL.WL_WAIST
+			moveType = GSPlayerState.MOVE_TYPE.WALK
+			return GSPlayerState.WATER_LEVEL.WL_FEET
+	moveType = GSPlayerState.MOVE_TYPE.WALK
+	return GSPlayerState.WATER_LEVEL.WL_NotInWater
+
+func waterMove(vel: Vector3, delta: float) -> Vector3:
+	var vecWishVelocity = wDir.rotated(Vector3.FORWARD, -camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y) * groundMaxSpeed
+	
+	if !canSwim:
+		vecWishVelocity.x *= 0.1
+		vecWishVelocity.y = -60 * 1.905 / 100
+		vecWishVelocity.z *= 0.1
+	
+	if Input.is_action_pressed("jump"):
+		#TODO: why it aint working as in tf2? idk
+		#      should be server default class speed which is 320 hu but its way too fast
+		vecWishVelocity.y += 132.125 * 1.905 / 100
+	elif vecWishVelocity == Vector3.ZERO:
+		vecWishVelocity.y -= 60 * 1.905 / 100
+	else:
+		vecWishVelocity.y *= groundMaxSpeed
+	var wishSpeed = vecWishVelocity.length()
+	
+	if wishSpeed > groundMaxSpeed:
+		vecWishVelocity *= groundMaxSpeed / wishSpeed
+		wishSpeed = groundMaxSpeed
+	
+	if !swimmingMastery:
+		wishSpeed *= 0.8
+	
+	#water friction
+	var speed : float = vel.length()
+	var newSpeed : float = 0
+	if speed != 0.0:
+		newSpeed = speed - delta * speed * 4 * 0.8
+		if newSpeed < 0.1 :
+			newSpeed = 0
+		vel *= newSpeed / speed
+	else:
+		newSpeed = 0
+	#water acceleration
+	if wishSpeed >= 0.1:
+		var addSpeed : float = wishSpeed - newSpeed
+		if addSpeed > 0:
+			vecWishVelocity = vecWishVelocity.normalized()
+			var accelSpeed = groundAccel * wishSpeed * delta * 0.8
+			if accelSpeed > addSpeed:
+				accelSpeed = addSpeed
+			var deltaSpeed = accelSpeed * vecWishVelocity
+			vel += deltaSpeed
+	
+	#Here Valve also has prediction of movement and collision check wirh walls.
+	#Not needed in this port.
+
+
+	return vel
+
+#endregion
+
+#region Noclip move
+func toggleNoclip() -> bool:
+	if moveType != GSPlayerState.MOVE_TYPE.NOCLIP:
+		grounded = false
+		moveType = GSPlayerState.MOVE_TYPE.NOCLIP
+		bBox.disabled = true
+		return true
+	moveType = GSPlayerState.MOVE_TYPE.AIRBORNE
+	bBox.disabled = false
+	P.velocity = Vector3.ZERO
+	return false
+
+func noclipMove(vel, _delta) -> Vector3:
+	var dir = wDir.normalized().rotated(Vector3.FORWARD, -camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y)
+
+	vel = dir * 30
+
+	return vel
 #endregion

@@ -9,6 +9,7 @@ var uiFocused : bool = false
 var rocketScene = preload("res://game/scenes/gameplay/projectiles/rocket.tscn")
 var attackDelay := float(0.8)
 var attackDelayActive := bool(false)
+var canSwim := bool(true)
 
 @onready
 var mvtComp : Node3D = get_node("GSMvtComp")
