@@ -1,5 +1,5 @@
 KinematicBody3D movement template...
-<h1><center>GODSOURCE!</center></h1>
+<h1><center>GODSOURCE! •⩊•</center></h1>
 
 ## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
 
@@ -19,6 +19,7 @@ KinematicBody3D movement template...
 * Code clean-up and exported variables for ease of use in-engine
 * In-engine documentation and readable code comments >.>
 * Basic health system
+* Source engine bind and alias system(aka all inputs and commands can be bound to keys. Including binding alias binds) 
 
 ## Unplanned features but developer has wet dreams about em ( aka I would prob need to be full time dev, way about my paygrade(5 cookies and one mug of MUG) and knowledge ([me:](https://giphy.com/gifs/talk-warming-rpt-Q1aRmd8e90WIw)) to implement them. ) :
 * Netcode for Server <-> Client structure 💀
