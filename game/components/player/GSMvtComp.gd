@@ -165,6 +165,7 @@ func _physics_process(delta):
 	var text_comp = "Velocity: [color=#f00]x: " + str(snapped(P.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(P.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
 	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(P.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(P.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(P.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
+	text_comp += "\nIs on floor? " + str(P.is_on_floor())
 	%showpos.text = text_comp
 	processMovement(delta)
 #endregion
@@ -215,7 +216,7 @@ func processMovement(delta) -> void:
 				newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
 		#step 13.1 Move and slide player here instaed of source engine tabl
 		newVel += stackedKnockback
-	stackedKnockback = Vector3.ZERO
+		stackedKnockback = Vector3.ZERO
 	P.velocity = newVel
 	if moveType == GSPlayerState.MOVE_TYPE.NOCLIP:
 		P.move_and_slide()
@@ -472,6 +473,12 @@ func cTap(vel: Vector3) -> Vector3:
 	camComp.crouch()
 	queueUncrouching = true
 	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
+
+func updateBBox(size: Vector3) -> void:
+	bBox.shape.size = size
+	bBox.position.y = size.y / 2.0
+	%triggerboxCollision.shape.size.y = size.y
+	%triggerboxCollision.position.y = size.y / 2.0
 #endregion
 #region velocity clip
 #TODO: Check valve implementation. I suspect some differences with how friction is applied,
@@ -615,7 +622,6 @@ func applyImpulse(dir: Vector3, amt: float) -> void:
 
 #region wateMove
 
-# 2 water movement
 # 3 jumping out of water
 # 4 water shader
 
@@ -628,17 +634,38 @@ func applyImpulse(dir: Vector3, amt: float) -> void:
 # WATER_LEVEL.WL_EYES is camera height
 #
 
-func updateBBox(size: Vector3) -> void:
-	bBox.shape.size = size
-	bBox.position.y = size.y / 2.0
-	%triggerboxCollision.shape.size.y = size.y
-	%triggerboxCollision.position.y = size.y / 2.0
-
-
 var inWater := bool(false)
 var canSwim := bool(true)
 
 var swimmingMastery := bool(false) ##This variable defined by valve but never used. If true 20% slowdown in water isnt applied
+
+var waterJumpTime := float(0.0)
+
+func checkWaterJump(vel, delta) -> Vector3:
+
+	var vecForward := wDir.rotated(Vector3.FORWARD, -camComp.getCamRot().x).rotated(Vector3.UP, camComp.getCamRot().y + deg_to_rad(90)) * groundMaxSpeed
+
+	if waterJumpTime != 0.0: return vel
+	if vel.y <= -upwardVelocityGate: return vel
+
+	var flatVelocity := Vector3(vel.x, 0.0, vel.z)
+
+	var currSpeed = flatVelocity.length()
+	flatVelocity = flatVelocity.normalized()
+
+	var flatForward := Vector3(vecForward.x, 0.0, vecForward.z).normalized()
+
+	if currSpeed != 0 and flatVelocity.dot(flatForward) < 0.0:
+		return vel
+	
+	var vecStart : Vector3 = bBox.position
+	var vecEnd : Vector3 = vecStart + (25.0 * 1.905 / 100 * flatForward)
+
+	%waterJump.position = vecEnd
+	%waterJump.get_child(0).global_position = %waterJump.get_collision_point()
+
+	return vel
+
 
 func getWaterLevel() -> GSPlayerState.WATER_LEVEL:
 	var box : Area3D = %waterTrigger
@@ -718,6 +745,7 @@ func waterMove(vel: Vector3, delta: float) -> Vector3:
 	#Here Valve also has prediction of movement and collision check wirh walls.
 	#Not needed in this port.
 
+	checkWaterJump(vel, delta)
 
 	return vel
 

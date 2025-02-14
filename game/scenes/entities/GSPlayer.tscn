@@ -30,13 +30,14 @@ script = ExtResource("1_feh0e")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
 shape = SubResource("BoxShape3D_02tgl")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="playerBoundingBox"]
+[node name="bBoxVis" type="MeshInstance3D" parent="playerBoundingBox"]
 transform = Transform3D(1.00298, 0, 0, 0, 1.00298, 0, 0, 0, 1.00298, 0, 0, 0)
 visible = false
 cast_shadow = 0
 mesh = SubResource("BoxMesh_w7af0")
 
 [node name="GSMvtComp" parent="." node_paths=PackedStringArray("bBox", "camComp") instance=ExtResource("2_oelm3")]
+visible = false
 bBox = NodePath("../playerBoundingBox")
 camComp = NodePath("../cameraComponent")
 

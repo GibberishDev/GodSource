@@ -132,11 +132,15 @@ buffering/agile_event_flushing=true
 
 [physics]
 
+3d/run_on_separate_thread=true
 common/physics_ticks_per_second=66
+3d/physics_engine="JoltPhysics3D"
 3d/default_gravity=15.24
-jolt_3d/collisions/use_enhanced_internal_edge_removal=false
+jolt_3d/kinematics/recovery_iterations=1
+jolt_3d/kinematics/recovery_amount=0.0
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 anti_aliasing/quality/screen_space_aa=1
 occlusion_culling/use_occlusion_culling=true

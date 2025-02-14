@@ -84,6 +84,7 @@ distance_fade_shadow = 28.58
 spot_range = 5.0
 
 [node name="ground" type="StaticBody3D" parent="."]
+collision_priority = 10.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="ground"]
 mesh = SubResource("QuadMesh_5swpv")

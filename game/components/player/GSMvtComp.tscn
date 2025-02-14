@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://csqnb03ykde8d"]
+[gd_scene load_steps=9 format=3 uid="uid://csqnb03ykde8d"]
 
 [ext_resource type="Script" path="res://game/components/player/GSMvtComp.gd" id="1_wgakq"]
+[ext_resource type="ArrayMesh" uid="uid://c3vlhcca0wkvq" path="res://assets/meshes/pointer.res" id="2_ilkb2"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_jf4hd"]
 size = Vector3(0.93, 0.38, 0.93)
@@ -19,7 +20,11 @@ content_margin_bottom = 8.0
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_2lduq"]
-size = Vector3(0, 1, 0)
+size = Vector3(0.01, 1, 0.01)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mgvtk"]
+transparency = 1
+albedo_color = Color(0, 0.566667, 1, 0.254902)
 
 [node name="GSMvtComp" type="Node3D"]
 script = ExtResource("1_wgakq")
@@ -79,10 +84,20 @@ fit_content = true
 unique_name_in_owner = true
 collision_layer = 256
 collision_mask = 33
+monitorable = false
 
 [node name="triggerboxCollision" type="CollisionShape3D" parent="waterTrigger"]
 unique_name_in_owner = true
 shape = SubResource("BoxShape3D_2lduq")
+
+[node name="waterJump" type="RayCast3D" parent="."]
+unique_name_in_owner = true
+target_position = Vector3(0, -0.8, 0)
+
+[node name="wjVis" type="MeshInstance3D" parent="waterJump"]
+material_override = SubResource("StandardMaterial3D_mgvtk")
+mesh = ExtResource("2_ilkb2")
+skeleton = NodePath("../..")
 
 [connection signal="timeout" from="uncrouching" to="." method="endUncrouch"]
 [connection signal="timeout" from="crouching" to="." method="endCrouch"]
