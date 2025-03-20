@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://cyiu0e1dmxvm6"]
 
-[ext_resource type="Script" path="res://game/components/player/cameraComponent.gd" id="1_0jjcb"]
+[ext_resource type="Script" uid="uid://dck7dqvmst418" path="res://game/components/player/cameraComponent.gd" id="1_0jjcb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u6sx2"]
 transparency = 1
@@ -33,7 +33,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 [node name="camSmoother" type="Node3D" parent="head"]
 
 [node name="cam" type="Camera3D" parent="head/camSmoother"]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+fov = 72.5
 
 [node name="RayCast3D" type="RayCast3D" parent="head/camSmoother/cam"]
 target_position = Vector3(0, 0, -50)

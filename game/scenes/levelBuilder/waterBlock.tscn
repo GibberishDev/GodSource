@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://b8815xku58uht"]
 
-[ext_resource type="Script" path="res://game/scenes/levelBuilder/waterBlock.gd" id="1_fnfwo"]
+[ext_resource type="Script" uid="uid://dteigcgmi5myd" path="res://game/scenes/levelBuilder/waterBlock.gd" id="1_fnfwo"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rv47k"]
 transparency = 1

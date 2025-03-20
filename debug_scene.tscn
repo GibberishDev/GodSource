@@ -1,12 +1,13 @@
-[gd_scene load_steps=15 format=3 uid="uid://dluhhxt83m48u"]
+[gd_scene load_steps=16 format=3 uid="uid://dluhhxt83m48u"]
 
 [ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="1_0pf3c"]
 [ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]
 [ext_resource type="PackedScene" uid="uid://2nmutw6t3gq1" path="res://game/scenes/entities/GSPlayer.tscn" id="1_xgrqp"]
 [ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="3_m8vag"]
-[ext_resource type="Shader" path="res://assets/shaders/Skybox2D.gdshader" id="4_vnpp7"]
+[ext_resource type="Shader" uid="uid://dkgpihkwrxmlj" path="res://assets/shaders/Skybox2D.gdshader" id="4_vnpp7"]
 [ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="5_2selr"]
 [ext_resource type="PackedScene" uid="uid://b8815xku58uht" path="res://game/scenes/levelBuilder/waterBlock.tscn" id="7_v4x6a"]
+[ext_resource type="PackedScene" uid="uid://ct8n36u3hbxim" path="res://vector_test.tscn" id="8_3l3sj"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21hgi"]
 panorama = ExtResource("1_0pf3c")
@@ -104,5 +105,8 @@ cubeSize = Vector3i(50, 46, 50)
 [node name="WaterBlock2" parent="water" instance=ExtResource("7_v4x6a")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.905, -0.019, 1.905)
 cubeSize = Vector3i(400, 151, 400)
+
+[node name="vectorTest" parent="." instance=ExtResource("8_3l3sj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.7)
 
 [editable path="testmap"]

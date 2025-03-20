@@ -68,21 +68,25 @@ func explodePlayer(plr: GSPlayer) -> void:
 
 func getKnockbackDir(plr: GSPlayer) -> Vector3:
 	var explosionOrigin = self.global_position - Vector3(0, 10 * 1.905 / 100, 0) #Shift explosion oprigin down 10 hammer units to make it easier for explosions to "pop" players into air
-	$vis.global_position = explosionOrigin
+	$vis/offset.global_position = explosionOrigin
+	$vis/plr.global_position = plr.global_position + Vector3(0, plr.mvtComp.bBox.shape.size.y / 2.0, 0)
+	$vis/plrFeet.global_position = plr.global_position
 	return explosionOrigin.direction_to(plr.global_position + Vector3(0, plr.mvtComp.bBox.shape.size.y / 2.0, 0)) #return normalized vec3 with direction from shifted explosion origin to player
 
 func getKnockbackAmt(plr: GSPlayer) -> float:
-	var kbDamage : float = baseDamage * (1 - 0.5 * min(global_position.distance_to(plr.global_position) / radius, 1)) #no falloff damage claculation for knockback power.
+	var distFeet = global_position.distance_to(plr.global_position)
+	var distCenter = global_position.distance_to(plr.global_position + Vector3(0, plr.mvtComp.bBox.shape.size.y / 2.0, 0))
+	var kbDamage : float = baseDamage * (1 - 0.5 * min(min(distCenter, distFeet) / radius, 1)) #no falloff damage claculation for knockback power.
 	#Player mass is actually a scam and not mass at all. It is knockback multplier based on size of bounding box. and even then in TF2 its still a scam as it is now a fixed value
 	#Upon release it was ratio to "volume" of standing bOunding box size. In TF2 back then bounding box shrunk to 55 hammer units high instead of 62 nowadays. Original ratio was kept to be consistent with mapping
 	var plrMass = 1.0
 	var kbClassMult = 5.0#plr.mvtComp.knockbackMult
 	var kbDamageReduction = 1.0#plr.mvtComp.selfBlastDamageReduction
 	if plr.mvtComp.crouched:
-		plrMass = 0.67
+		plrMass = 55.0/82.0
 	if !plr.mvtComp.grounded:
 		kbClassMult = 10.0#plr.mvtComp.airborneKnockbackMult
-		kbDamageReduction = .6#plr.mvtComp.selfBlastDamageReductionAir
+		kbDamageReduction = 0.6#plr.mvtComp.selfBlastDamageReductionAir
 	return min(1000 * 1.905 / 100, (kbClassMult * kbDamageReduction * kbDamage) / plrMass * 1.905 / 100)
 
 func explodePhysProps(prop: RigidBody3D) -> void:

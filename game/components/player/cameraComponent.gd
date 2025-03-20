@@ -36,9 +36,9 @@ func _physics_process(delta: float) -> void:
 	smoothCamera(delta)
 	$vis.rotation.y = getCamRot().y + deg_to_rad(90)
 	var wDir : Vector3 = mvtComp.wDir
-	%flForwardMove.scale.z = wDir.x
+	%flForwardMove.scale.z = -wDir.x
 	%flUpMove.scale.y = wDir.y
-	%flSideMove.scale.x = -wDir.z
+	%flSideMove.scale.x = wDir.z
 
 func togglePointerLock() -> void:
 	if mouseCaptured:
@@ -66,11 +66,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		firstPersonCamera(event)
 	if Input.is_action_just_pressed("ui_cancel"):#TODO change to ESC input action
 		togglePointerLock()
+	if Input.is_action_just_pressed("ui_right"):
+		$head/camSmoother/cam.rotation.z += deg_to_rad(15)
+	if Input.is_action_just_pressed("ui_left"):
+		$head/camSmoother/cam.rotation.z -= deg_to_rad(15)
 
 func firstPersonCamera(e: InputEventMouseMotion) -> void:
-	$head.rotation.y -= e.screen_relative.x * sensX
+	$head/camSmoother/cam.rotation.y -= e.screen_relative.x * sensX
 	$head/camSmoother/cam.rotation.x = clamp($head/camSmoother/cam.rotation.x - e.screen_relative.y * sensY, -deg_to_rad(89), deg_to_rad(89))
-	lookDir = Vector3($head/camSmoother/cam.rotation.x, $head.rotation.y, 0)
+	lookDir = Vector3($head/camSmoother/cam.rotation.x, $head/camSmoother/cam.rotation.y, 0)
 
 func saveCamPos() -> void:
 	if camSavedPos == null:

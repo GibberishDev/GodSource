@@ -50,7 +50,7 @@ var maxStepUp := float(0.35)
 var airMaxSpeed := float(30.0 * 1.905 / 100)
 @export
 ##Determines how fast player needs to move upward to be considered airborne
-var upwardVelocityGate := float(180 * 1.905 /100);
+var upwardVelocityGate := float(250 * 1.905 /100);
 @export_subgroup("Movement flags")
 @export
 ## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
@@ -101,7 +101,7 @@ var justJumped := bool(false)
 var crouchingAnimationTime : float = 0.15
 @export
 ##How much ground movement sopeed is multiplied when crouching
-var crouchSpeedMultiplier : float = 0.3
+var crouchSpeedMultiplier : float = 1/3.0
 @export
 var bBoxHeightCrouched : float = 1.2
 ##Enable TF2 bug that allows to jump 2 hammer units higher if player crouch-jumps than jump crouches. If false crouch jumping and jump crouching is the same height[br][color=#777][i]This bug stems from small code error made by Valve. Usually half of one tick of gravity substracted from jump power when jumping. In case of crouch jumping it just isnt. If gravity is 0 impulse from jumping is the same. Better explanation by Shounic [color=#03b][url=https://www.youtube.com/watch?v=7z_p_RqLhkA]here[/url]
@@ -140,6 +140,10 @@ var crouchingStateLastFrame : bool = false
 #endregion
 #region built-in functions
 func _ready() -> void:
+	var testVec = Vector3(3,5,9)
+	print(testVec.normalized())
+	testVec.y = 0
+	print(testVec.normalized())
 	setupCrouching()
 	setUpCastsStepCheck()
 	
@@ -165,6 +169,7 @@ func _physics_process(delta):
 	var text_comp = "Velocity: [color=#f00]x: " + str(snapped(P.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(P.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(P.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(P.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
 	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(P.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(P.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(P.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camComp.getCamRot().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camComp.getCamRot().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camComp.getCamRot().z), 0.01)) + "[color=#fff]"
+	text_comp += "\nIs on floor? " + str(P.is_on_floor())
 	%showpos.text = text_comp
 	processMovement(delta)
 #endregion
@@ -199,8 +204,9 @@ func processMovement(delta) -> void:
 		#step 8: Move and collide
 		if P.is_on_wall():
 			newVel = clipVel(newVel,P.get_wall_normal())
-		if P.is_on_floor() and newVel.length() > (groundMaxSpeed + 0.01):
-			newVel = clipVel(newVel,P.get_floor_normal())
+		if P.is_on_floor():
+			if clipVel(newVel,P.get_floor_normal()).y >= upwardVelocityGate:
+				newVel = clipVel(newVel,P.get_floor_normal())
 		#step 9: Check for ground to stand on.
 		grounded = checkGrounded(newVel)
 		#step 10: Apply second half of gravity 
@@ -215,7 +221,7 @@ func processMovement(delta) -> void:
 				newVel = ((newVel * Vector3(1,0,1)).normalized() * groundMaxSpeed * limitMaxVelAmount) + Vector3(0,newVel.y,0)
 		#step 13.1 Move and slide player here instaed of source engine tabl
 		newVel += stackedKnockback
-	stackedKnockback = Vector3.ZERO
+		stackedKnockback = Vector3.ZERO
 	P.velocity = newVel
 	if moveType == GSPlayerState.MOVE_TYPE.NOCLIP:
 		P.move_and_slide()
@@ -259,6 +265,17 @@ func applyFriction(vel, delta) -> Vector3:
 ## PURPOSE: return modified velocity after accelerating
 func applyAcceleration(vel, delta) -> Vector3:
 	getWishDir()
+
+
+	#FIXME: remove after testing
+	var angls := angle_vectors(camComp.getCamRot())
+	#var vc = P.get_parent().get_node("vectorTest")
+	#vc.Xcord = angls[0]
+	#vc.Zcord = angls[1]
+	#vc.Ycord = angls[2]
+
+
+
 	#get how deep player is in water
 	if moveType == GSPlayerState.MOVE_TYPE.NOCLIP:
 		vel = noclipMove(vel, delta)
@@ -287,36 +304,32 @@ func getWishDir() -> void:
 			int(wishR) - int(wishL)
 		)
 	else:
-		#right is +z
-		#left is -z
-		#forward is +x
-		#back is -x
 		if prevInputs["R"] != wishR:
 			if wishR:
-				wDir.z = 1
-			elif wishL:
 				wDir.z = -1
+			elif wishL:
+				wDir.z = 1
 			else:
 				wDir.z = 0
 		if prevInputs["L"] != wishL:
 			if wishL:
-				wDir.z = -1
-			elif wishR:
 				wDir.z = 1
+			elif wishR:
+				wDir.z = -1
 			else:
 				wDir.z = 0
 		if prevInputs["F"] != wishF:
 			if wishF:
-				wDir.x = 1
-			elif wishB:
 				wDir.x = -1
+			elif wishB:
+				wDir.x = 1
 			else:
 				wDir.x = 0
 		if prevInputs["B"] != wishB:
 			if wishB:
-				wDir.x = -1
-			elif wishF:
 				wDir.x = 1
+			elif wishF:
+				wDir.x = -1
 			else:
 				wDir.x = 0
 		prevInputs = {"R":wishR,"L":wishL,"F":wishF,"B":wishB,}
@@ -332,34 +345,63 @@ func accelGround(vel:Vector3,delta:float)->Vector3:
 
 func getSpeedMult() -> float:
 	var mult = 1.0
-	if crouched:
-		mult *= crouchSpeedMultiplier
-	if wDir.normalized() == Vector3( -1, wDir.y, 0):
+	if wDir.normalized() == Vector3( 1, wDir.y, 0):
 		mult *= 0.9
+	if crouched:
+		mult = crouchSpeedMultiplier
 	return mult
 #endregion
 #region air move
+
 func airMove(vel: Vector3, delta: float) -> Vector3:
-	var wishVel = wDir.normalized().rotated(Vector3.UP, camComp.lookDir.y)
-	var wishDir = wishVel
-	var wishSpeed = wishDir.length()
-	wishDir = wishDir.normalized()
-	#clamp to defined movespeed variable
-	if wishSpeed != 0 and (wishSpeed > 320 * 1.905 / 100):
-		wishVel *= 320 * 1.905 / 100 / wishSpeed
-		wishSpeed = 320 * 1.905 / 100
-	vel = accelAir(vel, wishDir, wishSpeed, 10, delta)
-	return vel
+	
+	#grapling hook from mannpower mode logic here. omitted.
+
+	var forward : Vector3 = angle_vectors(camComp.getCamRot())[0]
+	var right : Vector3 = angle_vectors(camComp.getCamRot())[1]
+
+	var fmove : float = -wDir.x * groundMaxSpeed
+	var smove : float = -wDir.z * groundMaxSpeed
+
+	forward.y = 0
+	right.y = 0
+	forward = forward.normalized()
+	right = right.normalized()
+
+	var wishVel = Vector3(
+		forward.x * fmove + right.x * smove,
+		0,
+		forward.z * fmove + right.z * smove,
+	)
+
+	var wishSpeed = wishVel.length()
+	var wishDir = wishVel.normalized()
+
+
+	#This is what is in valve source code. they say that it is "400 is Scout max speed, and we allow up to 3% movement bonus." but idk if 1.3 is 3% doe >.>
+	#Also it prob should be game/server variable
+	var maxSpeed : float = 400 * 1.3 * 1.905 / 100
+	if wishSpeed > maxSpeed:
+		wishVel *= maxSpeed / wishSpeed
+		wishSpeed = maxSpeed
+	
+	var flAirAccel : float = 10.0 #replace with server variable getter command
+
+	return accelAir(vel, wishDir, wishSpeed, flAirAccel, delta)
+
+
 
 func accelAir(vel: Vector3, dir: Vector3, wSpeed: float, accel: float, delta: float) -> Vector3:
-	wSpeed = min(wSpeed, airMaxSpeed)
+	var wishSpeed = min(wSpeed, airMaxSpeed)
 	var currSpeed = vel.dot(dir)
-	var addSpeed = wSpeed - currSpeed
+	var addSpeed = wishSpeed - currSpeed
 	if addSpeed <= 0 : return vel
-	var accelSpeed = accel * 320 * 1.905 / 100 * delta
+	var accelSpeed = accel * wSpeed * delta
 	accelSpeed = min(accelSpeed, addSpeed)
 	vel += accelSpeed * dir
 	return vel
+
+
 #endregion
 #region jumping
 func handleJump(vel) -> Vector3:
@@ -472,6 +514,12 @@ func cTap(vel: Vector3) -> Vector3:
 	camComp.crouch()
 	queueUncrouching = true
 	return Vector3(vel.x, jumpPower - (gravity / Engine.get_physics_ticks_per_second() / 2), vel.z)
+
+func updateBBox(size: Vector3) -> void:
+	bBox.shape.size = size
+	bBox.position.y = size.y / 2.0
+	%triggerboxCollision.shape.size.y = size.y
+	%triggerboxCollision.position.y = size.y / 2.0
 #endregion
 #region velocity clip
 #TODO: Check valve implementation. I suspect some differences with how friction is applied,
@@ -615,7 +663,6 @@ func applyImpulse(dir: Vector3, amt: float) -> void:
 
 #region wateMove
 
-# 2 water movement
 # 3 jumping out of water
 # 4 water shader
 
@@ -628,17 +675,36 @@ func applyImpulse(dir: Vector3, amt: float) -> void:
 # WATER_LEVEL.WL_EYES is camera height
 #
 
-func updateBBox(size: Vector3) -> void:
-	bBox.shape.size = size
-	bBox.position.y = size.y / 2.0
-	%triggerboxCollision.shape.size.y = size.y
-	%triggerboxCollision.position.y = size.y / 2.0
-
-
 var inWater := bool(false)
 var canSwim := bool(true)
 
 var swimmingMastery := bool(false) ##This variable defined by valve but never used. If true 20% slowdown in water isnt applied
+
+var waterJumpTime := float(0.0)
+
+func checkWaterJump(vel, delta) -> Vector3:
+
+	var vecForward := wDir.rotated(Vector3.UP, camComp.getCamRot().y + deg_to_rad(90)) * groundMaxSpeed
+
+	if waterJumpTime != 0.0: return vel
+	if vel.y <= -upwardVelocityGate: return vel
+
+	var flatVelocity := Vector3(vel.x, 0.0, vel.z)
+
+	var currSpeed = flatVelocity.length()
+	flatVelocity = flatVelocity.normalized()
+
+	var flatForward := Vector3(vecForward.x, 0.0, vecForward.z).normalized()
+
+	if currSpeed != 0 and flatVelocity.dot(flatForward) < 0.0:
+		return vel
+	
+	var vecStart : Vector3 = bBox.position
+	var vecEnd : Vector3 = vecStart + (25.0 * 1.905 / 100 * flatForward)
+
+
+	return vel
+
 
 func getWaterLevel() -> GSPlayerState.WATER_LEVEL:
 	var box : Area3D = %waterTrigger
@@ -670,7 +736,7 @@ func getWaterLevel() -> GSPlayerState.WATER_LEVEL:
 	return GSPlayerState.WATER_LEVEL.WL_NotInWater
 
 func waterMove(vel: Vector3, delta: float) -> Vector3:
-	var vecWishVelocity = wDir.rotated(Vector3.FORWARD, -camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y) * groundMaxSpeed
+	var vecWishVelocity = wDir.rotated(Vector3.FORWARD, camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y) * groundMaxSpeed
 	
 	if !canSwim:
 		vecWishVelocity.x *= 0.1
@@ -718,6 +784,7 @@ func waterMove(vel: Vector3, delta: float) -> Vector3:
 	#Here Valve also has prediction of movement and collision check wirh walls.
 	#Not needed in this port.
 
+	checkWaterJump(vel, delta)
 
 	return vel
 
@@ -736,9 +803,100 @@ func toggleNoclip() -> bool:
 	return false
 
 func noclipMove(vel, _delta) -> Vector3:
-	var dir = wDir.normalized().rotated(Vector3.FORWARD, -camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y)
-
+	var dir = wDir.normalized().rotated(Vector3.FORWARD, camComp.lookDir.x).rotated(Vector3.UP, camComp.lookDir.y)
 	vel = dir * 30
-
 	return vel
 #endregion
+
+
+
+
+#FIXME it should not be here. Move to global scripts once done developing
+func angle_vectors(QAngle: Vector3) -> PackedVector3Array:
+	var returnArray : PackedVector3Array = []
+	#there also should be roll but im too dumb - gibb
+	var sp : float = 0.0; var cp : float = 0.0;
+	var sy : float = 0.0; var cy : float = 0.0;
+	sp = sin(QAngle.x); cp = cos(QAngle.x)
+	sy = sin(QAngle.y); cy = cos(QAngle.y)
+	var vec_forward : Vector3 = Vector3(
+		-sy * cp,
+		sp,
+		-cy * cp,
+	)
+	var vec_right : Vector3 = Vector3(
+		cy,
+		0,
+		-sy,
+	)
+	var vec_up : Vector3 = Vector3(
+		sp * sy,
+		cp,
+		sp * cy,
+	)
+
+	returnArray = [
+		vec_forward,
+		vec_right,
+		vec_up
+	]
+
+	return returnArray
+
+
+##NOTE:
+# godot cords system:
+#  UP: Y+ Down: Y-
+#  Right: X+ Left: X-
+#  Front: Z+ Back: z-
+#
+# source cords system:
+#  Up: Z+ Down: Z-
+#  Right: Y- Left: Y+
+#  Front: X+ Back: X-
+
+
+
+
+## Full walk move order:
+# if not in water:
+#   start gravity method (1)
+#
+# if jumping out of water:
+#   waterJump method
+#   TryPlayerMove method
+#   RETURN
+#
+# if in water:
+#   fullWaterMove method
+#   RETURN
+#
+# check jump button?
+#
+# check if velocity is valid. Cap to server max if needed
+#
+# if player is on ground:
+#   vertical velocity = 0
+#   apply friction
+#   walkMove method
+# else:
+#   airMove method
+#
+# CategorizePosition method
+#
+# if not in water:
+#   finish gravity
+#
+# if grounded:
+#   vertical velocity = 0
+#
+# handleFalling method
+#
+# check if velocity is valid. Cap to server max if needed
+
+# (1) start gravity method:
+#   get player gravity mult
+#   substract half of gravity from current velocity * delta
+#   add base velocity vertical component * delta
+#   set 0 base velocity vertical component
+#   check if velocity is valid. cap to server max if needed
