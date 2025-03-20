@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dhw3fl84sxq3n"]
+[gd_scene load_steps=14 format=3 uid="uid://dhw3fl84sxq3n"]
 
 [ext_resource type="Script" uid="uid://dqicqovckuf0n" path="res://game/scenes/gameplay/explosion.gd" id="1_3gyrs"]
 [ext_resource type="Shader" uid="uid://xda71gjkdkfd" path="res://assets/shaders/wireframe.gdshader" id="1_qsr3j"]
@@ -27,9 +27,36 @@ height = 2.0
 radial_segments = 15
 rings = 15
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8c2wh"]
+depth_draw_mode = 2
+no_depth_test = true
+shading_mode = 0
+
 [sub_resource type="SphereMesh" id="SphereMesh_dx0gw"]
-radius = 0.1
-height = 0.2
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mqy3x"]
+depth_draw_mode = 2
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_yttmi"]
+radius = 0.025
+height = 0.05
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wi6c0"]
+depth_draw_mode = 2
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0, 0.0333333, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gl0al"]
+depth_draw_mode = 2
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0, 1, 0, 1)
 
 [node name="explosion" type="Node3D"]
 script = ExtResource("1_3gyrs")
@@ -40,7 +67,6 @@ target_position = Vector3(0, 0, 0)
 collision_mask = 66
 
 [node name="vis" type="MeshInstance3D" parent="."]
-visible = false
 mesh = SubResource("SphereMesh_knkag")
 script = ExtResource("3_rafys")
 
@@ -48,7 +74,20 @@ script = ExtResource("3_rafys")
 wait_time = 5.0
 autostart = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="vis"]
+[node name="offset" type="MeshInstance3D" parent="vis"]
+material_override = SubResource("StandardMaterial3D_8c2wh")
 mesh = SubResource("SphereMesh_dx0gw")
+
+[node name="center" type="MeshInstance3D" parent="vis"]
+material_override = SubResource("StandardMaterial3D_mqy3x")
+mesh = SubResource("SphereMesh_yttmi")
+
+[node name="plr" type="MeshInstance3D" parent="vis"]
+material_override = SubResource("StandardMaterial3D_wi6c0")
+mesh = SubResource("SphereMesh_yttmi")
+
+[node name="plrFeet" type="MeshInstance3D" parent="vis"]
+material_override = SubResource("StandardMaterial3D_gl0al")
+mesh = SubResource("SphereMesh_yttmi")
 
 [connection signal="timeout" from="vis/Timer" to="vis" method="delete"]

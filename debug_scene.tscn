@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dluhhxt83m48u"]
+[gd_scene load_steps=16 format=3 uid="uid://dluhhxt83m48u"]
 
 [ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/tf2_assets/sky_trainyard_01.png" id="1_0pf3c"]
 [ext_resource type="PackedScene" uid="uid://v3nxwjb8ip4y" path="res://assets/blender/testmap.blend" id="1_ef8vj"]

@@ -21,9 +21,7 @@ size = Vector3(0.93, 1.58, 0.93)
 [node name="GSPlayer" type="CharacterBody3D" node_paths=PackedStringArray("movement_component", "camera_component")]
 collision_layer = 2
 collision_mask = 39
-floor_stop_on_slope = false
 floor_constant_speed = true
-floor_block_on_wall = false
 script = ExtResource("1_feh0e")
 movement_component = NodePath("components/GSMovementComponent")
 camera_component = NodePath("components/GSCameraComponent")

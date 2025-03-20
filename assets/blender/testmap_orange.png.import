@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://na3jl2nccgsn"
+=======
+uid="uid://c8rk5pn66dn0"
+>>>>>>> origin/main
 path.bptc="res://.godot/imported/testmap_orange.png-4631337dab0911b05928b0fdc50dc88c.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
