@@ -84,5 +84,10 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_uexqq")
 bbcode_enabled = true
 fit_content = true
 
+[node name="water_jump_destination_check" type="RayCast3D" parent="."]
+unique_name_in_owner = true
+target_position = Vector3(0, -19.507, 0)
+hit_from_inside = true
+
 [connection signal="timeout" from="uncrouching" to="." method="end_uncrouch"]
 [connection signal="timeout" from="crouching" to="." method="end_crouch"]

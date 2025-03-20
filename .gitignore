@@ -1,6 +1,7 @@
 .godot/
 .vscode/
 .valveSourceCode/
+notes/
 addons/script-ide
 addons/gd-blender-3d-shortcuts
 addons/Todo_Manager

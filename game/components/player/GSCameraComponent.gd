@@ -30,14 +30,7 @@ var sensitivity_y: float = 0.0015
 var camera_saved_position: Vector3 = Vector3.ZERO
 
 func _physics_process(delta: float) -> void:
-	smooth_camera(delta)
-
-	$visual_position.rotation.y = get_camera_rotation().y + deg_to_rad(90)
-	var wish_direction: Vector3 = movement_component.wish_direction
-
-	%marker_forward_move.scale.z = wish_direction.x
-	%marker_up_move.scale.y = wish_direction.y
-	%marker_side_move.scale.x = -wish_direction.z
+	smooth_camera(delta)  
 
 func toggle_pointer_lock() -> void:
 	if mouse_captured:
@@ -57,7 +50,6 @@ func release_pointer() -> void:
 
 func _ready() -> void:
 	grab_pointer()
-	$visual_position.visible = show_axis
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and mouse_captured:
@@ -107,3 +99,13 @@ func get_camera_direction() -> Vector3:
 	var direction: Vector3 = Vector3(0, 0, -1.0).rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
 
 	return direction.normalized()
+
+func get_angle_vectors() -> Array[Vector3]:
+
+	var vector_forward = Vector3.FORWARD.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+	var vector_up = Vector3.UP.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+	var vector_right = Vector3.RIGHT.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+
+	var return_vectors : Array[Vector3] = [vector_forward, vector_up, vector_right]
+
+	return return_vectors

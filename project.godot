@@ -26,7 +26,7 @@ window/size/mode=2
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/Todo_Manager/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg")
 
 [file_customization]
 
@@ -140,6 +140,5 @@ jolt_3d/collisions/use_enhanced_internal_edge_removal=false
 
 [rendering]
 
-lights_and_shadows/directional_shadow/size=8192
 anti_aliasing/quality/screen_space_aa=1
 occlusion_culling/use_occlusion_culling=true

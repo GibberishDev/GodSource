@@ -67,7 +67,7 @@ extends Node3D
 @export var use_null_movement: bool = true
 
 ## Enable and disable automatic BHopping. 
-@export var bhop_cheat_unabled: bool = false
+@export var bhop_cheat_enabled: bool = false
 
 ## Limit Max velocity upon landing. This is to nerf bunnyhopping to stop players from achieveing speeds above limit_max_velocity_amount values.
 @export var limit_max_velocity: bool = true
@@ -87,6 +87,9 @@ var wish_forward: bool = false
 var wish_backward: bool = false
 var wish_jump: bool = false
 var wish_crouch: bool = false
+var wish_swim_up: bool = false
+
+var old_wish_jump : bool = false
 
 var previous_inputs: Dictionary = {
 	"R": wish_right,
@@ -101,7 +104,14 @@ var move_type: GSPlayerState.MOVE_TYPE = GSPlayerState.MOVE_TYPE.WALK
 
 ## Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0 
 var stacked_knockback: Vector3 = Vector3.ZERO
-
+## Timer during which water jumping movement execuites
+var water_jump_time : float = 0
+## if player is in jumping out of water state
+var state_water_jumping : bool = false
+## jump power that player gains when jumping out of water
+var water_jump_power: float = 400.0 * 1.905 / 100
+## Code variable that dictates velocity that player will move with during jumping out of water
+var water_jump_wish_velocity : Vector3 = Vector3.ZERO
 
 @export_subgroup("Knockback variables")
 
@@ -192,9 +202,8 @@ func _unhandled_input(_event: InputEvent) -> void:
 	wish_left = Input.is_action_pressed("left")
 	wish_forward = Input.is_action_pressed("forward")
 	wish_backward = Input.is_action_pressed("back")
-
-	wish_crouch = true if Input.is_action_pressed("crouch") else false
-	wish_jump = true if Input.is_action_just_pressed("jump") else false
+	wish_crouch = Input.is_action_pressed("crouch")
+	wish_jump = Input.is_action_pressed("jump")
 
 	if Input.is_key_pressed(KEY_F1):
 		Engine.time_scale = 0.1
@@ -210,9 +219,18 @@ func _physics_process(delta: float) -> void:
 	var text_comp: String = "Velocity: [color=#f00]x: " + str(snapped(player_root.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(player_root.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(player_root.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(player_root.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
 	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(player_root.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(player_root.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(player_root.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
 	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camera_component.get_camera_rotation().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camera_component.get_camera_rotation().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camera_component.get_camera_rotation().z), 0.01)) + "[color=#fff]"
+	text_comp += "\nWater jumping: " + str(state_water_jumping) + " - time: " + str(water_jump_time)
 	%showpos.text = text_comp
 
 	process_movement(delta)
+
+	update_old_keys()
+#endregion
+
+#region input
+
+func update_old_keys() -> void:
+	old_wish_jump = wish_jump
 #endregion
 
 #region Main movement processor
@@ -275,9 +293,12 @@ func process_movement(delta: float) -> void:
 				new_velocity = ((new_velocity * Vector3(1,0,1)).normalized() * ground_max_speed * limit_max_velocity_amount) + Vector3(0,new_velocity.y,0)
 
 		# step 13.1 Move and slide player here instead of source engine table
+		if stacked_knockback != Vector3.ZERO:
+			water_jump_time = 0.0 #stop water jumping horizontal movement upon recieving knockback
 		new_velocity += stacked_knockback
 
 	stacked_knockback = Vector3.ZERO
+
 	player_root.velocity = new_velocity
 
 	if move_type == GSPlayerState.MOVE_TYPE.NOCLIP:
@@ -304,6 +325,8 @@ func check_grounded(velocity: Vector3) -> bool:
 	var state: bool = ((player_root.is_on_floor()) and (velocity.y <= upward_velocity_gate)) or snapped_to_stairs_last_frame
 	if state:
 		last_floored = Engine.get_physics_frames()
+		water_jump_time = 0
+		state_water_jumping = false
 	return state
 #endregion
 
@@ -342,23 +365,23 @@ func apply_friction(velocity: Vector3, delta: float) -> Vector3:
 ## PURPOSE: return modified velocity after accelerating
 func apply_acceleration(velocity: Vector3, delta: float) -> Vector3:
 	get_wish_dir()
-
+	if velocity.y < 0:
+		water_jump_time = 0
+		state_water_jumping = false
+	velocity = water_jump(velocity, delta)
 	# get how deep player is in water
 	if move_type == GSPlayerState.MOVE_TYPE.NOCLIP:
-		velocity = noclip_move(velocity, delta)
+		velocity = noclip_move(velocity)
 		return velocity
 
-	var water_level: GSPlayerState.WATER_LEVEL = get_water_level()
-
-	if water_level == GSPlayerState.WATER_LEVEL.WAIST or water_level == GSPlayerState.WATER_LEVEL.EYES:
-		velocity = water_move(velocity, delta)
+	if get_water_level() > 1:
+		velocity = full_water_move(velocity, delta)
 		return velocity
 
 	if grounded:
 		velocity = accelerate_ground(velocity, delta)
 	else:
 		velocity = air_move(velocity, delta)
-
 	return velocity
 #endregion
 
@@ -414,7 +437,7 @@ func accelerate_ground(velocity: Vector3, delta: float) -> Vector3:
 #endregion
 
 #region air move
-func air_move(vel: Vector3, delta: float) -> Vector3:
+func air_move(velocity: Vector3, delta: float) -> Vector3:
 	var wish_velocity: Vector3 = wish_direction.normalized().rotated(Vector3.UP, camera_component.look_direction.y)
 	var wish_direction_temp: Vector3 = wish_velocity
 	var wish_speed: float = wish_direction_temp.length()
@@ -424,8 +447,8 @@ func air_move(vel: Vector3, delta: float) -> Vector3:
 		wish_velocity *= 320 * 1.905 / 100 / wish_speed
 		wish_speed = 320 * 1.905 / 100
 
-	vel = accelerate_air(vel, wish_direction_temp, wish_speed, 10, delta)
-	return vel
+	velocity = accelerate_air(velocity, wish_direction_temp, wish_speed, 10, delta)
+	return velocity
 
 func accelerate_air(velocity: Vector3, direction: Vector3, wish_speed: float, accelerate: float, delta: float) -> Vector3:
 	wish_speed = min(wish_speed, air_max_speed)
@@ -446,13 +469,13 @@ func accelerate_air(velocity: Vector3, direction: Vector3, wish_speed: float, ac
 
 #region jumping
 func handle_jump(velocity: Vector3) -> Vector3:
-	if !grounded and wish_jump and !bhop_cheat_unabled:
-		wish_jump = false
+	if get_water_level() > 1:
 		return velocity
 
-	if wish_jump and grounded and !crouched:
-		if !bhop_cheat_unabled:
-			wish_jump = false
+	if !grounded and old_wish_jump == wish_jump and !bhop_cheat_enabled:
+		return velocity
+
+	if wish_jump != old_wish_jump and wish_jump and grounded and !crouched:
 
 		just_jumped = true
 
@@ -504,7 +527,7 @@ func handle_crouching() -> void:
 	if crouching_state_last_frame == wish_crouch:
 		return
 		
-	if wish_crouch:
+	if wish_crouch and get_water_level() < 3:
 		queue_uncrouching = false
 		if !crouched or !crouching:
 			crouch()
@@ -587,7 +610,7 @@ func ctap(velocity: Vector3) -> Vector3:
 ##      which leads to behavior different from source engine ramp sliding
 #----------------------------------------[br]
 ## [b][u]PURPOSE[/u][/b]:[br] Method that alignes velocity along surface that allows for sliding along it. Leads to several bugs in source engine that define expressive movement. Among most importanat ones are "rampsliding" and "surfing"[br]
-## [b][u]ARGS[/u][/b]:[br] vel - [Vector3] - incoming velocity[br] n - [Vector3] - surface normal[br] overbounce - [float] - [color=gold]NULLABLE[/color] - multiplier of pushback force. In source engine games controlled with "sv_bounce" cheat[br]
+## [b][u]ARGS[/u][/b]:[br] velocity - [Vector3] - incoming velocity[br] n - [Vector3] - surface normal[br] overbounce - [float] - [color=gold]NULLABLE[/color] - multiplier of pushback force. In source engine games controlled with "sv_bounce" cheat[br]
 ## [b][u]RETURN[/u][/b]:[br] [Vector3] - velocity aligned along the surface
 ## [br]----------------------------------------
 func clip_velocity(velocity: Vector3, surface_normal: Vector3, overbounce: float = 1.0) -> Vector3:
@@ -735,31 +758,44 @@ func test_motion(from: Transform3D, motion: Vector3, result: PhysicsTestMotionRe
 	return PhysicsServer3D.body_test_motion(player_root.get_rid(), parameters , result)
 #endregion
 
-#region apply_impulse(direction: Vector3, multiplier: float) -> void
+#region impulse
+## apply_impulse(direction: Vector3, multiplier: float) -> void
 ## [u][b]PURPOSE[/u][/b]:[br] Adds knockback Vector3 impulses to be processed inside [method process_movement] at step 13[br]
 ## [u][b]ARGS[/u][/b]:[br] direction - [Vector3] - direction of knockback[br] multiplier - [float] - multiplier of dir
 func apply_impulse(direction: Vector3, multiplier: float) -> void:
 	stacked_knockback += direction * multiplier
 #endregion
 
-#region wateMove
-# 2 water movement
-# 3 jumping out of water
-# 4 water shader
-
-# BBox is 63 WL_waist is 44
-# BBox is 83 WL_WAIST is 54 
-
-# WATER_LEVEL.WL_NotInWater is not touching water box with the water collision on players
-# WATER_LEVEL.WL_FEET touching water with trigger in any other way
-# WATER_LEVEL.WL_WAIST when 
-# WATER_LEVEL.WL_EYES is camera height
+#region bounding box
 func update_bounding_box(size: Vector3) -> void:
 	bounding_box.shape.size = size
 	bounding_box.position.y = size.y / 2.0
 	%triggerbox_collision.shape.size.y = size.y
 	%triggerbox_collision.position.y = size.y / 2.0
+#endregion
 
+#region noclip move
+func toggle_noclip() -> bool:
+	if move_type != GSPlayerState.MOVE_TYPE.NOCLIP:
+		grounded = false
+		move_type = GSPlayerState.MOVE_TYPE.NOCLIP
+		bounding_box.disabled = true
+		return true
+
+	move_type = GSPlayerState.MOVE_TYPE.AIRBORNE
+	bounding_box.disabled = false
+
+	return false
+
+func noclip_move(velocity: Vector3) -> Vector3:
+	var direction: Vector3 = wish_direction.normalized().rotated(Vector3.FORWARD, -camera_component.look_direction.x).rotated(Vector3.UP, camera_component.look_direction.y)
+	var wish_speed = 600 * 1.905 / 100 * direction.normalized()
+	velocity = wish_speed
+
+	return velocity
+#endregion
+
+#region water move
 func get_water_level() -> GSPlayerState.WATER_LEVEL:
 	var box: Area3D = %water_trigger
 
@@ -779,11 +815,11 @@ func get_water_level() -> GSPlayerState.WATER_LEVEL:
 			if !(water is GSLiquidBrush):
 				break
 
-			var y_extends: Vector2 = Vector2(water.bot, water.top)
+			var water_body_vertical_extends: Vector2 = Vector2(water.bot, water.top)
 			var eyes_height: float = camera_component.get_node("head").global_position.y
 			var waist_height: float = bounding_box.global_position.y + 12.5 * 1.905 / 100
 
-			if eyes_height > y_extends.x and eyes_height < y_extends.y:
+			if eyes_height > water_body_vertical_extends.x and eyes_height < water_body_vertical_extends.y:
 				# run extinguish and other being submerged in watter effects
 				move_type = GSPlayerState.MOVE_TYPE.SWIM
 
@@ -792,7 +828,7 @@ func get_water_level() -> GSPlayerState.WATER_LEVEL:
 
 				return GSPlayerState.WATER_LEVEL.EYES
 
-			elif waist_height > y_extends.x and waist_height < y_extends.y:
+			elif waist_height > water_body_vertical_extends.x and waist_height < water_body_vertical_extends.y:
 				# run extinguish and other being submerged in watter effects
 				move_type = GSPlayerState.MOVE_TYPE.SWIM
 				return GSPlayerState.WATER_LEVEL.WAIST
@@ -803,22 +839,107 @@ func get_water_level() -> GSPlayerState.WATER_LEVEL:
 	move_type = GSPlayerState.MOVE_TYPE.WALK
 	return GSPlayerState.WATER_LEVEL.NOT_IN_WATER
 
+func full_water_move(velocity: Vector3, delta: float) -> Vector3:
+
+	if get_water_level() >= 1:
+		velocity = check_water_jump(velocity, delta)
+	
+	if velocity.y < 0 and water_jump_time != 0.0:
+		water_jump_time = 0.0
+		state_water_jumping = false
+	
+	if wish_jump:
+		velocity = check_water_jump_button(velocity, delta) #TODO: rename specific to waterr movement
+	
+	velocity = water_move(velocity, delta)
+
+	if grounded:
+		velocity.y = 0
+
+	return velocity
+
+func check_water_jump_button(velocity: Vector3, delta: float) -> Vector3: 
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+		return velocity
+	
+	if get_water_level() >= 2:
+		grounded = false
+		if !can_swim:
+			return velocity
+		velocity.y = 100 * 1.905 / 100
+		return velocity
+
+	return velocity
+
+func check_water_jump(velocity: Vector3, delta: float) -> Vector3:
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+		if water_jump_time < 0:
+			water_jump_time = 0
+		return velocity
+	
+	if velocity.y < -180 * 1.905 / 100:
+		return velocity
+	
+	var flat_velocity: Vector3 = Vector3(velocity.x, 0, velocity.z)
+
+	var current_speed: float = flat_velocity.length()
+
+	var flat_forward : Vector3 = camera_component.get_angle_vectors()[0] * wish_direction.x * ground_max_speed + camera_component.get_angle_vectors()[2] * wish_direction.z * ground_max_speed
+	flat_forward.y = 0.0
+
+	if current_speed != 0.0 and flat_velocity.normalized().dot(flat_forward.normalized()) < 0.0 and !wish_jump:
+		return velocity
+	
+	var vector_start : Vector3 = bounding_box.global_position
+
+	var vector_end : Vector3 = vector_start + 30.0*1.905/100 * flat_forward.normalized()
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+	if !%water_jump_destination_check.is_colliding():
+		return velocity
+	var shore_wall_normal = %water_jump_destination_check.get_collision_normal()
+	water_jump_wish_velocity = shore_wall_normal * -50 * 1.905 / 100
+	vector_start.y = camera_component.get_node("head").global_position.y + 10*1.905/100
+	vector_end = vector_start + 30.0*1.905/100 * flat_forward.normalized()
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+	if %water_jump_destination_check.is_colliding():
+		return velocity
+	
+	vector_start = vector_end
+	vector_end.y -= 1024 * 1.905 / 100
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+	if %water_jump_destination_check.is_colliding():
+		var shore_normal = %water_jump_destination_check.get_collision_normal()
+		if shore_normal.y >= 0.7 and !state_water_jumping:
+			water_jump_time = 500.0
+			state_water_jumping = true
+			velocity.y = water_jump_power
+			print("jumped")
+	return velocity
+
 func water_move(velocity: Vector3, delta: float) -> Vector3:
-	var wish_velocity: Vector3 = wish_direction.rotated(Vector3.FORWARD, -camera_component.look_direction.x).rotated(Vector3.UP, camera_component.look_direction.y) * ground_max_speed
+	var wish_velocity : Vector3 = camera_component.get_angle_vectors()[0] * wish_direction.x * ground_max_speed + camera_component.get_angle_vectors()[2] * wish_direction.z * ground_max_speed
 
 	if !can_swim:
 		wish_velocity.x *= 0.1
 		wish_velocity.y = -60 * 1.905 / 100
 		wish_velocity.z *= 0.1
 
-	if Input.is_action_pressed("jump"):
-		# TODO: why it aint working as in tf2? idk
-		# should be server default class speed which is 320 hu but its way too fast
-		wish_velocity.y += 132.125 * 1.905 / 100
+	if wish_jump:
+		wish_velocity.y += ground_max_speed
 	elif wish_velocity == Vector3.ZERO:
 		wish_velocity.y -= 60 * 1.905 / 100
 	else:
-		wish_velocity.y *= ground_max_speed
+		wish_velocity.y = ground_max_speed * camera_component.get_angle_vectors()[0].y
+		grounded = false
 
 	var wish_speed: float = wish_velocity.length()
 
@@ -829,21 +950,19 @@ func water_move(velocity: Vector3, delta: float) -> Vector3:
 	if !swimming_mastery:
 		wish_speed *= 0.8
 
-	# water friction
 	var speed: float = velocity.length()
 	var new_speed: float = 0
 
 	if speed != 0.0:
-		new_speed = speed - delta * speed * 4 * 0.8
+		new_speed = speed - delta * speed * 4 * 0.4
 
-		if new_speed < 0.1:
+		if new_speed < 0.01:
 			new_speed = 0
 
 		velocity *= new_speed / speed
 	else:
 		new_speed = 0
 
-	# water acceleration
 	if wish_speed >= 0.1:
 		var add_speed: float = wish_speed - new_speed
 
@@ -858,31 +977,23 @@ func water_move(velocity: Vector3, delta: float) -> Vector3:
 			var delta_speed: Vector3 = accelerate_speed * wish_velocity
 
 			velocity += delta_speed
-
-	# Here Valve also has prediction of movement and collision check wirh walls.
-	# Not needed in this port.
-
 	return velocity
-#endregion
 
-#region Noclip move
-func toggle_noclip() -> bool:
-	if move_type != GSPlayerState.MOVE_TYPE.NOCLIP:
-		grounded = false
-		move_type = GSPlayerState.MOVE_TYPE.NOCLIP
-		bounding_box.disabled = true
-		return true
+func water_jump(velocity: Vector3, delta: float) -> Vector3:
+	if water_jump_time > 10000:
+		water_jump_time = 10000
+	
+	if water_jump_time == 0.0:
+		return velocity
+	
+	if water_jump_time <= 0.0 or get_water_level() >= 1:
+		water_jump_time = 0.0
+		state_water_jumping = false
+	
+	water_jump_time -= 1000.0 * delta
 
-	move_type = GSPlayerState.MOVE_TYPE.AIRBORNE
-	bounding_box.disabled = false
-	player_root.velocity = Vector3.ZERO
-
-	return false
-
-func noclip_move(velocity: Vector3, delta: float) -> Vector3:
-	var direction: Vector3 = wish_direction.normalized().rotated(Vector3.FORWARD, -camera_component.look_direction.x).rotated(Vector3.UP, camera_component.look_direction.y)
-
-	velocity = direction * 30
-
+		
+	velocity.x = water_jump_wish_velocity.x
+	velocity.z = water_jump_wish_velocity.z
 	return velocity
 #endregion

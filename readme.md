@@ -1,5 +1,5 @@
 KinematicBody3D movement template...
-<h1><center>GODSOURCE! •⩊•</center></h1>
+<h1><center>GODSOURCE ❤️! •⩊•</center></h1>
 
 ## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
 
@@ -11,9 +11,10 @@ KinematicBody3D movement template...
 * Velocity clip
 * Explosion template which has TF2 values baked into it for as close as possible Soldier rocket jumping
 * Source engine crouch and jump system ( Including toggleable bugged behaviour 😉 )
+* Player water movement and jumping out on a ledge
 
 ## Planned features that are not in code rn or being worked on:
-* water movement and object water physics similar to source engine
+* object water physics similar to source engine
 * Physics props and source engine like prop grabbing
 * Inventory system ( or equipable items and weapons )
 * Code clean-up and exported variables for ease of use in-engine
