@@ -1,9 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bxd7qx5wf5c8o"]
+[gd_scene load_steps=2 format=3 uid="uid://bxd7qx5wf5c8o"]
 
-[ext_resource type="Script" path="res://game/components/player/hudComponenet.gd" id="1_pbm4v"]
-[ext_resource type="PackedScene" uid="uid://duk4oplasqswk" path="res://game/scenes/ui/consoleContainer.tscn" id="2_wikyg"]
+[ext_resource type="Script" uid="uid://b26vxw2wp50eg" path="res://game/components/player/HUDComponenet.gd" id="1_tr0td"]
 
-[node name="hudComponenet" type="Control"]
+[node name="HUDComponenet" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,10 +10,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-script = ExtResource("1_pbm4v")
-
-[node name="consoleContainer" parent="." instance=ExtResource("2_wikyg")]
-layout_mode = 0
-anchors_preset = 0
-anchor_right = 0.0
-grow_horizontal = 1
+script = ExtResource("1_tr0td")

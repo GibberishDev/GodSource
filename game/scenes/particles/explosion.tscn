@@ -1,6 +1,6 @@
 [gd_scene load_steps=44 format=3 uid="uid://ccvnc4ynppopx"]
 
-[ext_resource type="Script" path="res://game/scenes/particles/explosion.gd" id="1_m0ta6"]
+[ext_resource type="Script" uid="uid://cuwxc1smsvkpm" path="res://game/scenes/particles/explosion.gd" id="1_m0ta6"]
 [ext_resource type="Texture2D" uid="uid://d24rnmoifibd6" path="res://assets/textures/particles/glow.png" id="2_gu1r4"]
 
 [sub_resource type="Curve" id="Curve_j8nbf"]
@@ -18,7 +18,7 @@ colors = PackedColorArray(1, 0.233333, 0, 1, 1, 0.670588, 0.109804, 1, 0.6, 0.58
 gradient = SubResource("Gradient_67qga")
 
 [sub_resource type="Curve" id="Curve_jdy4o"]
-max_value = 10.0
+_limits = [0.0, 10.0, 0.0, 1.0]
 _data = [Vector2(0, 10), 0.0, 0.0, 0, 0, Vector2(0.0831461, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -26,7 +26,7 @@ point_count = 2
 curve = SubResource("Curve_jdy4o")
 
 [sub_resource type="Curve" id="Curve_r4dvh"]
-max_value = 0.57
+_limits = [0.0, 0.57, 0.0, 1.0]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0.57), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -97,7 +97,7 @@ material = SubResource("StandardMaterial3D_px6dr")
 orientation = 2
 
 [sub_resource type="Curve" id="Curve_dt2ue"]
-max_value = 0.83
+_limits = [0.0, 0.83, 0.0, 1.0]
 _data = [Vector2(0.6, 0.83), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -111,7 +111,7 @@ colors = PackedColorArray(0.878431, 0.72549, 0.6, 1, 0.99, 0.1485, 0, 1)
 gradient = SubResource("Gradient_ok5op")
 
 [sub_resource type="Curve" id="Curve_ujpkc"]
-max_value = 0.61
+_limits = [0.0, 0.61, 0.0, 1.0]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0.61), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -166,7 +166,7 @@ colors = PackedColorArray(1, 0.109804, 0.0666667, 1, 1, 0.603922, 0.0745098, 1, 
 gradient = SubResource("Gradient_0s3j8")
 
 [sub_resource type="Curve" id="Curve_f5wqt"]
-max_value = 100.0
+_limits = [0.0, 100.0, 0.0, 1.0]
 _data = [Vector2(0, 8.61926), 0.0, 0.0, 0, 0, Vector2(0.155056, 100), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -174,7 +174,7 @@ point_count = 2
 curve = SubResource("Curve_f5wqt")
 
 [sub_resource type="Curve" id="Curve_j55kg"]
-max_value = 1.5
+_limits = [0.0, 1.5, 0.0, 1.0]
 _data = [Vector2(0, 0.298326), 0.0, 0.0, 0, 0, Vector2(0.25618, 1.5), 0.0, 0.0, 0, 0, Vector2(1, 1.27895), 0.0, 0.0, 0, 0]
 point_count = 3
 
