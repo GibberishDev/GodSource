@@ -19,7 +19,6 @@ gradient = SubResource("Gradient_67qga")
 
 [sub_resource type="Curve" id="Curve_jdy4o"]
 _limits = [0.0, 10.0, 0.0, 1.0]
-_limits = [0.0, 10.0, 0.0, 1.0]
 _data = [Vector2(0, 10), 0.0, 0.0, 0, 0, Vector2(0.0831461, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -27,7 +26,6 @@ point_count = 2
 curve = SubResource("Curve_jdy4o")
 
 [sub_resource type="Curve" id="Curve_r4dvh"]
-_limits = [0.0, 0.57, 0.0, 1.0]
 _limits = [0.0, 0.57, 0.0, 1.0]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0.57), 0.0, 0.0, 0, 0]
 point_count = 2
@@ -100,7 +98,6 @@ orientation = 2
 
 [sub_resource type="Curve" id="Curve_dt2ue"]
 _limits = [0.0, 0.83, 0.0, 1.0]
-_limits = [0.0, 0.83, 0.0, 1.0]
 _data = [Vector2(0.6, 0.83), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -114,7 +111,6 @@ colors = PackedColorArray(0.878431, 0.72549, 0.6, 1, 0.99, 0.1485, 0, 1)
 gradient = SubResource("Gradient_ok5op")
 
 [sub_resource type="Curve" id="Curve_ujpkc"]
-_limits = [0.0, 0.61, 0.0, 1.0]
 _limits = [0.0, 0.61, 0.0, 1.0]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0.61), 0.0, 0.0, 0, 0]
 point_count = 2
@@ -171,7 +167,6 @@ gradient = SubResource("Gradient_0s3j8")
 
 [sub_resource type="Curve" id="Curve_f5wqt"]
 _limits = [0.0, 100.0, 0.0, 1.0]
-_limits = [0.0, 100.0, 0.0, 1.0]
 _data = [Vector2(0, 8.61926), 0.0, 0.0, 0, 0, Vector2(0.155056, 100), 0.0, 0.0, 0, 0]
 point_count = 2
 
@@ -179,7 +174,6 @@ point_count = 2
 curve = SubResource("Curve_f5wqt")
 
 [sub_resource type="Curve" id="Curve_j55kg"]
-_limits = [0.0, 1.5, 0.0, 1.0]
 _limits = [0.0, 1.5, 0.0, 1.0]
 _data = [Vector2(0, 0.298326), 0.0, 0.0, 0, 0, Vector2(0.25618, 1.5), 0.0, 0.0, 0, 0, Vector2(1, 1.27895), 0.0, 0.0, 0, 0]
 point_count = 3

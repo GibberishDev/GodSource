@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bls4k2rktvown"
+uid="uid://diqrwkpyt835m"
 path="res://.godot/imported/cp_process_brushes.glb-f7259c5bf76e0470a77dd5d07286a366.scn"
 
 [deps]
@@ -35,8 +35,7 @@ import_script/path=""
 _subresources={
 "nodes": {
 "PATH:worldspawn_1": {
-"generate/physics": true,
-"physics/mask": 0
+"generate/physics": true
 }
 }
 }
