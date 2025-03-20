@@ -1,6 +1,5 @@
 extends Node
 
-@onready
-var P : RigidBody3D = get_node("..")
+@onready var parent_node: RigidBody3D = get_node("..")
 
-var weaponId : int = 0
+var weapon_id: int = 0

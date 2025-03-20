@@ -1,4 +1,4 @@
 class_name ClientState
 extends Node
 
-var blockInput := bool(false)
+var block_input: bool = false

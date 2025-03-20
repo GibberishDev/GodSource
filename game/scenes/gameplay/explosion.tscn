@@ -1,8 +1,8 @@
 [gd_scene load_steps=14 format=3 uid="uid://dhw3fl84sxq3n"]
 
-[ext_resource type="Script" uid="uid://c22j7tkus3g5s" path="res://game/scenes/gameplay/Explosion.gd" id="1_3gyrs"]
-[ext_resource type="Shader" uid="uid://dklg6qk308bmv" path="res://assets/shaders/wireframe.gdshader" id="1_qsr3j"]
-[ext_resource type="Script" uid="uid://dyctvs3prpkd7" path="res://game/scenes/gameplay/explosionVisualizer.gd" id="3_rafys"]
+[ext_resource type="Script" uid="uid://dqicqovckuf0n" path="res://game/scenes/gameplay/explosion.gd" id="1_3gyrs"]
+[ext_resource type="Shader" uid="uid://xda71gjkdkfd" path="res://assets/shaders/wireframe.gdshader" id="1_qsr3j"]
+[ext_resource type="Script" uid="uid://c37cl36pn3v01" path="res://game/scenes/gameplay/explosionVisualizer.gd" id="3_rafys"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_om51b"]
 radius = 1.0
