@@ -49,6 +49,10 @@ func release_pointer() -> void:
 	Input.warp_mouse(mouse_position_pre_capture)
 
 func _ready() -> void:
+	if multiplayer.get_unique_id() == player_root.name.to_int():
+		$head/camera_smoother/camera.current = true
+	else:
+		$head/camera_smoother/camera.current = false
 	grab_pointer()
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -1,0 +1,80 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2kap7ltraopu"]
+
+[ext_resource type="Script" uid="uid://dkiovkqs2acm" path="res://tests/main_menu.gd" id="1_8jtsd"]
+[ext_resource type="FontFile" uid="uid://bdxeivg7oeiaw" path="res://assets/fonts/gokhan.regular.ttf" id="1_uvc1u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8jtsd"]
+content_margin_bottom = 32.0
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8jtsd")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -47.0
+offset_top = -33.0
+offset_right = 47.0
+offset_bottom = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_uvc1u")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8jtsd")
+text = "Godsource
+Multiplayer Test"
+horizontal_alignment = 1
+
+[node name="ButtonSingle" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("1_uvc1u")
+theme_override_font_sizes/font_size = 24
+text = "Single Player Game"
+
+[node name="ButtonHost" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("1_uvc1u")
+theme_override_font_sizes/font_size = 24
+text = "Host Game"
+
+[node name="ButtonJoin" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("1_uvc1u")
+theme_override_font_sizes/font_size = 24
+text = "Join Game"
+
+[node name="ButtonExit" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("1_uvc1u")
+theme_override_font_sizes/font_size = 24
+text = "Exit"
+
+[connection signal="button_up" from="Panel/VBoxContainer/ButtonSingle" to="." method="_on_signle_player"]
+[connection signal="button_up" from="Panel/VBoxContainer/ButtonHost" to="." method="_on_host_game"]
+[connection signal="button_up" from="Panel/VBoxContainer/ButtonJoin" to="." method="_on_join_game"]
+[connection signal="button_up" from="Panel/VBoxContainer/ButtonExit" to="." method="_on_exit"]

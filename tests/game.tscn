@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://yomuconnryx6"]
+
+[ext_resource type="Script" uid="uid://yf0mmm1x32bv" path="res://tests/multiplayer_manager.gd" id="1_5w7io"]
+[ext_resource type="PackedScene" uid="uid://dluhhxt83m48u" path="res://debug_scene.tscn" id="2_ya5lb"]
+
+[node name="GAME" type="Node3D"]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://2nmutw6t3gq1")
+spawn_path = NodePath("../WORLD/Players")
+
+[node name="MultiplayerManager" type="Node" parent="." node_paths=PackedStringArray("player_node")]
+script = ExtResource("1_5w7io")
+player_node = NodePath("../WORLD/Players")
+
+[node name="WORLD" type="Node3D" parent="."]
+
+[node name="Players" type="Node3D" parent="WORLD"]
+
+[node name="Environment" type="Node3D" parent="WORLD"]
+
+[node name="debug_scene" parent="WORLD/Environment" instance=ExtResource("2_ya5lb")]

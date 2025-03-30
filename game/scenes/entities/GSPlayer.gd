@@ -15,6 +15,9 @@ var can_swim: bool = true
 @export var camera_component: Node3D
 @export var healt_component: Node
 
+func _enter_tree() -> void:
+	set_multiplayer_authority(str(name).to_int())
+
 func _physics_process(_delta: float) -> void:
 	if Input.is_action_pressed("attack1") and !attack_delay_active: #TODO: Move attack into invetory componenet once created
 		attack_delay_active = true

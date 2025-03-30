@@ -232,6 +232,7 @@ script = ExtResource("1_m0ta6")
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 3.0
+autostart = true
 
 [node name="p_shockwave2" type="GPUParticles3D" parent="."]
 emitting = false

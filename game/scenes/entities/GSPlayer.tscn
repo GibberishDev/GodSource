@@ -1,9 +1,23 @@
-[gd_scene load_steps=8 format=3 uid="uid://2nmutw6t3gq1"]
+[gd_scene load_steps=9 format=3 uid="uid://2nmutw6t3gq1"]
 
 [ext_resource type="Script" uid="uid://c2we0ya8ltdh7" path="res://game/scenes/entities/GSPlayer.gd" id="1_feh0e"]
 [ext_resource type="Shader" uid="uid://xda71gjkdkfd" path="res://assets/shaders/wireframe.gdshader" id="2_8d7xa"]
 [ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/GSMovementComponent.tscn" id="2_oelm3"]
 [ext_resource type="PackedScene" uid="uid://cyiu0e1dmxvm6" path="res://game/components/player/GSCameraComponent.tscn" id="3_eh4ln"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_uh25p"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("components/GSCameraComponent/head:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("components/GSCameraComponent/head/camera_smoother:position")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("components/GSCameraComponent/head/camera_smoother/camera:rotation")
+properties/3/spawn = true
+properties/3/replication_mode = 1
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_02tgl"]
 size = Vector3(0.93, 1.58, 0.93)
@@ -27,6 +41,9 @@ floor_block_on_wall = false
 script = ExtResource("1_feh0e")
 movement_component = NodePath("components/GSMovementComponent")
 camera_component = NodePath("components/GSCameraComponent")
+
+[node name="PlayerMPSync" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_uh25p")
 
 [node name="player_bounding_box" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)

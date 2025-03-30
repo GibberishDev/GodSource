@@ -12,13 +12,19 @@ config_version=5
 
 config/name="GodSource"
 config/version="0.0.1"
-run/main_scene="res://debug_scene.tscn"
+run/main_scene="uid://c2kap7ltraopu"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GSCSettings="*res://game/classes/ClientState.gd"
+NetworkTime="*res://addons/netfox/network-time.gd"
+NetworkTimeSynchronizer="*res://addons/netfox/network-time-synchronizer.gd"
+NetworkRollback="*res://addons/netfox/rollback/network-rollback.gd"
+NetworkEvents="*res://addons/netfox/network-events.gd"
+NetworkPerformance="*res://addons/netfox/network-performance.gd"
+NetworkManager="*res://tests/network_manager.gd"
 
 [display]
 
@@ -26,7 +32,7 @@ window/size/mode=2
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Todo_Manager/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg")
+enabled=PackedStringArray("res://addons/gd-blender-3d-shortcuts/plugin.cfg", "res://addons/netfox.internals/plugin.cfg", "res://addons/netfox/plugin.cfg")
 
 [file_customization]
 
@@ -129,6 +135,11 @@ buffering/agile_event_flushing=true
 3d_physics/layer_6="triggers"
 3d_physics/layer_7="worldProps"
 3d_physics/layer_9="playerTrigger"
+
+[netfox]
+
+logging/log_level=4
+logging/netfox_log_level=4
 
 [physics]
 
