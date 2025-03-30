@@ -922,7 +922,6 @@ func check_water_jump(velocity: Vector3, delta: float) -> Vector3:
 			water_jump_time = 500.0
 			state_water_jumping = true
 			velocity.y = water_jump_power
-			print("jumped")
 	return velocity
 
 func water_move(velocity: Vector3, delta: float) -> Vector3:
