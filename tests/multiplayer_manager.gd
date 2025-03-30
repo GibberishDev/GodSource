@@ -7,11 +7,11 @@ var player_scene = preload("res://game/scenes/entities/GSPlayer.tscn")
 var players_dict : Dictionary = {}
 
 func _ready() -> void:
-	if DisplayServer.get_name() == "headless":
+	if NetworkManager.is_host:
 		multiplayer.peer_connected.connect(_peer_connected)
 		multiplayer.peer_disconnected.connect(_peer_disconnected)
-	if NetworkManager.is_host:
-		_peer_connected(1)
+		if DisplayServer.get_name() != "headless":
+			_peer_connected(1)
 
 func _peer_connected(peer_network_id: int) -> void:
 	print_rich("[color=light_blue][lb]DEDICATED SERVER[rb]: [color=green]+++[color=light_blue] peer connected. peer id: " + str(peer_network_id))
