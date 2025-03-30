@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://bxd7qx5wf5c8o"]
+
+[ext_resource type="Script" uid="uid://b26vxw2wp50eg" path="res://game/components/player/GSHUDComponent.gd" id="1_3ajpt"]
+[ext_resource type="FontFile" uid="uid://dx62uwqg1orwm" path="res://game/ui/assets/noto_sans_bold.ttf" id="3_b04kr"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_utb27"]
+font = ExtResource("3_b04kr")
+font_color = Color(0, 1, 0, 1)
+
+[node name="GSHUDComponent" type="CanvasLayer"]
+layer = 0
+script = ExtResource("1_3ajpt")
+
+[node name="Crosshair" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "+"
+label_settings = SubResource("LabelSettings_utb27")
+horizontal_alignment = 1
+vertical_alignment = 1

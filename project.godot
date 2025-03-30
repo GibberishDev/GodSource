@@ -12,21 +12,30 @@ config_version=5
 
 config/name="GodSource"
 config/version="0.0.1"
-run/main_scene="res://debug_scene.tscn"
+config/tags=PackedStringArray("3d", "wip")
+run/main_scene="uid://dluhhxt83m48u"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GSCSettings="*res://game/classes/ClientState.gd"
+GSTools="*res://game/tools/GSTools.gd"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=2
 
 [display]
 
-window/size/mode=2
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
+window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Todo_Manager/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg")
+enabled=PackedStringArray()
 
 [file_customization]
 

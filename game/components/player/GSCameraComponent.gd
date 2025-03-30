@@ -101,10 +101,9 @@ func get_camera_direction() -> Vector3:
 	return direction.normalized()
 
 func get_angle_vectors() -> Array[Vector3]:
-
-	var vector_forward = Vector3.FORWARD.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
-	var vector_up = Vector3.UP.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
-	var vector_right = Vector3.RIGHT.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+	var vector_forward: Vector3 = Vector3.FORWARD.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+	var vector_up: Vector3 = Vector3.UP.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
+	var vector_right: Vector3 = Vector3.RIGHT.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
 
 	var return_vectors : Array[Vector3] = [vector_forward, vector_up, vector_right]
 

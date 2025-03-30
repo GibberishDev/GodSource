@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://2nmutw6t3gq1"]
+[gd_scene load_steps=9 format=3 uid="uid://2nmutw6t3gq1"]
 
 [ext_resource type="Script" uid="uid://c2we0ya8ltdh7" path="res://game/scenes/entities/GSPlayer.gd" id="1_feh0e"]
 [ext_resource type="Shader" uid="uid://xda71gjkdkfd" path="res://assets/shaders/wireframe.gdshader" id="2_8d7xa"]
 [ext_resource type="PackedScene" uid="uid://csqnb03ykde8d" path="res://game/components/player/GSMovementComponent.tscn" id="2_oelm3"]
 [ext_resource type="PackedScene" uid="uid://cyiu0e1dmxvm6" path="res://game/components/player/GSCameraComponent.tscn" id="3_eh4ln"]
+[ext_resource type="PackedScene" uid="uid://bxd7qx5wf5c8o" path="res://game/components/player/GSHUDComponent.tscn" id="5_mkd6s"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_02tgl"]
 size = Vector3(0.93, 1.58, 0.93)
@@ -48,3 +49,6 @@ camera_component = NodePath("../GSCameraComponent")
 [node name="GSCameraComponent" parent="components" node_paths=PackedStringArray("player_root", "movement_component") instance=ExtResource("3_eh4ln")]
 player_root = NodePath("../..")
 movement_component = NodePath("../GSMovementComponent")
+
+[node name="GSHUDComponent" parent="components" node_paths=PackedStringArray("player_root") instance=ExtResource("5_mkd6s")]
+player_root = NodePath("../..")

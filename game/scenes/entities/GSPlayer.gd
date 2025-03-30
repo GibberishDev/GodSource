@@ -13,7 +13,7 @@ var can_swim: bool = true
 
 @export var movement_component: Node3D
 @export var camera_component: Node3D
-@export var healt_component: Node
+@export var health_component: Node
 
 func _physics_process(_delta: float) -> void:
 	if Input.is_action_pressed("attack1") and !attack_delay_active: #TODO: Move attack into invetory componenet once created
