@@ -62,7 +62,6 @@ extends Node3D
 
 @export_subgroup("Movement flags")
 
-
 ## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
 @export var use_null_movement: bool = true
 
@@ -80,8 +79,6 @@ var last_floored: int = 0
 
 ## Is this Player grounded state. If TRUE player is grounded
 var grounded: bool = false
-
-var speed: int = 0
 
 var wish_right: bool = false
 var wish_left: bool = false
@@ -201,31 +198,18 @@ func _ready() -> void:
 	setup_casts_step_check()
 	
 func _unhandled_input(_event: InputEvent) -> void:
-	wish_right = Input.is_action_pressed("right")
-	wish_left = Input.is_action_pressed("left")
-	wish_forward = Input.is_action_pressed("forward")
-	wish_backward = Input.is_action_pressed("back")
-	wish_crouch = Input.is_action_pressed("crouch")
-	wish_jump = Input.is_action_pressed("jump")
+	if GSGlobal.mouse_captured:
+		wish_right = Input.is_action_pressed("right")
+		wish_left = Input.is_action_pressed("left")
+		wish_forward = Input.is_action_pressed("forward")
+		wish_backward = Input.is_action_pressed("back")
+		wish_crouch = Input.is_action_pressed("crouch")
+		wish_jump = Input.is_action_pressed("jump")
 
-	if Input.is_key_pressed(KEY_F1):
-		Engine.time_scale = 0.1
-
-	if Input.is_key_pressed(KEY_F2):
-		Engine.time_scale = 1.0
-		
-	if Input.is_action_just_pressed("noclip"):
-		toggle_noclip()
+		if Input.is_action_just_pressed("noclip"):
+			toggle_noclip()
 
 func _physics_process(delta: float) -> void:
-	speed = int(player_root.get_velocity().length() * 100 / 1.905)
-	#TODO: Move to hud component later.
-	#var text_comp: String = "Velocity: [color=#f00]x: " + str(snapped(player_root.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(player_root.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(player_root.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(player_root.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
-	#text_comp += "\nPosition: [color=#f00]x: " + str(snapped(player_root.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(player_root.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(player_root.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
-	#text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camera_component.get_camera_rotation().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camera_component.get_camera_rotation().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camera_component.get_camera_rotation().z), 0.01)) + "[color=#fff]"
-	#text_comp += "\nWater jumping: " + str(state_water_jumping) + " - time: " + str(water_jump_time)
-	#%showpos.text = text_comp
-
 	process_movement(delta)
 	update_old_keys()
 
@@ -391,7 +375,7 @@ func apply_acceleration(velocity: Vector3, delta: float) -> Vector3:
 #region ground movement
 ## PURPOSE: interprets user input
 func get_wish_dir() -> void:
-	if player_root.ui_focused: 
+	if !GSGlobal.mouse_captured: 
 		wish_direction = Vector3.ZERO
 		return
 

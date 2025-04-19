@@ -16,9 +16,6 @@ extends Node3D
 
 @export var show_axis: bool = true
 
-var mouse_captured: bool = false
-var mouse_position_pre_capture: Vector2 = Vector2.ZERO
-
 # global var
 var look_direction: Vector3 = Vector3.ZERO
 
@@ -32,32 +29,9 @@ var camera_saved_position: Vector3 = Vector3.ZERO
 func _physics_process(delta: float) -> void:
 	smooth_camera(delta)  
 
-func toggle_pointer_lock() -> void:
-	if mouse_captured:
-		release_pointer()
-	else:
-		grab_pointer()
-
-func grab_pointer() -> void:
-	mouse_position_pre_capture = get_viewport().get_mouse_position()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	mouse_captured = true
-
-func release_pointer() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	mouse_captured = false
-	Input.warp_mouse(mouse_position_pre_capture)
-
-func _ready() -> void:
-	grab_pointer()
-
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and mouse_captured:
+	if event is InputEventMouseMotion and GSGlobal.mouse_captured:
 		input_camera(event)
-
-	# TODO change to ESC input action
-	if Input.is_action_just_pressed("ui_cancel"):
-		toggle_pointer_lock()
 
 func input_camera(input_event: InputEventMouseMotion) -> void:
 	$head.rotation.y -= input_event.screen_relative.x * sensitivity_x
@@ -105,6 +79,6 @@ func get_angle_vectors() -> Array[Vector3]:
 	var vector_up: Vector3 = Vector3.UP.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
 	var vector_right: Vector3 = Vector3.RIGHT.rotated(Vector3.RIGHT, get_camera_rotation().x).rotated(Vector3.UP, get_camera_rotation().y)
 
-	var return_vectors : Array[Vector3] = [vector_forward, vector_up, vector_right]
+	var return_vectors: Array[Vector3] = [vector_forward, vector_up, vector_right]
 
 	return return_vectors

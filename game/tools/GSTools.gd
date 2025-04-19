@@ -32,25 +32,20 @@ func string_to_color(input_string: String) -> Color:
 
 	var color: String = split_variables[0]
 
-	var rgba: Dictionary = {
-		"1": 0.00,
-		"2": 0.00,
-		"3": 0.00,
-		"4": 0.00
-	}
+	var rgba: Array = [0.00, 0.00, 0.00, 0.00]
 
 	if color != "color":
 		return Color()
 
-	for i in split_variables.size():
+	for i: int in split_variables.size():
 		if i != 0:
 			if !split_variables[i].is_valid_float():
 				return Color()
 			else:
 				if float(split_variables[i]) >= 0.00 and float(split_variables[i]) <= 1.00:
-					rgba[str(i)] = float(split_variables[i])
+					rgba[i - 1] = float(split_variables[i])
 
-	return Color(rgba["1"], rgba["2"], rgba["3"], rgba["4"])
+	return Color(rgba[0], rgba[1], rgba[2], rgba[3])
 
 func string_to_variable(input_string: String, input_dictionary: Dictionary) -> Variant:
 	var split_variables: PackedStringArray = input_string.split(" ")
@@ -66,5 +61,5 @@ func string_to_variable(input_string: String, input_dictionary: Dictionary) -> V
 	
 	if !input_dictionary.has(variable_name):
 		return input_string
-	
+
 	return input_dictionary[variable_name]
