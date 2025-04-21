@@ -1,9 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://yomuconnryx6"]
+[gd_scene load_steps=5 format=3 uid="uid://yomuconnryx6"]
 
 [ext_resource type="Script" uid="uid://yf0mmm1x32bv" path="res://tests/multiplayer_manager.gd" id="1_5w7io"]
+[ext_resource type="Script" uid="uid://covpgekc3ffpj" path="res://addons/netfox/rollback/rollback-synchronizer.gd" id="1_artp2"]
+[ext_resource type="Script" uid="uid://cedo4k8v8r1c" path="res://addons/netfox/tick-interpolator.gd" id="1_krye7"]
 [ext_resource type="PackedScene" uid="uid://dluhhxt83m48u" path="res://debug_scene.tscn" id="2_ya5lb"]
 
 [node name="GAME" type="Node3D"]
+
+[node name="RollbackSynchronizer" type="Node" parent="." node_paths=PackedStringArray("root")]
+script = ExtResource("1_artp2")
+root = NodePath("..")
+enable_prediction = true
+metadata/_custom_type_script = "uid://covpgekc3ffpj"
+
+[node name="TickInterpolator" type="Node" parent="." node_paths=PackedStringArray("root")]
+script = ExtResource("1_krye7")
+root = NodePath("..")
+metadata/_custom_type_script = "uid://cedo4k8v8r1c"
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://2nmutw6t3gq1")

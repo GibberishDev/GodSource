@@ -22,6 +22,8 @@ extends Node3D
 ## [value] * 1.905 / 100 <- Closest conversion from hammer units to meters. "Hammer Unit" is Source Engine's distance measuring unit
 @export_category("Acceleration Variables")
 
+##Maximum alowed velocity that can be achieved by player. Velocity clamped to this value
+@export var max_velocity: float = 3500 * 1.905 / 100
 
 ## Gravitational acceleration.[br][br]Gravity is applied each physics frame(unless grounded) in two parts to improve precision and mitigate difference caused by perfomance problems
 @export var gravity: float = 800 * 1.905 / 100
@@ -296,9 +298,13 @@ func process_movement(delta: float) -> void:
 		if stacked_knockback != Vector3.ZERO:
 			water_jump_time = 0.0 #stop water jumping horizontal movement upon recieving knockback
 		new_velocity += stacked_knockback
+		stacked_knockback = Vector3.ZERO
 
 	stacked_knockback = Vector3.ZERO
 
+	#limits player velocity to global cap. Def 3500 hu/s
+	new_velocity = check_velocity(new_velocity)
+	#sets player root velocity
 	player_root.velocity = new_velocity
 
 	if move_type == GSPlayerState.MOVE_TYPE.NOCLIP:
@@ -762,8 +768,8 @@ func test_motion(from: Transform3D, motion: Vector3, result: PhysicsTestMotionRe
 ## apply_impulse(direction: Vector3, multiplier: float) -> void
 ## [u][b]PURPOSE[/u][/b]:[br] Adds knockback Vector3 impulses to be processed inside [method process_movement] at step 13[br]
 ## [u][b]ARGS[/u][/b]:[br] direction - [Vector3] - direction of knockback[br] multiplier - [float] - multiplier of dir
-func apply_impulse(direction: Vector3, multiplier: float) -> void:
-	stacked_knockback += direction * multiplier
+func apply_impulse(direction: Vector3, amount: float) -> void:
+	stacked_knockback += direction * amount
 #endregion
 
 #region bounding box
@@ -996,3 +1002,8 @@ func water_jump(velocity: Vector3, delta: float) -> Vector3:
 	velocity.z = water_jump_wish_velocity.z
 	return velocity
 #endregion
+
+func check_velocity(velocity : Vector3) -> Vector3:
+	if velocity.length() > max_velocity:
+		return velocity.normalized() * max_velocity
+	return velocity
