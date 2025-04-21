@@ -1,5 +1,6 @@
-KinematicBody3D movement template...
-<h1><center>GODSOURCE ❤️! •⩊•</center></h1>
+<p align="center">
+  <img align="center" src="godsource_logo.png" alt="GodSource" width=666 height=138>
+</p>
 
 ## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
 

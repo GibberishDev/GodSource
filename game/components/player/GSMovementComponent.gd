@@ -64,7 +64,6 @@ extends Node3D
 
 @export_subgroup("Movement flags")
 
-
 ## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
 @export var use_null_movement: bool = true
 
@@ -90,14 +89,14 @@ var wish_backward: bool = false
 var wish_jump: bool = false
 var wish_crouch: bool = false
 var wish_swim_up: bool = false
-
 var old_wish_jump : bool = false
 
 var previous_inputs: Dictionary = {
 	"R": wish_right,
 	"L": wish_left,
 	"F": wish_forward,
-	"B": wish_backward}
+	"B": wish_backward
+}
 
 ## Wish Dir - player directional inputs mapped to vec2
 var wish_direction: Vector3 = Vector3.ZERO
@@ -190,6 +189,7 @@ var crouching_state_last_frame: bool = false
 var in_water: bool = false
 var can_swim: bool = (true)
 
+
 var swimming_mastery: bool = false # This variable defined by valve but never used. If true 20% slowdown in water isnt applied
 #endregion
 
@@ -200,37 +200,24 @@ func _ready() -> void:
 	setup_casts_step_check()
 	
 func _unhandled_input(_event: InputEvent) -> void:
-	wish_right = Input.is_action_pressed("right")
-	wish_left = Input.is_action_pressed("left")
-	wish_forward = Input.is_action_pressed("forward")
-	wish_backward = Input.is_action_pressed("back")
-	wish_crouch = Input.is_action_pressed("crouch")
-	wish_jump = Input.is_action_pressed("jump")
+	if GSGlobal.mouse_captured:
+		wish_right = Input.is_action_pressed("right")
+		wish_left = Input.is_action_pressed("left")
+		wish_forward = Input.is_action_pressed("forward")
+		wish_backward = Input.is_action_pressed("back")
+		wish_crouch = Input.is_action_pressed("crouch")
+		wish_jump = Input.is_action_pressed("jump")
 
-	if Input.is_key_pressed(KEY_F1):
-		Engine.time_scale = 0.1
-
-	if Input.is_key_pressed(KEY_F2):
-		Engine.time_scale = 1.0
-		
-	if Input.is_action_just_pressed("noclip"):
-		toggle_noclip()
+		if Input.is_action_just_pressed("noclip"):
+			toggle_noclip()
 
 func _physics_process(delta: float) -> void:
-	#TODO: Move to hud component later.
-	var text_comp: String = "Velocity: [color=#f00]x: " + str(snapped(player_root.get_velocity().x * 100 / 1.905, .01)) + " [color=#0f0]y: " + str(snapped(player_root.get_velocity().y * 100 / 1.905, .01)) + " [color=#00f]z: " + str(snapped(player_root.get_velocity().z * 100 / 1.905, .01)) + "[color=#fff] -- Speed: " + str(snapped(player_root.get_velocity().length() * 100 / 1.905, .01)) + " HU/s"
-	text_comp += "\nPosition: [color=#f00]x: " + str(snapped(player_root.global_position.x / 1.905 * 100, 0.01)) + " [color=#0f0]y: " + str(snapped(player_root.global_position.y / 1.905 * 100, 0.01)) + " [color=#00f]z: " + str(-snapped(player_root.global_position.z / 1.905 * 100, 0.01)) + "[color=#fff]"
-	text_comp += "\nAngle: [color=#f00]x: " + str(-snapped(rad_to_deg(camera_component.get_camera_rotation().x), 0.01)) + " [color=#0f0]y: " + str(snapped(fmod((rad_to_deg(camera_component.get_camera_rotation().y) + 270), 360.0) - 180.0, 0.01)) + " [color=#00f]z: " + str(snapped(rad_to_deg(camera_component.get_camera_rotation().z), 0.01)) + "[color=#fff]"
-	text_comp += "\nWater jumping: " + str(state_water_jumping) + " - time: " + str(water_jump_time)
-	%showpos.text = text_comp
-
 	process_movement(delta)
-
 	update_old_keys()
+
 #endregion
 
 #region input
-
 func update_old_keys() -> void:
 	old_wish_jump = wish_jump
 #endregion
@@ -394,7 +381,7 @@ func apply_acceleration(velocity: Vector3, delta: float) -> Vector3:
 #region ground movement
 ## PURPOSE: interprets user input
 func get_wish_dir() -> void:
-	if player_root.ui_focused: 
+	if !GSGlobal.mouse_captured: 
 		wish_direction = Vector3.ZERO
 		return
 
@@ -795,7 +782,7 @@ func toggle_noclip() -> bool:
 
 func noclip_move(velocity: Vector3) -> Vector3:
 	var direction: Vector3 = wish_direction.normalized().rotated(Vector3.FORWARD, -camera_component.look_direction.x).rotated(Vector3.UP, camera_component.look_direction.y)
-	var wish_speed = 600 * 1.905 / 100 * direction.normalized()
+	var wish_speed: Vector3 = 600 * 1.905 / 100 * direction.normalized()
 	velocity = wish_speed
 
 	return velocity
@@ -907,7 +894,7 @@ func check_water_jump(velocity: Vector3, delta: float) -> Vector3:
 	%water_jump_destination_check.force_raycast_update()
 	if !%water_jump_destination_check.is_colliding():
 		return velocity
-	var shore_wall_normal = %water_jump_destination_check.get_collision_normal()
+	var shore_wall_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
 	water_jump_wish_velocity = shore_wall_normal * -50 * 1.905 / 100
 	vector_start.y = camera_component.get_node("head").global_position.y + 10*1.905/100
 	vector_end = vector_start + 30.0*1.905/100 * flat_forward.normalized()
@@ -923,7 +910,7 @@ func check_water_jump(velocity: Vector3, delta: float) -> Vector3:
 	%water_jump_destination_check.target_position = vector_end
 	%water_jump_destination_check.force_raycast_update()
 	if %water_jump_destination_check.is_colliding():
-		var shore_normal = %water_jump_destination_check.get_collision_normal()
+		var shore_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
 		if shore_normal.y >= 0.7 and !state_water_jumping:
 			water_jump_time = 500.0
 			state_water_jumping = true

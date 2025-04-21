@@ -1,0 +1,151 @@
+[gd_scene load_steps=12 format=3 uid="uid://bxjweu6dwqxkj"]
+
+[ext_resource type="Script" uid="uid://bwywfarr65o6m" path="res://game/tools/console/GSConsole.gd" id="1_juv2l"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_juv2l"]
+bg_color = Color(0.11, 0.11, 0.11, 1)
+expand_margin_left = 8.0
+expand_margin_top = 42.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5rmih"]
+bg_color = Color(0.11, 0.11, 0.11, 1)
+expand_margin_left = 8.0
+expand_margin_top = 42.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0nk75"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bsm42"]
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.176471, 0.176471, 0.176471, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.14, 0.14, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bsm42"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pr47w"]
+content_margin_left = 5.0
+bg_color = Color(0.176471, 0.176471, 0.176471, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.14, 0.14, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u08af"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0nk75"]
+bg_color = Color(0.29, 0.29, 0.29, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.14, 0.14, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_77dn6"]
+content_margin_left = 3.0
+content_margin_top = 3.0
+bg_color = Color(0.290196, 0.290196, 0.290196, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.14, 0.14, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dj4ty"]
+bg_color = Color(0.176471, 0.176471, 0.176471, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.14, 0.14, 1)
+
+[node name="GSConsole" type="Window" node_paths=PackedStringArray("input", "output")]
+disable_3d = true
+canvas_item_default_texture_filter = 0
+gui_snap_controls_to_pixels = false
+title = "Console"
+initial_position = 1
+size = Vector2i(970, 755)
+always_on_top = true
+min_size = Vector2i(150, 125)
+keep_title_visible = true
+theme_override_constants/title_height = 41
+theme_override_constants/resize_margin = 5
+theme_override_constants/close_v_offset = 28
+theme_override_styles/embedded_border = SubResource("StyleBoxFlat_juv2l")
+theme_override_styles/embedded_unfocused_border = SubResource("StyleBoxFlat_5rmih")
+script = ExtResource("1_juv2l")
+input = NodePath("Input")
+output = NodePath("Output")
+
+[node name="Output" type="RichTextLabel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+mouse_filter = 1
+theme_override_colors/selection_color = Color(0.498039, 0.498039, 0.498039, 1)
+theme_override_font_sizes/bold_italics_font_size = 11
+theme_override_font_sizes/italics_font_size = 11
+theme_override_font_sizes/mono_font_size = 11
+theme_override_font_sizes/normal_font_size = 11
+theme_override_font_sizes/bold_font_size = 11
+theme_override_styles/focus = SubResource("StyleBoxEmpty_0nk75")
+theme_override_styles/normal = SubResource("StyleBoxFlat_bsm42")
+bbcode_enabled = true
+scroll_following = true
+threaded = true
+selection_enabled = true
+drag_and_drop_selection_enabled = false
+
+[node name="Input" type="LineEdit" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -24.0
+offset_right = -69.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 11
+theme_override_styles/focus = SubResource("StyleBoxEmpty_bsm42")
+theme_override_styles/normal = SubResource("StyleBoxFlat_pr47w")
+keep_editing_on_text_submit = true
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_enabled = false
+caret_blink = true
+
+[node name="Button" type="Button" parent="Input"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_right = 69.0
+offset_bottom = 24.0
+grow_horizontal = 0
+focus_mode = 1
+theme_override_font_sizes/font_size = 11
+theme_override_styles/focus = SubResource("StyleBoxEmpty_u08af")
+theme_override_styles/hover = SubResource("StyleBoxFlat_0nk75")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_77dn6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_dj4ty")
+text = "Отправить"
+
+[connection signal="close_requested" from="." to="." method="_on_close_pressed"]
+[connection signal="console_opened" from="." to="." method="_on_console_opened"]
+[connection signal="text_submitted" from="Input" to="." method="on_text_entered"]
+[connection signal="pressed" from="Input/Button" to="." method="on_input_button_entered"]

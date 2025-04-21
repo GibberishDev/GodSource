@@ -1,0 +1,42 @@
+{
+	"root_node": {
+		"anchor_preset": 7,
+		"transform": {
+			"size": "vector2 82.0 50.0",
+			"position": "vector2 896.0 755.0",
+			"rotation": 0.0
+		},
+		"nodes": {
+			"speed_label": {
+				"type": "label",
+				"variables": {
+					"text": "use player_speed",
+					"label_settings": {
+						"font": {
+							"font": "noto_sans_bold.ttf",
+							"size": 56,
+							"color": "color 1.00 1.00 1.00 1.00"
+						},
+						"outline": {
+							"size": 0,
+							"color": "color 0.00 0.00 0.00 0.00"
+						},
+						"shadow": {
+							"size": 5,
+							"color": "color 0.00 0.00 0.00 1.00",
+							"offset": "vector2 3 3"
+						}
+					},
+					"horizontal_alignment": 1, 
+					"vertical_alignment": 1,
+					"anchor_preset": 7,
+					"transform": {
+						"size": "vector2 0",
+						"position": "vector2 0",
+						"rotation": 0.0
+					}
+				}
+			}
+		}
+	}
+}

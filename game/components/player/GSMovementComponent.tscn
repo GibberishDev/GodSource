@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://csqnb03ykde8d"]
+[gd_scene load_steps=6 format=3 uid="uid://csqnb03ykde8d"]
 
 [ext_resource type="Script" uid="uid://c5bqgijq274ef" path="res://game/components/player/GSMovementComponent.gd" id="1_xexbk"]
 
@@ -13,13 +13,6 @@ size = Vector3(0.93, 0.15, 0.93)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_2lduq"]
 size = Vector3(0, 1, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uexqq"]
-content_margin_left = 8.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
-bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [node name="GSMovementComponent" type="Node3D"]
 script = ExtResource("1_xexbk")
@@ -64,25 +57,6 @@ collision_mask = 33
 [node name="triggerbox_collision" type="CollisionShape3D" parent="water_trigger"]
 unique_name_in_owner = true
 shape = SubResource("BoxShape3D_2lduq")
-
-[node name="Control" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 1
-
-[node name="showpos" type="RichTextLabel" parent="Control"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-grow_horizontal = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_uexqq")
-bbcode_enabled = true
-fit_content = true
 
 [node name="water_jump_destination_check" type="RayCast3D" parent="."]
 unique_name_in_owner = true
