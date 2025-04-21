@@ -1,0 +1,28 @@
+{
+	"root_node": {
+		"anchor_preset": 2,
+		"transform": {
+			"size": "vector2 0.0 0.0",
+			"position": "vector2 0.0 1080.0",
+			"rotation": 0.0
+		},
+		"nodes": {
+			"player_class": {
+				"type": "image",
+				"image": "class_soldierred.png",
+				"variables": {
+					"expand_mode": 1,
+					"stretch_mode": 2,
+					"flip_h": false,
+					"flip_v": false,
+					"anchor_preset": 0,
+					"transform": {
+						"size": "vector2 256.0 256.0",
+						"position": "vector2 128.0 -256.0",
+						"rotation": 0.0
+					}
+				}
+			}
+		}
+	}
+}
