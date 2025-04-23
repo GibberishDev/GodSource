@@ -265,10 +265,10 @@ func init_command_from_console_commands(text_command: String, text_split: Packed
 func command_echo(arguments: Array) -> void:
 	print_line(" ".join(arguments), false)
 
-func command_quit(arguments: Array) -> void:
+func command_quit(_arguments: Array) -> void:
 	get_tree().quit()
 
-func command_clear(arguments: Array) -> void:
+func command_clear(_arguments: Array) -> void:
 	output.clear()
 
 # TODO: change it for local/online servers
@@ -297,10 +297,10 @@ func command_map(arguments: Array) -> void:
 		if (visible):
 			toggle_console()
 	else:
-		print_line("Map %s no exists." % [map_name])
+		print_line("Map %s does not exist." % [map_name])
 
 # TODO: change it for local/online servers
-func command_disconnect(arguments: Array) -> void:
+func command_disconnect(_arguments: Array) -> void:
 	if GSGlobal.menu.on_map:
 		for child: Node in get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Map Scene").get_children():
 			child.queue_free()
@@ -328,7 +328,7 @@ func command_exec(arguments: Array) -> void:
 		for line: String in lines:
 			init_command(line)
 	else:
-		print_line("The file was not found.")
+		print_line("The file does not exist.")
 
 func command_alias(arguments: Array) -> void:
 	var alias_name: String = arguments[0]

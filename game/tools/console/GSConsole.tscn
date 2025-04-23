@@ -74,7 +74,7 @@ disable_3d = true
 canvas_item_default_texture_filter = 0
 gui_snap_controls_to_pixels = false
 title = "Console"
-initial_position = 1
+initial_position = 4
 size = Vector2i(970, 755)
 always_on_top = true
 min_size = Vector2i(150, 125)
@@ -143,7 +143,7 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_u08af")
 theme_override_styles/hover = SubResource("StyleBoxFlat_0nk75")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_77dn6")
 theme_override_styles/normal = SubResource("StyleBoxFlat_dj4ty")
-text = "Отправить"
+text = "Enter"
 
 [connection signal="close_requested" from="." to="." method="_on_close_pressed"]
 [connection signal="console_opened" from="." to="." method="_on_console_opened"]
