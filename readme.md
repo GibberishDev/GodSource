@@ -1,5 +1,5 @@
 <p align="center">
-  <img align="center" src="godsource_logo.png" alt="GodSource" width=70% height=70%>
+  <img src="godsource_logo.png" alt="GodSource" width=70% height=70%>
 </p>
 
 ## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
