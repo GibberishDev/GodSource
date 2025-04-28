@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://bndugg74m6822"]
 
-[ext_resource type="Script" uid="uid://ciyjewi0q73xs" path="res://game/ui/main_hud/GSHUDMenu.gd" id="1_yvenr"]
+[ext_resource type="Script" uid="uid://ciyjewi0q73xs" path="res://game/ui/main_hud/GSMainMenu.gd" id="1_yvenr"]
 [ext_resource type="Texture2D" uid="uid://385n88ylib86" path="res://godsource_logo.png" id="2_yvenr"]
 [ext_resource type="FontFile" uid="uid://ccqtwv5ebmgd" path="res://assets/fonts/TF2/TF2Build.ttf" id="3_6bkka"]
 [ext_resource type="Theme" uid="uid://55mh6xa8a3lr" path="res://game/ui/styles/button_style_1.theme" id="4_b3adm"]
@@ -19,7 +19,7 @@ PanelContainer/styles/panel = SubResource("StyleBoxFlat_7qeha")
 font = ExtResource("3_6bkka")
 font_size = 32
 
-[node name="GSHUDMenu" type="Control" node_paths=PackedStringArray("background")]
+[node name="GSMainMenu" type="Control" node_paths=PackedStringArray("background")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,7 +30,7 @@ script = ExtResource("1_yvenr")
 background = NodePath("Background")
 
 [node name="Background" type="TextureRect" parent="."]
-visible = false
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,6 +40,7 @@ grow_vertical = 2
 stretch_mode = 5
 
 [node name="GSLogo" type="TextureRect" parent="."]
+texture_filter = 2
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -47,76 +48,95 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -272.0
-offset_top = -300.0
+offset_top = -284.0
 offset_right = 272.0
-offset_bottom = -188.0
+offset_bottom = -172.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_yvenr")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Play Panel" type="PanelContainer" parent="."]
+[node name="Play Panel" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -272.0
-offset_top = -117.5
-offset_right = 272.0
-offset_bottom = 117.5
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Play Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -272.0
+offset_top = -156.0
+offset_right = 272.0
+offset_bottom = 159.0
+grow_horizontal = 2
 theme = SubResource("Theme_3m8ha")
 metadata/_edit_group_ = true
 
-[node name="MarginContainer" type="MarginContainer" parent="Play Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="Play Panel/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="Elements" type="VBoxContainer" parent="Play Panel/MarginContainer"]
+[node name="Elements" type="VBoxContainer" parent="Play Panel/PanelContainer/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Panel Name" type="Label" parent="Play Panel/MarginContainer/Elements"]
+[node name="Panel Name" type="Label" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 43.135)
 layout_mode = 2
 text = " PLAY"
 label_settings = SubResource("LabelSettings_3m8ha")
 vertical_alignment = 2
 
-[node name="Start Server" type="Button" parent="Play Panel/MarginContainer/Elements"]
+[node name="Start Server" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
 theme_override_font_sizes/font_size = 26
-text = " Start Server"
+text = "Start Server"
 alignment = 0
 expand_icon = true
 
-[node name="Open Console" type="Button" parent="Play Panel/MarginContainer/Elements"]
+[node name="Open Console" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
 theme_override_font_sizes/font_size = 26
-text = " Open Console"
+text = "Open Console"
 alignment = 0
 expand_icon = true
 
-[node name="Exit" type="Button" parent="Play Panel/MarginContainer/Elements"]
+[node name="Leave From Map" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
 theme_override_font_sizes/font_size = 26
-text = " Exit"
+text = "Leave from map"
 alignment = 0
 expand_icon = true
 
-[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Start Server" to="." method="_on_start_server_pressed"]
-[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Open Console" to="." method="_on_open_console_pressed"]
-[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Exit" to="." method="_on_exit_pressed"]
+[node name="Exit" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme = ExtResource("4_b3adm")
+theme_override_font_sizes/font_size = 26
+text = "Exit"
+alignment = 0
+expand_icon = true
+
+[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Start Server" to="." method="_on_start_server_pressed"]
+[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Open Console" to="." method="_on_open_console_pressed"]
+[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Leave From Map" to="." method="_on_leave_from_map_pressed"]
+[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Exit" to="." method="_on_exit_pressed"]

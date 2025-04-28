@@ -23,6 +23,7 @@ GSSettings="*res://game/classes/ClientState.gd"
 GSTools="*res://game/tools/GSTools.gd"
 GSGlobal="*res://game/tools/GSGlobal.gd"
 GSGlobalInput="*res://game/tools/GSGlobalInput.gd"
+GSConsole="*res://game/tools/console/GSConsole.tscn"
 
 [debug]
 

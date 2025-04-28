@@ -46,6 +46,7 @@ mesh = SubResource("BoxMesh_w7af0")
 player_root = NodePath("../..")
 bounding_box = NodePath("../../player_bounding_box")
 camera_component = NodePath("../GSCameraComponent")
+bhop_cheat_enabled = true
 
 [node name="GSCameraComponent" parent="components" node_paths=PackedStringArray("player_root", "movement_component") instance=ExtResource("3_eh4ln")]
 player_root = NodePath("../..")

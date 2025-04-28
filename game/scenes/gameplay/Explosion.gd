@@ -77,7 +77,7 @@ func explode_player(player_root: GSPlayer) -> void:
 	player_root.movement_component.apply_impulse(kbDir, kbAmt)
 
 func getKnockbackDir(player_root: GSPlayer) -> Vector3:
-	var explosionOrigin: Vector3 = self.global_position - Vector3(0, 10 * 1.905 / 100, 0) #Shift explosion oprigin down 10 hammer units to make it easier for explosions to "pop" players into air
+	var explosionOrigin: Vector3 = self.global_position - Vector3(0, GSTools.to_meters(10), 0) #Shift explosion oprigin down 10 hammer units to make it easier for explosions to "pop" players into air
 	$vis.global_position = explosionOrigin
 	return explosionOrigin.direction_to(player_root.global_position + Vector3(0, player_root.movement_component.bounding_box.shape.size.y / 2.0, 0)) #return normalized vec3 with direction from shifted explosion origin to player
 
@@ -93,10 +93,11 @@ func getKnockbackAmt(player_root: GSPlayer) -> float:
 	if !player_root.movement_component.grounded:
 		kbClassMult = 10.0#player_root.movement_component.airborneKnockbackMult
 		kbDamageReduction = .6#player_root.movement_component.selfBlastDamageReductionAir
-	return min(1000 * 1.905 / 100, (kbClassMult * kbDamageReduction * kbDamage) / player_rootMass * 1.905 / 100)
+
+	return min(GSTools.to_meters(1000), (kbClassMult * kbDamageReduction * kbDamage) / player_rootMass * 1.905 / 100)
 
 func explode_physics_props(prop: RigidBody3D) -> void:
-	var shiftedOrigin: Vector3 = global_position - Vector3(0, 10*1.905/100, 0)
+	var shiftedOrigin: Vector3 = global_position - Vector3(0, GSTools.to_meters(10), 0)
 	var dir: Vector3 = shiftedOrigin.direction_to(prop.global_position)
 	var dist: float = global_position.distance_to(prop.global_position)
 	prop.apply_central_impulse(dir * 30 * (radius - dist))

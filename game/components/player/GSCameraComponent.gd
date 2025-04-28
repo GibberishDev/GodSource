@@ -8,8 +8,8 @@ extends Node3D
 
 @export_subgroup("Camera Settings")
 
-@export var camera_view_height: float = 68 * 1.905 / 100
-@export var camera_duck_view_heght: float = 45 * 1.905 / 100
+@export var camera_view_height: float = GSTools.to_meters(68)
+@export var camera_duck_view_heght: float = GSTools.to_meters(45)
 @export var camera_zoom_ability: bool = true
 
 @export_range(20.0, 180.0, 0.1) var camera_zoom_fov: float = 90

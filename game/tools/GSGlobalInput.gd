@@ -10,7 +10,7 @@ var action_list: Dictionary = {
 	"space": KEY_SPACE,
 	"enter": KEY_ENTER,
 	"backspace": KEY_BACKSPACE,
-	
+
 	"mouse1": MOUSE_BUTTON_LEFT,
 	"mouse2": MOUSE_BUTTON_RIGHT,
 	"mouse3": MOUSE_BUTTON_MIDDLE,
@@ -70,52 +70,80 @@ var action_list: Dictionary = {
 	"n": KEY_N,
 	"m": KEY_M,
 }
+
 var action_list_commands: Dictionary = {}
+var key_to_action: Dictionary = {}
+var mouse_to_action: Dictionary = {}
 
 func _ready() -> void:
 	for element: String in action_list.keys():
-		var event: InputEventKey = InputEventKey.new()
-		event.keycode = action_list[element]
-		InputMap.add_action(element)
-		InputMap.action_add_event(element, InputEventKey.new())
-
-	for element: String in action_list.keys():
 		action_list_commands[element] = ""
+
+	for action: String in action_list:
+		var code: Key = action_list[action]
+		
+		if code >= MOUSE_BUTTON_LEFT and code <= MOUSE_BUTTON_XBUTTON2:
+			mouse_to_action[code] = action
+		else:
+			key_to_action[code] = action
+
+	GSConsole.add_command("bind", command_bind, -1, 2)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not GSGlobal.menu.on_map:
+		return
 	
-	GSGlobal.console.add_command("bind", command_bind, -1, 2)
+	var keycode: int = event.get_keycode()
+	
+	if event.is_pressed() and not event.is_echo():
+		if key_to_action.has(keycode):
+			var action: String = key_to_action[keycode]
+			var cmd: String = action_list_commands.get(action, "")
+			on_action_pressed(cmd)
+	
+	elif event.is_released():
+		if key_to_action.has(keycode):
+			var action: String = key_to_action[keycode]
+			var cmd: String = action_list_commands.get(action, "")
+			if cmd.begins_with("+"):
+				on_action_pressed("-" + cmd.trim_prefix("+"))
 
 func _input(event: InputEvent) -> void:
-	if event.is_pressed() and !event.is_echo():
-		if event is InputEventKey:
-			for key: String in action_list.keys():
-				if event.get_keycode_with_modifiers() == action_list[key]:
-					on_action_pressed(action_list_commands[key])
-		if event is InputEventMouseButton:
-			for key: String in action_list.keys():
-				if event.button_index == action_list[key]:
-					on_action_pressed(action_list_commands[key])
-	elif event.is_released():
-		if event is InputEventKey:
-			for key: String in action_list.keys():
-				if event.get_keycode_with_modifiers() == action_list[key]:
-					if action_list_commands[key].begins_with("+"):
-						on_action_pressed("-" + action_list_commands[key].erase(0, 1))
-		if event is InputEventMouseButton:
-			for key: String in action_list.keys():
-				if event.button_index == action_list[key]:
-					if action_list_commands[key].begins_with("+"):
-						on_action_pressed("-" + (action_list_commands[key]).erase(0, 1))
+	if not GSGlobal.menu.on_map:
+		return
+	
+	if event is not InputEventMouseButton:
+		return
+	
+	var button_index: int = event.button_index
+	
+	if mouse_to_action.has(button_index):
+		var action: String = mouse_to_action[button_index]
+		var cmd: String = action_list_commands.get(action, "")
+		
+		if event.is_pressed():
+			on_action_pressed(cmd)
+		elif event.is_released() and cmd.begins_with("+"):
+			on_action_pressed("-" + cmd.trim_prefix("+"))
 
 func on_action_pressed(key: String) -> void:
-	var commands: PackedStringArray = GSGlobal.console.parse_commands_line_input(key.strip_edges())
+	if key.is_empty():
+		return
+	
+	var commands: PackedStringArray = GSConsole.parse_commands_line_input(key.strip_edges())
 	for command: String in commands:
-		GSGlobal.console.init_command(command)
+		GSConsole.init_command(command)
 
 func command_bind(arguments: Array) -> void:
-	var key: String = arguments[0]
-	var value: Array = arguments.slice(1, arguments.size())
-
+	if arguments.size() < 2:
+		return
+	
+	var key: String = arguments[0].to_lower()
+	var value: Array = arguments.slice(1)
+	
 	if action_list_commands.has(key):
-		action_list_commands.set(key, " ".join(value))
+		action_list_commands[key] = " ".join(value)
+		GSConsole.print_line_format("Bind", "Console", 'Bound "%s" is to "%s"' % [key, action_list_commands[key]], "green", Console.PrintTo.Godot)
 	else:
-		GSGlobal.console.print_line('"%s" isnt a valid key' % [key])
+		GSConsole.print_line('"%s" is not a valid key' % key, Console.PrintTo.Console)
+		GSConsole.print_line_format("Error", "Console",'"%s" is not a valid key' % key, "green", Console.PrintTo.Godot)

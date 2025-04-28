@@ -1,5 +1,11 @@
 extends Node
 
+func to_hammer_units(meters: float) -> float: 
+	return meters * 100 / 1.905
+
+func to_meters(hammer_units: float) -> float: 
+	return hammer_units * 1.905 / 100
+
 func string_to_vector(input_string: String) -> Vector2:
 	var split_variables: PackedStringArray = input_string.split(" ")
 	

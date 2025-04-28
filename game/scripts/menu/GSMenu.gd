@@ -15,14 +15,14 @@ func _input(event: InputEvent) -> void:
 		if event.pressed:
 			if (event.is_action("console")):
 				get_tree().get_root().set_input_as_handled()
-				if !GSGlobal.console.visible:
+				if !GSConsole.visible:
 					if on_map:
 						open_menu()
-					GSGlobal.console.toggle_console()
+					GSConsole.toggle_console()
 			if event.get_keycode_with_modifiers() == KEY_ESCAPE:
 				if on_map:
 					if in_menu:
-						saved_console_opened = GSGlobal.console.visible
+						saved_console_opened = GSConsole.visible
 						hide_menu()
 					else:
 						open_menu()
@@ -40,8 +40,8 @@ func hide_menu() -> void:
 	if on_map:
 		GSGlobal.game.get_node("Map").get_node("Players").get_child(0).hud_component.visible = true
 
-	get_child(0).visible = false
-	GSGlobal.console.visible = false
+	GSGlobal.main_menu.visible = false
+	GSConsole.visible = false
 
 func open_menu() -> void:
 	in_menu = true
@@ -52,5 +52,5 @@ func open_menu() -> void:
 	if on_map:
 		GSGlobal.game.get_node("Map").get_node("Players").get_child(0).hud_component.visible = false
 
-	get_child(0).visible = true
-	GSGlobal.console.visible = saved_console_opened
+	GSGlobal.main_menu.visible = true
+	GSConsole.visible = saved_console_opened

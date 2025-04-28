@@ -15,12 +15,19 @@ func _ready() -> void:
 
 	background.texture = load("res://game/ui/main_hud/sprites/backgrounds/" + backgounds_array.pick_random())
 
+func _process(delta: float) -> void:
+	background.visible = false if GSGlobal.menu.on_map else true
+	%"Leave From Map".visible = true if GSGlobal.menu.on_map else false
+
 func _on_start_server_pressed() -> void:
-	GSGlobal.console.command_map(["test"])
+	GSConsole.command_map(["test"])
 
 func _on_open_console_pressed() -> void:
-	if !GSGlobal.console.visible:
-		GSGlobal.console.toggle_console()
+	if !GSConsole.visible:
+		GSConsole.toggle_console()
 
 func _on_exit_pressed() -> void:
-	GSGlobal.console.command_quit([])
+	GSConsole.command_quit([])
+
+func _on_leave_from_map_pressed() -> void:
+	GSConsole.command_disconnect([])

@@ -18,7 +18,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	available_variables = {
-		"player_speed": int(player_root.get_velocity().length() * 100 / 1.905)
+		"player_speed": int(GSTools.to_hammer_units(player_root.get_velocity().length()))
 	}
 
 	if player_speed_label_initialized:
