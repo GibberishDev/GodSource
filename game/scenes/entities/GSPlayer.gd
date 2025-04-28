@@ -15,7 +15,7 @@ var can_swim: bool = true
 @export var health_component: Node
 
 func _physics_process(_delta: float) -> void:
-	if Input.is_action_pressed("attack1") and !attack_delay_active and GSGlobal.mouse_captured: #TODO: Move attack into invetory componenet once created
+	if Input.is_action_pressed("mouse1") and !attack_delay_active and GSGlobal.mouse_captured: #TODO: Move attack into invetory componenet once created
 		attack_delay_active = true
 
 		var rocket: Node = rocket.instantiate()

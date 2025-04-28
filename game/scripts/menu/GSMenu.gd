@@ -1,8 +1,5 @@
 extends Node
 
-signal logged_to_map
-signal disconnected_from_map
-
 var on_map: bool = false
 var in_menu: bool = true
 var saved_console_opened: bool = false

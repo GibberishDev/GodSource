@@ -52,7 +52,7 @@ func _input(event: InputEvent) -> void:
 				toggle_console()
 			get_tree().get_root().set_input_as_handled()
 		if (visible and event.pressed):
-			if (event.is_action("console_next_command")):
+			if (event.is_action("uparrow")):
 				get_tree().get_root().set_input_as_handled()
 				if (console_history_index > 0):
 					console_history_index -= 1
@@ -60,7 +60,7 @@ func _input(event: InputEvent) -> void:
 						input.text = console_history[console_history_index]
 				input.grab_focus()
 				input.caret_column = input.text.length()
-			if (event.is_action("console_previous_command")):
+			if (event.is_action("downarrow")):
 				get_tree().get_root().set_input_as_handled()
 				if (console_history_index < console_history.size()):
 					console_history_index += 1
@@ -104,7 +104,6 @@ func print_line(text: Variant, print_godot: bool = false) -> void:
 
 func parse_line_input(text: String) -> PackedStringArray:
 	var out_array: PackedStringArray
-	var first_char: bool = true
 	var in_quotes: bool = false
 	var escaped: bool = false
 	var token: String

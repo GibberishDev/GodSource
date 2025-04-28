@@ -196,17 +196,17 @@ var swimming_mastery: bool = false # This variable defined by valve but never us
 func _ready() -> void:
 	setup_crouching()
 	setup_casts_step_check()
-	
+
 func _unhandled_input(_event: InputEvent) -> void:
 	if GSGlobal.mouse_captured:
-		wish_right = Input.is_action_pressed("right")
-		wish_left = Input.is_action_pressed("left")
-		wish_forward = Input.is_action_pressed("forward")
-		wish_backward = Input.is_action_pressed("back")
-		wish_crouch = Input.is_action_pressed("crouch")
-		wish_jump = Input.is_action_pressed("jump")
+		wish_right = Input.is_action_pressed("d")
+		wish_left = Input.is_action_pressed("a")
+		wish_forward = Input.is_action_pressed("w")
+		wish_backward = Input.is_action_pressed("s")
+		wish_crouch = Input.is_action_pressed("ctrl")
+		wish_jump = Input.is_action_pressed("space")
 
-		if Input.is_action_just_pressed("noclip"):
+		if Input.is_action_just_pressed("v"):
 			toggle_noclip()
 
 func _physics_process(delta: float) -> void:

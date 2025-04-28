@@ -1,12 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://cfh40qum6x166"]
+[gd_scene load_steps=4 format=3 uid="uid://cfh40qum6x166"]
 
-[ext_resource type="Script" uid="uid://1r6r5v6tmk2y" path="res://game/tools/GSRoot.gd" id="1_38dc1"]
 [ext_resource type="PackedScene" uid="uid://bxjweu6dwqxkj" path="res://game/tools/console/GSConsole.tscn" id="1_itajj"]
 [ext_resource type="Script" uid="uid://y5d73wdv62fl" path="res://game/scripts/menu/GSMenu.gd" id="2_enxha"]
 [ext_resource type="PackedScene" uid="uid://bndugg74m6822" path="res://game/ui/main_hud/GSHUDMenu.tscn" id="4_enxha"]
 
 [node name="Root Scene" type="Node"]
-script = ExtResource("1_38dc1")
 
 [node name="Menu" type="Node" parent="."]
 script = ExtResource("2_enxha")
