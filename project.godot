@@ -27,6 +27,7 @@ GSConsole="*res://game/tools/console/GSConsole.tscn"
 
 [debug]
 
+gdscript/warnings/unused_variable=0
 gdscript/warnings/untyped_declaration=2
 gdscript/warnings/inferred_declaration=2
 

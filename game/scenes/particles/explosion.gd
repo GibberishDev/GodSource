@@ -3,7 +3,7 @@ class_name Particle
 extends Node3D
 
 @export
-var emit: bool = false: 
+var emit: bool = false:
 	set = emitting,
 	get = getEmit
 

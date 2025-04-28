@@ -1,5 +1,6 @@
-KinematicBody3D movement template...
-<h1><center>GODSOURCE ❤️! •⩊•</center></h1>
+<p align="center">
+  <img src="godsource_logo.png" alt="GodSource" width=70% height=70%>
+</p>
 
 ## IMPORTANT!!!!!!! and ! Doesnt propperly work with the Rapier or Jolt Physics engine out of the box! Requires a lot of additional tweaking and in most cases its no longer worth it to use em
 
@@ -28,3 +29,4 @@ KinematicBody3D movement template...
 * (Optional module) Map creating tool with custom "brushes" for non-developers being able to contribute. Might be a plugin for Blender and Godot.
 * Custom classes for Player to declutter Player set-up
 
+... webhooks smh

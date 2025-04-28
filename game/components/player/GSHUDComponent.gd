@@ -81,7 +81,7 @@ func _initiate_player_class() -> void:
 
 				if texture_rect == null:
 					return
-				
+
 				get_node(hud_in_game_player_class_node.get_path()).add_child(texture_rect)
-				
+
 				player_class_image_initialized = true

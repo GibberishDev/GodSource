@@ -8,7 +8,7 @@ func _ready() -> void:
 	for element: String in backgounds_array:
 		if element.ends_with(".import"):
 			backgounds_array.erase(element)
-		
+
 	for element: String in backgounds_array:
 		if !element.contains("widescreen"):
 			backgounds_array.erase(element)

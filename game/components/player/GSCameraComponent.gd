@@ -27,7 +27,7 @@ var sensitivity_y: float = 0.0015
 var camera_saved_position: Vector3 = Vector3.ZERO
 
 func _physics_process(delta: float) -> void:
-	smooth_camera(delta)  
+	smooth_camera(delta)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and GSGlobal.mouse_captured:

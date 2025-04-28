@@ -22,9 +22,9 @@ func get_file_data(file_name: String) -> Dictionary:
 		var resource: PackedByteArray = reader.read_file("data/" + file_name)
 		var resource_as_text: String = resource.get_string_from_ascii()
 		var resource_as_dictionary: Dictionary = JSON.parse_string(resource_as_text)
-		
+
 		reader.close()
 
 		return resource_as_dictionary
-	
+
 	return Dictionary()

@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://bndugg74m6822"]
 
 [ext_resource type="Script" uid="uid://ciyjewi0q73xs" path="res://game/ui/main_hud/GSMainMenu.gd" id="1_yvenr"]
-[ext_resource type="Texture2D" uid="uid://385n88ylib86" path="res://godsource_logo.png" id="2_yvenr"]
+[ext_resource type="Texture2D" uid="uid://drn1ycstasm21" path="res://godsource_logo.png" id="2_yvenr"]
 [ext_resource type="FontFile" uid="uid://ccqtwv5ebmgd" path="res://assets/fonts/TF2/TF2Build.ttf" id="3_6bkka"]
 [ext_resource type="Theme" uid="uid://55mh6xa8a3lr" path="res://game/ui/styles/button_style_1.theme" id="4_b3adm"]
 

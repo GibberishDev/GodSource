@@ -1,24 +1,24 @@
 extends Node
 
-func to_hammer_units(meters: float) -> float: 
+func to_hammer_units(meters: float) -> float:
 	return meters * 100 / 1.905
 
-func to_meters(hammer_units: float) -> float: 
+func to_meters(hammer_units: float) -> float:
 	return hammer_units * 1.905 / 100
 
 func string_to_vector(input_string: String) -> Vector2:
 	var split_variables: PackedStringArray = input_string.split(" ")
-	
+
 	if !split_variables.size() == 3:
 		return Vector2.ZERO
-	
+
 	var vector: String = split_variables[0]
 	var x: float = 0.0
 	var y: float = 0.0
-	
+
 	if vector != "vector2":
 		return Vector2.ZERO
-	
+
 	if !split_variables[1].is_valid_float():
 		return Vector2.ZERO
 
@@ -55,16 +55,16 @@ func string_to_color(input_string: String) -> Color:
 
 func string_to_variable(input_string: String, input_dictionary: Dictionary) -> Variant:
 	var split_variables: PackedStringArray = input_string.split(" ")
-	
+
 	if !split_variables.size() == 2:
 		return input_string
-	
+
 	var use: String = split_variables[0]
 	var variable_name: String = split_variables[1]
-	
+
 	if use != "use":
 		return input_string
-	
+
 	if !input_dictionary.has(variable_name):
 		return input_string
 

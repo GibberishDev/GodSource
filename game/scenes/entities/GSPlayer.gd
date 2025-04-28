@@ -22,7 +22,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not wish_attack:
 		return
-	
+
 	if !attack_delay_active and GSGlobal.mouse_captured: #TODO: Move attack into invetory componenet once created
 		attack_delay_active = true
 

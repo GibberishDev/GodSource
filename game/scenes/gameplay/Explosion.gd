@@ -3,10 +3,10 @@ extends Node3D
 
 enum DAMAGE_TYPE {GENERIC, BLAST, KNOCKBACK, FIRE} #TODO: move into separate autoload damage type class idk
 
-##Type of damage to deal. May be smth like fire damage, blast damage, generic(untyped or without any special behaviour) damage 
+##Type of damage to deal. May be smth like fire damage, blast damage, generic(untyped or without any special behaviour) damage
 var damage_type: DAMAGE_TYPE # TODO: when damage types are introduced hook up
 
-## How big explosion will be 
+## How big explosion will be
 var radius: float = 0.0
 
 ## Base damage of an explosion. IMPORTANT! This is not the same as actual damage recieved to health. in TF2 all knockback is calculated based on damage. So to make game more consistent Valve went the way of setting separate damage and base damage for weapons(ex. for blast jumping calculations all rocket launchers have base damage of 90.0)

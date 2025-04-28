@@ -1,7 +1,7 @@
 class_name GSAlias extends Resource
 
 #constructed variables
-var alias_name: StringName = "" ##Name is an identificator of an alias. Aliases cannot have same name. If alias with the same name is being created it will override old one 
+var alias_name: StringName = "" ##Name is an identificator of an alias. Aliases cannot have same name. If alias with the same name is being created it will override old one
 var alias_value: String = "" ##String of commands alias executes upon being called with auth access of the actor calling it
 
 ##Class constructor

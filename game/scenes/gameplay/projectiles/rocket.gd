@@ -14,7 +14,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	$rocket.rotation.z += 2 * delta * PI
 	position += direction * speed * delta
-	
+
 	if $hitDetection.is_colliding():
 		var explosion_scene_instantiate: Node = explosion_scene.instantiate()
 		explosion_scene_instantiate.position = $hitDetection.get_collision_point()

@@ -28,7 +28,7 @@ class ConsoleCommand:
 	var arguments: PackedStringArray
 	var required: int
 	var infinite_arguments: bool
-	
+
 	func _init(in_function: Callable, in_arguments: PackedStringArray, in_required: int = 0, in_infinite_arguments: bool = false) -> void:
 		function = in_function
 		arguments = in_arguments
@@ -151,7 +151,7 @@ func parse_line_input(text: String) -> PackedStringArray:
 		token += c
 
 	out_array.push_back(token)
-	
+
 	return out_array
 
 func parse_commands_line_input(text: String) -> PackedStringArray:
@@ -166,16 +166,16 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 			token += c
 			escaped = false
 			continue
-			
+
 		if c == "\\":
 			escaped = true
 			continue
-			
+
 		if c == "\"" || c == "'":
 			in_quotes = !in_quotes
 			token += c
 			continue
-			
+
 		if c == ";" && !in_quotes:
 			# Завершаем текущую команду
 			command_buffer += token.strip_edges()
@@ -184,13 +184,13 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 			command_buffer = ""
 			token = ""
 			continue
-			
+
 		token += c
 
 	command_buffer += token.strip_edges()
 	if !command_buffer.is_empty():
 		out_array.push_back(command_buffer)
-		
+
 	return out_array
 
 func add_command(command_name: String, function: Callable, arguments: int = 0, required: int = 0) -> void:
@@ -232,7 +232,7 @@ func on_input_button_entered() -> void:
 func init_command(command: String) -> void:
 	var text_split: PackedStringArray = parse_line_input(command.strip_edges())
 	var text_command: String = text_split[0]
-	
+
 	if text_command != "":
 		if console_commands.has(text_command):
 			init_command_from_console_commands(text_command, text_split)
@@ -258,7 +258,7 @@ func init_command(command: String) -> void:
 
 func init_command_from_console_commands(text_command: String, text_split: PackedStringArray) -> void:
 	var arguments: Array = text_split.slice(1)
-	
+
 	if console_commands[text_command].infinite_arguments:
 		if arguments.size() < console_commands[text_command].required:
 			print_line_format("", "", "Too few arguments. ( Required %d )" % console_commands[text_command].required, "white", PrintTo.Console)
@@ -287,7 +287,7 @@ func print_line_format(type: String, category: String, text: String, color: Stri
 		PrintTo.Both:
 			print_rich("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text])
 			print_line("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text], PrintTo.Console)
-			
+
 #endregion
 
 #region Commands
@@ -311,7 +311,7 @@ func command_map(arguments: Array) -> void:
 		var packed_map_scene: PackedScene = load(map_name_path)
 		var map: Node3D = packed_map_scene.instantiate()
 		var packed_player_scene: PackedScene = load("res://game/scenes/entities/GSPlayer.tscn")
-		var player: Node3D = packed_player_scene.instantiate() 
+		var player: Node3D = packed_player_scene.instantiate()
 
 		for child: Node in get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Map Scene").get_children():
 			child.queue_free()
@@ -337,7 +337,7 @@ func command_disconnect(arguments: Array) -> void:
 
 		for child: Node in get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Players").get_children():
 			child.queue_free()
-		
+
 		GSGlobal.release_pointer()
 
 func command_exec(arguments: Array) -> void:

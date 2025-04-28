@@ -6,7 +6,7 @@ var saved_console_opened: bool = false
 
 func _physics_process(delta: float) -> void:
 	on_map = (true if get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Map Scene").get_child_count() == 1 else false)
-	
+
 	if !get_window().has_focus():
 		on_window_focus_exited()
 

@@ -65,7 +65,7 @@ extends Node3D
 ## Determines if player inputsare interpreted as "Null Movement"[br][color=#00000080][i]Null movement is type of movemnt interpretation where movement keys apply immediately and not on Basis summ of Rght - Left. That makes so if left key is pressed down and then right key is pressed movement direction is overriden to "move right"
 @export var use_null_movement: bool = true
 
-## Enable and disable automatic BHopping. 
+## Enable and disable automatic BHopping.
 @export var bhop_cheat_enabled: bool = false
 
 ## Limit Max velocity upon landing. This is to nerf bunnyhopping to stop players from achieveing speeds above limit_max_velocity_amount values.
@@ -101,7 +101,7 @@ var wish_direction: Vector3 = Vector3.ZERO
 
 var move_type: GSPlayerState.MOVE_TYPE = GSPlayerState.MOVE_TYPE.WALK
 
-## Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0 
+## Stacked knockback is Vec3 impulse given to player from knockback sources that is applied at projectile processing step and then set to 0
 var stacked_knockback: Vector3 = Vector3.ZERO
 ## Timer during which water jumping movement execuites
 var water_jump_time: float = 0
@@ -159,7 +159,7 @@ var uncrouching: bool = false
 ## State variable that shows that player is crouched
 var crouched: bool = false
 
-## state variable that shows that player should be uncrouched as soon as world geometry allows it 
+## state variable that shows that player should be uncrouched as soon as world geometry allows it
 var queue_uncrouching: bool = false
 
 ## Uncrouch Timer node reference
@@ -204,7 +204,7 @@ func _ready() -> void:
 	GSConsole.add_command("-jump", command_minus_jump, 0, 0)
 	GSConsole.add_command("+crouch", command_plus_crouch, 0, 0)
 	GSConsole.add_command("-crouch", command_minus_crouch, 0, 0)
-	
+
 	setup_crouching()
 	setup_casts_step_check()
 
@@ -220,7 +220,7 @@ func update_old_keys() -> void:
 
 #region Main movement processor
 ## PURPOSE: combines all other movement altering methods and overwrites velocity of a parent. Follows Source Engine like physics frame update order.[br]
-## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color] 
+## To see full frame order look into [color=#4040ff][url=https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=2&dl=0]this document[/url][/color], Page 5 Section 2.2.2 Player tick by [color=#4040ff][url=https://steamcommunity.com/id/ildprut]Ildprut[/url][/color]
 func process_movement(delta: float) -> void:
 	# step 0: get current velocity
 	var new_velocity: Vector3 = player_root.get_velocity()
@@ -263,7 +263,7 @@ func process_movement(delta: float) -> void:
 		# step 9: Check for ground to stand on.
 		grounded = check_grounded(new_velocity)
 
-		# step 10: Apply second half of gravity 
+		# step 10: Apply second half of gravity
 		if !grounded and move_type != GSPlayerState.MOVE_TYPE.SWIM:
 			new_velocity.y -= gravity / 2 * delta
 
@@ -295,10 +295,10 @@ func process_movement(delta: float) -> void:
 			player_root.move_and_slide()
 
 	just_jumped = false
-	
+
 	# TODO
 	# step 13.2: Handle triggers collision - If hame has invisible triggers(like doors opening in tf2 this step is for checking the collision shapes with areas3D)
-	# step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE! 
+	# step 14: Update bounding box- !NOT NEEDED FOR ANYTHING ELSE BUT SERVER CLIENT STRUCTURE!
 	# step 15: Handle projectiles
 
 
@@ -323,26 +323,26 @@ func apply_friction(velocity: Vector3, delta: float) -> Vector3:
 
 	var speed: float = velocity.length()
 	var drop: float = 0
-	
+
 	if speed < 0.001905:
 		return Vector3.ZERO
-		
+
 	if speed != 0.0:
 		var control: float = max(grounds_speed_cut_off, speed)
 		drop = control * 4 * 0.8 * delta
 
 	var new_speed: float = speed - drop
-	
+
 	if new_speed < 0:
 		new_speed = 0
 
 	if new_speed != speed:
-		new_speed /= speed 
+		new_speed /= speed
 		velocity *= new_speed
 
 	velocity -= (1.0 - new_speed) * velocity
 
-	return velocity 
+	return velocity
 #endregion
 
 
@@ -373,7 +373,7 @@ func apply_acceleration(velocity: Vector3, delta: float) -> Vector3:
 #region ground movement
 ## PURPOSE: interprets user input
 func get_wish_dir() -> void:
-	if !GSGlobal.mouse_captured: 
+	if !GSGlobal.mouse_captured:
 		wish_direction = Vector3.ZERO
 		return
 
@@ -382,16 +382,16 @@ func get_wish_dir() -> void:
 	else:
 		if previous_inputs["R"] != wish_right:
 			wish_direction.z = 1 if wish_right else -1 if wish_left else 0
-			
+
 		if previous_inputs["L"] != wish_left:
 			wish_direction.z = -1 if wish_left else 1 if wish_right else 0
-			
+
 		if previous_inputs["F"] != wish_forward:
 			wish_direction.x = 1 if wish_forward else -1 if wish_backward else 0
-			
+
 		if previous_inputs["B"] != wish_backward:
 			wish_direction.x = -1 if wish_backward else 1 if wish_forward else 0
-				
+
 		previous_inputs = {
 			"R": wish_right,
 			"L": wish_left,
@@ -417,7 +417,7 @@ func accelerate_ground(velocity: Vector3, delta: float) -> Vector3:
 	var add_speed: float = clamp(0, ground_acceleration * delta * speed_multiplier, ground_max_speed * speed_multiplier - current_speed)
 
 	velocity += add_speed * direction
-	
+
 	return velocity
 #endregion
 
@@ -441,7 +441,7 @@ func accelerate_air(velocity: Vector3, direction: Vector3, wish_speed: float, ac
 	var current_speed: float = velocity.dot(direction)
 	var add_speed: float = wish_speed - current_speed
 
-	if add_speed <= 0: 
+	if add_speed <= 0:
 		return velocity
 
 	var accelerate_speed: float = accelerate * GSTools.to_meters(320) * delta
@@ -465,7 +465,7 @@ func handle_jump(velocity: Vector3) -> Vector3:
 
 		if crouching:
 			crouch_jump()
-			if crouch_jump_bug: 
+			if crouch_jump_bug:
 				velocity.y = jump_power
 			else:
 				velocity.y = jump_power - (gravity / Engine.get_physics_ticks_per_second() / 2)
@@ -510,7 +510,7 @@ func handle_crouching() -> void:
 
 	if crouching_state_last_frame == wish_crouch:
 		return
-		
+
 	if wish_crouch and get_water_level() < 3:
 		queue_uncrouching = false
 		if !crouched or !crouching:
@@ -533,7 +533,7 @@ func crouch() -> void:
 	else:
 		if !crouched:
 			player_root.position.y += bounding_box_size.y - bounding_box_height_crouched
-		
+
 		crouching = false
 		crouched = true
 
@@ -614,7 +614,7 @@ func clip_velocity(velocity: Vector3, surface_normal: Vector3, overbounce: float
 	return velocity
 #endregion
 
-#region step up/down logic. Honestly some sort of black magic with testing motion before doing it... 
+#region step up/down logic. Honestly some sort of black magic with testing motion before doing it...
 # -- In general its good if game can get by without step up or down. Its all tested over the years
 # -- and turns our sidden shot elevation changes and movement shooters do not mix well. use ramps instead.
 
@@ -622,10 +622,10 @@ func clip_velocity(velocity: Vector3, surface_normal: Vector3, overbounce: float
 func setup_casts_step_check() -> void:
 	# making step down ShapeCast3D same saze as player bounding box and height of max step up length
 	step_down_shape_cast.shape.size = Vector3(bounding_box_size.x, max_step_up + 0.1, bounding_box_size.z)
-	
+
 	# positioning step down ShapeCast3D at the bottom of player bounding box
 	step_down_shape_cast.position = Vector3(0, (max_step_up + 0.1)/ -2, 0)
-	
+
 	# making step up RayCast3d length be max step up length
 	step_up_ray_cast.target_position.y = -(max_step_up + 0.1)
 
@@ -643,12 +643,12 @@ func step_down_check() -> void:
 	var was_on_floor_last_frame: bool = (Engine.get_physics_frames() - last_floored <= 2)
 	# see if ground below is close enough and wlkable to be stepped down
 	var is_ground_below: bool = (step_down_shape_cast.is_colliding() and !is_wall_too_steep(step_down_shape_cast.get_collision_normal(0)))
-	
+
 	# if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
 	if !grounded and (stepped_down or was_on_floor_last_frame) and !wish_jump and player_root.velocity.y <= 0.1:
 		# create new physics server test object
 		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
-		
+
 		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
 		if test_motion(player_root.global_transform, Vector3(0, -max_step_up, 0), motion_test_result) and is_ground_below:
 			# call camera smoothing method from [PlayerCameraComponent]
@@ -656,7 +656,7 @@ func step_down_check() -> void:
 
 			# get travel distance from motion test
 			var translate_y: float = motion_test_result.get_travel().y
-			
+
 			# tp player down
 			player_root.position.y += translate_y
 			# align player to floor, just in case
@@ -675,7 +675,7 @@ func step_up_check(delta: float, new_velocity: Vector3) -> bool:
 	# If player is not grounded and wasnt snapped to floor: cancell
 	if !player_root.is_on_floor() and !snapped_to_stairs_last_frame:
 		return false
-		
+
 	# If moving up or not moving horizontally: cancell
 	if new_velocity.y > 0 or (new_velocity * Vector3(1, 0, 1)).length() == 0:
 		return false
@@ -691,31 +691,31 @@ func step_up_check(delta: float, new_velocity: Vector3) -> bool:
 	if (player_root.test_move(step_pos_with_clearance, Vector3(0, -max_step_up * 2 ,0), down_check_result) and (down_check_result.get_collider().is_class("StaticBody3D") or down_check_result.get_collider().is_class("CSGShape3D"))):
 		# Determine travel distance
 		var step_height: float = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - player_root.global_position).y
-	
+
 		# If travel distance is invalid: cancell
 		if step_height > max_step_up or step_height <= 0.01 or (down_check_result.get_position() - player_root.global_position).y > max_step_up:
 			return false
-	
+
 		# Move raycast to the predicted motion destination
 		step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, max_step_up, 0) + expected_motion.normalized() * 0.1
-		
+
 		# Update raycast
 		step_up_ray_cast.force_raycast_update()
-	
+
 		# Check if step up spot is valid
 		if step_up_ray_cast.is_colliding() and not is_wall_too_steep(step_up_ray_cast.get_collision_normal()):
 			# Call camera smoothing method from [PlayerCameraComponent]
 			camera_component.save_camera_position()
-			
+
 			# Move player up the ledge
 			player_root.global_position = step_pos_with_clearance.origin + down_check_result.get_travel()
-			
+
 			# Align with the floor
 			player_root.apply_floor_snap()
-			
+
 			# Update state
 			snapped_to_stairs_last_frame = true
-			
+
 			# On success send true which will cancell out move_and_slide
 			return true
 
@@ -724,14 +724,14 @@ func step_up_check(delta: float, new_velocity: Vector3) -> bool:
 
 ## [b][u]PURPOSE[/u][/b]:[br] Perfoms a test motion of Player parent with [method PhysicsServer3D.body_test_motion][br]
 ## [b][u]ARGS[/u][/b]:[br] from - [Transform3D] - original body transform[br] motion - [Vector3] - test motion destination[br] result - [PhysicsTestMotionResult3D] - [color=gold]NULLABLE[/color] - Describes the motion and collision result[br]
-## [b][u]RETURN[/u][/b]:[br] [bool] - returns if motion was successful 
+## [b][u]RETURN[/u][/b]:[br] [bool] - returns if motion was successful
 
 func test_motion(from: Transform3D, motion: Vector3, result: PhysicsTestMotionResult3D = null) -> bool:
 	# if result is null instance new one
 	if !result:
 		result = PhysicsTestMotionResult3D.new()
 
-	# instance new physcs motion parameters 
+	# instance new physcs motion parameters
 	var parameters: PhysicsTestMotionParameters3D = PhysicsTestMotionParameters3D.new()
 
 	# define motion in prams
@@ -826,14 +826,14 @@ func get_water_level() -> GSPlayerState.WATER_LEVEL:
 func full_water_move(velocity: Vector3, delta: float) -> Vector3:
 	if get_water_level() >= 1:
 		velocity = check_water_jump(velocity, delta)
-	
+
 	if velocity.y < 0 and water_jump_time != 0.0:
 		water_jump_time = 0.0
 		state_water_jumping = false
-	
+
 	if wish_jump:
 		velocity = check_water_jump_button(velocity, delta) #TODO: rename specific to waterr movement
-	
+
 	velocity = water_move(velocity, delta)
 
 	if grounded:
@@ -841,11 +841,11 @@ func full_water_move(velocity: Vector3, delta: float) -> Vector3:
 
 	return velocity
 
-func check_water_jump_button(velocity: Vector3, delta: float) -> Vector3: 
+func check_water_jump_button(velocity: Vector3, delta: float) -> Vector3:
 	if water_jump_time != 0.0:
 		water_jump_time -= delta
 		return velocity
-	
+
 	if get_water_level() >= 2:
 		grounded = false
 		if !can_swim:
@@ -861,10 +861,10 @@ func check_water_jump(velocity: Vector3, delta: float) -> Vector3:
 		if water_jump_time < 0:
 			water_jump_time = 0
 		return velocity
-	
+
 	if velocity.y < GSTools.to_meters(-180):
 		return velocity
-	
+
 	var flat_velocity: Vector3 = Vector3(velocity.x, 0, velocity.z)
 
 	var current_speed: float = flat_velocity.length()
@@ -973,17 +973,17 @@ func water_move(velocity: Vector3, delta: float) -> Vector3:
 func water_jump(velocity: Vector3, delta: float) -> Vector3:
 	if water_jump_time > 10000:
 		water_jump_time = 10000
-	
+
 	if water_jump_time == 0.0:
 		return velocity
-	
+
 	if water_jump_time <= 0.0 or get_water_level() >= 1:
 		water_jump_time = 0.0
 		state_water_jumping = false
-	
+
 	water_jump_time -= 1000.0 * delta
 
-		
+
 	velocity.x = water_jump_wish_velocity.x
 	velocity.z = water_jump_wish_velocity.z
 	return velocity
