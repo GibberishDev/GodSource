@@ -13,7 +13,7 @@ func _physics_process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if (event is InputEventKey):
 		if event.pressed:
-			if (event.is_action("console")):
+			if (event.is_action("console")):  #FIXME: Cant be this concated to be just is_action_pressed("console") ????? @InFineTy888
 				get_tree().get_root().set_input_as_handled()
 				if !GSConsole.visible:
 					if on_map:
@@ -39,6 +39,7 @@ func hide_menu() -> void:
 	# TODO: then make sure that the hud closes for a certain client, since now I'm using get_child(0) to take the first player in the list.
 	if on_map:
 		GSGlobal.game.get_node("Map").get_node("Players").get_child(0).hud_component.visible = true
+		
 
 	GSGlobal.main_menu.visible = false
 	GSConsole.visible = false

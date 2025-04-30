@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://bndugg74m6822"]
 
-[ext_resource type="Script" uid="uid://ciyjewi0q73xs" path="res://game/ui/main_hud/GSMainMenu.gd" id="1_yvenr"]
-[ext_resource type="Texture2D" uid="uid://drn1ycstasm21" path="res://godsource_logo.png" id="2_yvenr"]
+[ext_resource type="Script" uid="uid://ciyjewi0q73xs" path="res://game/ui/main_hud/GSHUDMenu.gd" id="1_yvenr"]
+[ext_resource type="Texture2D" uid="uid://cpyf5qvsa3o55" path="res://godsource_logo.png" id="2_yvenr"]
 [ext_resource type="FontFile" uid="uid://ccqtwv5ebmgd" path="res://assets/fonts/TF2/TF2Build.ttf" id="3_6bkka"]
 [ext_resource type="Theme" uid="uid://55mh6xa8a3lr" path="res://game/ui/styles/button_style_1.theme" id="4_b3adm"]
 
@@ -98,21 +98,30 @@ text = " PLAY"
 label_settings = SubResource("LabelSettings_3m8ha")
 vertical_alignment = 2
 
-[node name="Start Server" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+[node name="Play Solo" type="Button" parent="Play Panel/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
 theme_override_font_sizes/font_size = 26
-text = "Start Server"
+text = "Play Solo"
 alignment = 0
 expand_icon = true
 
-[node name="Open Console" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+[node name="Host Server" type="Button" parent="Play Panel/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
 theme_override_font_sizes/font_size = 26
-text = "Open Console"
+text = "Host Server"
+alignment = 0
+expand_icon = true
+
+[node name="Join Server" type="Button" parent="Play Panel/MarginContainer/Elements"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme = ExtResource("4_b3adm")
+theme_override_font_sizes/font_size = 26
+text = "Join Server [WIP] Only local ip"
 alignment = 0
 expand_icon = true
 
@@ -136,7 +145,6 @@ text = "Exit"
 alignment = 0
 expand_icon = true
 
-[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Start Server" to="." method="_on_start_server_pressed"]
-[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Open Console" to="." method="_on_open_console_pressed"]
-[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Leave From Map" to="." method="_on_leave_from_map_pressed"]
-[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Play Solo" to="." method="_on_start_server_pressed"]
+[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Open Console" to="." method="_on_open_console_pressed"]
+[connection signal="pressed" from="Play Panel/MarginContainer/Elements/Exit" to="." method="_on_exit_pressed"]

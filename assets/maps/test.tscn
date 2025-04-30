@@ -23,7 +23,6 @@ ambient_light_sky_contribution = 0.6
 ambient_light_energy = 1.6
 ssao_enabled = true
 ssil_enabled = true
-glow_enabled = true
 glow_bloom = 0.1
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0sw4b"]
