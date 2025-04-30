@@ -1,6 +1,7 @@
-[gd_scene load_steps=12 format=3 uid="uid://bxjweu6dwqxkj"]
+[gd_scene load_steps=13 format=3 uid="uid://bxjweu6dwqxkj"]
 
 [ext_resource type="Script" uid="uid://bwywfarr65o6m" path="res://game/tools/console/GSConsole.gd" id="1_juv2l"]
+[ext_resource type="FontFile" uid="uid://dv11lao0quonb" path="res://assets/fonts/consolas.ttf" id="2_l6dtr"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_juv2l"]
 bg_color = Color(0.11, 0.11, 0.11, 1)
@@ -72,11 +73,9 @@ border_color = Color(0.14, 0.14, 0.14, 1)
 [node name="GSConsole" type="Window" node_paths=PackedStringArray("input", "output")]
 disable_3d = true
 canvas_item_default_texture_filter = 0
-gui_snap_controls_to_pixels = false
 title = "Console"
 initial_position = 4
 size = Vector2i(970, 755)
-always_on_top = true
 min_size = Vector2i(150, 125)
 keep_title_visible = true
 theme_override_constants/title_height = 41
@@ -98,11 +97,16 @@ grow_vertical = 2
 focus_mode = 2
 mouse_filter = 1
 theme_override_colors/selection_color = Color(0.498039, 0.498039, 0.498039, 1)
-theme_override_font_sizes/bold_italics_font_size = 11
-theme_override_font_sizes/italics_font_size = 11
-theme_override_font_sizes/mono_font_size = 11
-theme_override_font_sizes/normal_font_size = 11
-theme_override_font_sizes/bold_font_size = 11
+theme_override_fonts/normal_font = ExtResource("2_l6dtr")
+theme_override_fonts/mono_font = ExtResource("2_l6dtr")
+theme_override_fonts/italics_font = ExtResource("2_l6dtr")
+theme_override_fonts/bold_italics_font = ExtResource("2_l6dtr")
+theme_override_fonts/bold_font = ExtResource("2_l6dtr")
+theme_override_font_sizes/bold_italics_font_size = 13
+theme_override_font_sizes/italics_font_size = 13
+theme_override_font_sizes/mono_font_size = 13
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
 theme_override_styles/focus = SubResource("StyleBoxEmpty_0nk75")
 theme_override_styles/normal = SubResource("StyleBoxFlat_bsm42")
 bbcode_enabled = true
@@ -120,13 +124,15 @@ offset_top = -24.0
 offset_right = -69.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_fonts/font = ExtResource("2_l6dtr")
+theme_override_font_sizes/font_size = 13
 theme_override_styles/focus = SubResource("StyleBoxEmpty_bsm42")
 theme_override_styles/normal = SubResource("StyleBoxFlat_pr47w")
 keep_editing_on_text_submit = true
 context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_enabled = false
+clear_button_enabled = true
 caret_blink = true
 
 [node name="Button" type="Button" parent="Input"]
@@ -147,5 +153,7 @@ text = "Enter"
 
 [connection signal="close_requested" from="." to="." method="_on_close_pressed"]
 [connection signal="console_opened" from="." to="." method="_on_console_opened"]
+[connection signal="focus_entered" from="Input" to="." method="_on_input_focus_entered"]
+[connection signal="text_changed" from="Input" to="." method="_on_input_text_changed"]
 [connection signal="text_submitted" from="Input" to="." method="on_text_entered"]
 [connection signal="pressed" from="Input/Button" to="." method="on_input_button_entered"]

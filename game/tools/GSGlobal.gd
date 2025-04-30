@@ -1,8 +1,8 @@
 extends Node
 
-@onready var menu: Node = get_tree().get_root().get_node("Root Scene").get_node("Menu")
-@onready var console: Console = menu.get_node("GSConsole")
-@onready var game: Node = get_tree().get_root().get_node("Root Scene").get_node("Game")
+@onready var menu: Node = get_tree().get_root().get_node("Root Scene/Menu")
+@onready var main_menu: Node = menu.get_node("GSMainMenu")
+@onready var game: Node = get_tree().get_root().get_node("Root Scene/Game")
 
 var mouse_captured: bool
 var mouse_position_pre_capture: Vector2 = Vector2.ZERO

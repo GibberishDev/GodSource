@@ -8,6 +8,7 @@ signal console_unknown_command
 
 @export var input: LineEdit
 @export var output: RichTextLabel
+@export var hints_menu: Window
 
 var console_commands: Dictionary = {}
 var console_alias_commands: Dictionary = {}
@@ -15,6 +16,12 @@ var console_history: Array = []
 var console_history_index: int = 0
 
 var enabled: bool = true
+
+enum PrintTo {
+	Godot,
+	Console,
+	Both
+}
 
 class ConsoleCommand:
 	var function: Callable
@@ -41,7 +48,6 @@ func _ready() -> void:
 
 func _on_close_pressed() -> void:
 	toggle_console()
-	get_tree().get_root().set_input_as_handled()
 
 func _input(event: InputEvent) -> void:
 	if (event is InputEventKey):
@@ -50,26 +56,25 @@ func _input(event: InputEvent) -> void:
 				if GSGlobal.mouse_captured:
 					GSGlobal.release_pointer()
 				toggle_console()
-			get_tree().get_root().set_input_as_handled()
 		if (visible and event.pressed):
-			if (event.is_action("console_next_command")):
-				get_tree().get_root().set_input_as_handled()
-				if (console_history_index > 0):
-					console_history_index -= 1
-					if (console_history_index >= 0):
-						input.text = console_history[console_history_index]
-				input.grab_focus()
-				input.caret_column = input.text.length()
-			if (event.is_action("console_previous_command")):
-				get_tree().get_root().set_input_as_handled()
+			if (event.keycode == KEY_DOWN):
 				if (console_history_index < console_history.size()):
 					console_history_index += 1
 					if (console_history_index < console_history.size()):
 						input.text = console_history[console_history_index]
+						input.caret_column = console_history[console_history_index].length()
 					else:
 						input.text = ""
-				input.grab_focus()
-				input.caret_column = input.text.length()
+					input.grab_focus()
+			if (event.keycode == KEY_UP):
+				if (console_history_index > 0):
+					console_history_index -= 1
+					if (console_history_index >= 0):
+						input.text = console_history[console_history_index]
+						input.caret_column = console_history[console_history_index].length()
+					else:
+						input.text = ""
+					input.grab_focus()
 
 func _on_console_opened() -> void:
 	input.grab_focus()
@@ -95,16 +100,20 @@ func toggle_console() -> void:
 	else:
 		console_closed.emit()
 
-func print_line(text: Variant, print_godot: bool = false) -> void:
-	output.append_text(str(text))
-	output.append_text("\n")
-
-	if (print_godot):
-		print(str(text))
+func print_line(text: Variant, where: PrintTo) -> void:
+	match where:
+		PrintTo.Godot:
+			print(str(text))
+		PrintTo.Console:
+			output.append_text(str(text))
+			output.append_text("\n")
+		PrintTo.Both:
+			print(str(text))
+			output.append_text(str(text))
+			output.append_text("\n")
 
 func parse_line_input(text: String) -> PackedStringArray:
 	var out_array: PackedStringArray
-	var first_char: bool = true
 	var in_quotes: bool = false
 	var escaped: bool = false
 	var token: String
@@ -142,7 +151,7 @@ func parse_line_input(text: String) -> PackedStringArray:
 		token += c
 
 	out_array.push_back(token)
-	
+
 	return out_array
 
 func parse_commands_line_input(text: String) -> PackedStringArray:
@@ -157,16 +166,16 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 			token += c
 			escaped = false
 			continue
-			
+
 		if c == "\\":
 			escaped = true
 			continue
-			
+
 		if c == "\"" || c == "'":
 			in_quotes = !in_quotes
 			token += c
 			continue
-			
+
 		if c == ";" && !in_quotes:
 			# Завершаем текущую команду
 			command_buffer += token.strip_edges()
@@ -175,13 +184,13 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 			command_buffer = ""
 			token = ""
 			continue
-			
+
 		token += c
 
 	command_buffer += token.strip_edges()
 	if !command_buffer.is_empty():
 		out_array.push_back(command_buffer)
-		
+
 	return out_array
 
 func add_command(command_name: String, function: Callable, arguments: int = 0, required: int = 0) -> void:
@@ -193,6 +202,12 @@ func add_command(command_name: String, function: Callable, arguments: int = 0, r
 	else:
 		console_commands[command_name] = ConsoleCommand.new(function, PackedStringArray(), required, true)
 
+func has_command(command_name: String) -> bool:
+	if not console_commands.has(command_name):
+		return false
+
+	return true
+
 func add_input_history(text: String) -> void:
 	if (!console_history.size() || text != console_history.back()):
 		console_history.append(text)
@@ -202,7 +217,7 @@ func on_text_entered(user_text: String) -> void:
 	input.clear()
 
 	add_input_history(user_text)
-	print_line("[color=#b9b9b9]] " + escape_bbcode(user_text.strip_edges()) + "[/color]")
+	print_line("[color=#b9b9b9]] " + escape_bbcode(user_text.strip_edges()) + "[/color]", PrintTo.Console)
 
 	var commands: Array = parse_commands_line_input(user_text.strip_edges())
 	for command: String in commands:
@@ -217,7 +232,7 @@ func on_input_button_entered() -> void:
 func init_command(command: String) -> void:
 	var text_split: PackedStringArray = parse_line_input(command.strip_edges())
 	var text_command: String = text_split[0]
-	
+
 	if text_command != "":
 		if console_commands.has(text_command):
 			init_command_from_console_commands(text_command, text_split)
@@ -234,36 +249,51 @@ func init_command(command: String) -> void:
 					init_command(alias_command)
 				else:
 					console_unknown_command.emit(text_command)
-					print_line('Unknown command: "%s"' % [text_command])
+					print_line_format("", "", 'Unknown command: "%s"' % [text_command], "white", PrintTo.Console)
+					print_line_format("Error", "Console", 'Unknown command: "%s"' % [text_command], "red", PrintTo.Godot)
 		else:
 			console_unknown_command.emit(text_command)
-			print_line('Unknown command: "%s"' % [text_command])
+			print_line_format("", "", 'Unknown command: "%s"' % [text_command], "white", PrintTo.Console)
+			print_line_format("Error", "Console", 'Unknown command: "%s"' % [text_command], "red", PrintTo.Godot)
 
 func init_command_from_console_commands(text_command: String, text_split: PackedStringArray) -> void:
 	var arguments: Array = text_split.slice(1)
-	
+
 	if console_commands[text_command].infinite_arguments:
 		if arguments.size() < console_commands[text_command].required:
-			print_line("Too few arguments. ( Required %d )" % console_commands[text_command].required)
+			print_line_format("", "", "Too few arguments. ( Required %d )" % console_commands[text_command].required, "white", PrintTo.Console)
+			print_line_format("Error", "Console", "Too few arguments. ( Required %d )" % console_commands[text_command].required, "red", PrintTo.Godot)
 			return
 	else:
 		if arguments.size() < console_commands[text_command].required:
-			print_line("Too few arguments. ( Required %d )" % console_commands[text_command].required)
+			print_line_format("", "", "Too few arguments. ( Required %d )" % console_commands[text_command].required, "white", PrintTo.Console)
+			print_line_format("Error", "Console", "Too few arguments. ( Required %d )" % console_commands[text_command].required, "red", PrintTo.Godot)
 			return
 		elif arguments.size() > console_commands[text_command].arguments.size():
-			print_line("Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size())
+			print_line_format("", "", "Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size(), "white", PrintTo.Console)
+			print_line_format("Error", "Console", "Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size(), "white", PrintTo.Godot)
 			return
 		while arguments.size() < console_commands[text_command].arguments.size():
 			arguments.append("")
-	
+
 	console_commands[text_command].function.call(arguments)
+
+func print_line_format(type: String, category: String, text: String, color: String, where: PrintTo) -> void:
+	match where:
+		PrintTo.Godot:
+			print_rich("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text])
+		PrintTo.Console:
+			print_line("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text], PrintTo.Console)
+		PrintTo.Both:
+			print_rich("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text])
+			print_line("[color=%s]%s%s%s[/color]" % [color, ("[b]" + type + ":[/b] ") if type != "" else "", (category + " | ") if category != "" else "", text], PrintTo.Console)
 
 #endregion
 
 #region Commands
 
 func command_echo(arguments: Array) -> void:
-	print_line(" ".join(arguments), false)
+	print_line(" ".join(arguments), PrintTo.Console)
 
 func command_quit(_arguments: Array) -> void:
 	get_tree().quit()
@@ -281,7 +311,7 @@ func command_map(arguments: Array) -> void:
 		var packed_map_scene: PackedScene = load(map_name_path)
 		var map: Node3D = packed_map_scene.instantiate()
 		var packed_player_scene: PackedScene = load("res://game/scenes/entities/GSPlayer.tscn")
-		var player: Node3D = packed_player_scene.instantiate() 
+		var player: Node3D = packed_player_scene.instantiate()
 
 		for child: Node in get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Map Scene").get_children():
 			child.queue_free()
@@ -307,7 +337,7 @@ func command_disconnect(_arguments: Array) -> void:
 
 		for child: Node in get_tree().get_root().get_node("Root Scene").get_node("Game").get_node("Map").get_node("Players").get_children():
 			child.queue_free()
-		
+
 		GSGlobal.release_pointer()
 
 func command_exec(arguments: Array) -> void:

@@ -5,6 +5,7 @@ extends CharacterBody3D
 
 const rocket: Resource = preload("res://game/scenes/gameplay/projectiles/rocket.tscn")
 
+var wish_attack: bool = false
 var attack_delay: float = 0.8
 var attack_delay_active: bool = false
 var can_swim: bool = true
@@ -14,15 +15,22 @@ var can_swim: bool = true
 @export var hud_component: CanvasLayer
 @export var health_component: Node
 
-func _physics_process(_delta: float) -> void:
-	if Input.is_action_pressed("attack1") and !attack_delay_active and GSGlobal.mouse_captured: #TODO: Move attack into invetory componenet once created
+func _ready() -> void:
+	GSConsole.add_command("+fire", command_plus_fire, 0, 0)
+	GSConsole.add_command("-fire", command_minus_fire, 0, 0)
+
+func _physics_process(delta: float) -> void:
+	if not wish_attack:
+		return
+
+	if !attack_delay_active and GSGlobal.mouse_captured: #TODO: Move attack into invetory componenet once created
 		attack_delay_active = true
 
 		var rocket: Node = rocket.instantiate()
 
 		rocket.direction = camera_component.get_camera_direction()
 		rocket.rotation = camera_component.get_camera_rotation()
-		rocket.speed = 1100 * 1.905 / 100
+		rocket.speed = GSTools.to_meters(1100)
 
 		var offset: Vector3 = Vector3.ZERO
 
@@ -37,3 +45,9 @@ func _physics_process(_delta: float) -> void:
 		await get_tree().create_timer(attack_delay).timeout
 
 		attack_delay_active = false
+
+func command_plus_fire(arguments: Array) -> void:
+	wish_attack = true
+
+func command_minus_fire(arguments: Array) -> void:
+	wish_attack = false

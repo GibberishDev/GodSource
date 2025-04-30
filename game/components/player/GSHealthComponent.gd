@@ -12,7 +12,7 @@ func _ready() -> void:
 
 func damage(amount: float) -> void:
 	health -= amount
-	
+
 	if health <= 0:
 		death()
 

@@ -61,7 +61,7 @@ func get_manifest() -> GSZipManifest:
 		var manifest_resource: PackedByteArray = reader.read_file("manifest.json")
 		var manifest_resource_as_text: String = manifest_resource.get_string_from_ascii()
 		var manifest_resource_dictionary: Dictionary = JSON.parse_string(manifest_resource_as_text)
-		
+
 		return GSZipManifest.new(manifest_resource_dictionary)
 
 	return GSZipManifest.new(Dictionary())

@@ -14,12 +14,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	$rocket.rotation.z += 2 * delta * PI
 	position += direction * speed * delta
-	
+
 	if $hitDetection.is_colliding():
 		var explosion_scene_instantiate: Node = explosion_scene.instantiate()
 		explosion_scene_instantiate.position = $hitDetection.get_collision_point()
 		explosion_scene_instantiate.base_damage = 90.0 #T ODO replace with weapon stats reading when inventory sytem is in place
-		explosion_scene_instantiate.radius = 121.0 * 1.905 / 100.0 #T ODO replace with weapon stats reading when inventory sytem is in place
+		explosion_scene_instantiate.radius = GSTools.to_meters(121) #T ODO replace with weapon stats reading when inventory sytem is in place
 		get_tree().root.add_child(explosion_scene_instantiate)
 		$trailParticles.end()
 		free()
