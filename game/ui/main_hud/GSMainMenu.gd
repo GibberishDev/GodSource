@@ -18,6 +18,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	background.visible = false if GSGlobal.menu.on_map else true
 	%"Leave From Map".visible = true if GSGlobal.menu.on_map else false
+	%Resume.visible = true if GSGlobal.menu.on_map else false
+	%"Start Server".visible =  false if GSGlobal.menu.on_map else true
 
 func _on_start_server_pressed() -> void:
 	GSConsole.command_map(["test"])
@@ -31,3 +33,6 @@ func _on_exit_pressed() -> void:
 
 func _on_leave_from_map_pressed() -> void:
 	GSConsole.command_disconnect([])
+
+func _on_resume_pressed() -> void:
+	GSGlobal.menu.hide_menu()

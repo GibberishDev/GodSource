@@ -75,6 +75,15 @@ var action_list_commands: Dictionary = {}
 var key_to_action: Dictionary = {}
 var mouse_to_action: Dictionary = {}
 
+var wish_forward: bool = false
+var wish_backward: bool = false
+var wish_left: bool = false
+var wish_right: bool = false
+var wish_jump: bool = false
+var wish_duck: bool = false
+var wish_fire: bool = false
+var wish_use: bool = false
+
 func _ready() -> void:
 	for element: String in action_list.keys():
 		action_list_commands[element] = ""
@@ -87,7 +96,23 @@ func _ready() -> void:
 		else:
 			key_to_action[code] = action
 
-	GSConsole.add_command("bind", command_bind, -1, 2)
+	GSConsole.add_command("+forward", "", "", command_plus_forward, 0, 0)
+	GSConsole.add_command("-forward", "", "", command_minus_forward, 0, 0)
+	GSConsole.add_command("+back", "", "", command_plus_back, 0, 0)
+	GSConsole.add_command("-back", "", "", command_minus_back, 0, 0)
+	GSConsole.add_command("+left", "", "", command_plus_left, 0, 0)
+	GSConsole.add_command("-left", "", "", command_minus_left, 0, 0)
+	GSConsole.add_command("+right", "", "", command_plus_right, 0, 0)
+	GSConsole.add_command("-right", "", "", command_minus_right, 0, 0)
+	GSConsole.add_command("+jump", "", "", command_plus_jump, 0, 0)
+	GSConsole.add_command("-jump", "", "", command_minus_jump, 0, 0)
+	GSConsole.add_command("+duck", "", "", command_plus_duck, 0, 0)
+	GSConsole.add_command("-duck", "", "", command_minus_duck, 0, 0)
+	GSConsole.add_command("+fire", "", "", command_plus_fire, 0, 0)
+	GSConsole.add_command("-fire", "", "", command_minus_fire, 0, 0)
+
+	GSConsole.add_command("bind", 'bind <key> "<commands>"', "It is used to bind a key to one or several other commands.", command_bind, -1, 2)
+	GSConsole.add_command("unbind", 'unbind <key>', "It is used to unbind a key.", command_unbind, 1, 1)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not GSGlobal.menu.on_map:
@@ -135,9 +160,6 @@ func on_action_pressed(key: String) -> void:
 		GSConsole.init_command(command)
 
 func command_bind(arguments: Array) -> void:
-	if arguments.size() < 2:
-		return
-
 	var key: String = arguments[0].to_lower()
 	var value: Array = arguments.slice(1)
 
@@ -147,3 +169,51 @@ func command_bind(arguments: Array) -> void:
 	else:
 		GSConsole.print_line('"%s" is not a valid key' % key, Console.PrintTo.Console)
 		GSConsole.print_line_format("Error", "Console",'"%s" is not a valid key' % key, "green", Console.PrintTo.Godot)
+
+func command_unbind(arguments: Array) -> void:
+	var key: String = arguments[0]
+
+	if action_list_commands.has(key):
+		action_list_commands[key] = ""
+
+func command_plus_forward(arguments: Array) -> void:
+	wish_forward = true
+
+func command_minus_forward(arguments: Array) -> void:
+	wish_forward = false
+
+func command_plus_back(arguments: Array) -> void:
+	wish_backward = true
+
+func command_minus_back(arguments: Array) -> void:
+	wish_backward = false
+
+func command_plus_left(arguments: Array) -> void:
+	wish_left = true
+
+func command_minus_left(arguments: Array) -> void:
+	wish_left = false
+
+func command_plus_right(arguments: Array) -> void:
+	wish_right = true
+
+func command_minus_right(arguments: Array) -> void:
+	wish_right = false
+
+func command_plus_jump(arguments: Array) -> void:
+	wish_jump = true
+
+func command_minus_jump(arguments: Array) -> void:
+	wish_jump = false
+
+func command_plus_duck(arguments: Array) -> void:
+	wish_duck = true
+
+func command_minus_duck(arguments: Array) -> void:
+	wish_duck = false
+
+func command_plus_fire(arguments: Array) -> void:
+	wish_fire = true
+
+func command_minus_fire(arguments: Array) -> void:
+	wish_fire = false

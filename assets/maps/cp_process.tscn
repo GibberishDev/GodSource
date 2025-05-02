@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://dpbaxq1xv627i"]
+[gd_scene load_steps=10 format=3 uid="uid://dpbaxq1xv627i"]
 
 [ext_resource type="PackedScene" uid="uid://dd7fbjg2vpv1a" path="res://assets/maps/cp_process/cp_process_final_decals.glb" id="1_uvj2e"]
 [ext_resource type="PackedScene" uid="uid://datkjmvmo4bps" path="res://assets/maps/cp_process/cp_process_final_props.glb" id="2_ffg5k"]
 [ext_resource type="PackedScene" uid="uid://diqrwkpyt835m" path="res://assets/maps/cp_process/cp_process_brushes.glb" id="3_2pwll"]
 [ext_resource type="PackedScene" uid="uid://cxjfw5mabetr" path="res://assets/maps/cp_process/cp_process_ground.glb" id="4_6gaat"]
 [ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/maps/skyboxes/sky_trainyard_01.png" id="5_bbexl"]
+[ext_resource type="PackedScene" uid="uid://w1b60x55kb7s" path="res://game/scenes/worldProps/weapons/pipe.tscn" id="6_ffg5k"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_6t2rd"]
 panorama = ExtResource("5_bbexl")
@@ -48,3 +49,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -14.8763, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_l8i44")
+
+[node name="WeaponPropPipe" parent="." instance=ExtResource("6_ffg5k")]

@@ -14,7 +14,6 @@ var console_commands: Dictionary = {}
 var console_alias_commands: Dictionary = {}
 var console_history: Array = []
 var console_history_index: int = 0
-
 var enabled: bool = true
 
 enum PrintTo {
@@ -25,24 +24,30 @@ enum PrintTo {
 
 class ConsoleCommand:
 	var function: Callable
+	var syntax: String
+	var description: String
 	var arguments: PackedStringArray
 	var required: int
 	var infinite_arguments: bool
 
-	func _init(in_function: Callable, in_arguments: PackedStringArray, in_required: int = 0, in_infinite_arguments: bool = false) -> void:
+	func _init(in_function: Callable, in_syntax: String, in_description: String, in_arguments: PackedStringArray, in_required: int = 0, in_infinite_arguments: bool = false) -> void:
 		function = in_function
+		syntax = in_syntax
+		description = in_description
 		arguments = in_arguments
 		required = in_required
 		infinite_arguments = in_infinite_arguments
 
 func _ready() -> void:
-	add_command("echo", command_echo, -1, 1)
-	add_command("clear", command_clear, 0)
-	add_command("quit", command_quit, 0)
-	add_command("map", command_map, 1, 1)
-	add_command("exec", command_exec, 1, 1)
-	add_command("disconnect", command_disconnect, 0, 0)
-	add_command("alias", command_alias, -1, 2)
+	add_command("echo", "echo <text>", "It is used to print text into the console window.", command_echo, -1, 1)
+	add_command("clear", "clear", "Clear all console output.", command_clear, 0)
+	add_command("quit", "quit", "Exit the engine.", command_quit, 0)
+	add_command("map", "map <map_name>", "Start playing on specified map.", command_map, 1, 1)
+	add_command("exec", "exec <path/to/file.cfg>", "Executes a config in the 'cfg' directory.", command_exec, 1, 1)
+	add_command("disconnect", "disconnect", "Disconnect game from server/map.", command_disconnect, 0)
+	add_command("alias", 'alias <alias_name> "<commands>"', "Creates aliases for other commands.", command_alias, -1, 2)
+	add_command("help", "help <command_name>", "Show you description of command.", command_help, 1, 1)
+	add_command("all_commands", "all_commands", "Show you all available commands.", command_all_commands, 0, 0)
 
 #region Console Code
 
@@ -177,7 +182,6 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 			continue
 
 		if c == ";" && !in_quotes:
-			# Завершаем текущую команду
 			command_buffer += token.strip_edges()
 			if !command_buffer.is_empty():
 				out_array.push_back(command_buffer)
@@ -193,19 +197,18 @@ func parse_commands_line_input(text: String) -> PackedStringArray:
 
 	return out_array
 
-func add_command(command_name: String, function: Callable, arguments: int = 0, required: int = 0) -> void:
+func add_command(command_name: String, syntax: String, description: String, function: Callable, arguments: int = 0, required: int = 0) -> void:
 	if arguments != -1:
 		var param_array: PackedStringArray
 		for i: int in range(arguments):
 			param_array.append("arg_" + str(i + 1))
-		console_commands[command_name] = ConsoleCommand.new(function, param_array, required, false)
+		console_commands[command_name] = ConsoleCommand.new(function, syntax, description, param_array, required, false)
 	else:
-		console_commands[command_name] = ConsoleCommand.new(function, PackedStringArray(), required, true)
+		console_commands[command_name] = ConsoleCommand.new(function, syntax, description, PackedStringArray(), required, true)
 
 func has_command(command_name: String) -> bool:
 	if not console_commands.has(command_name):
 		return false
-
 	return true
 
 func add_input_history(text: String) -> void:
@@ -271,7 +274,7 @@ func init_command_from_console_commands(text_command: String, text_split: Packed
 			return
 		elif arguments.size() > console_commands[text_command].arguments.size():
 			print_line_format("", "", "Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size(), "white", PrintTo.Console)
-			print_line_format("Error", "Console", "Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size(), "white", PrintTo.Godot)
+			print_line_format("Error", "Console", "Too many arguments. ( Expected %d )" % console_commands[text_command].arguments.size(), "red", PrintTo.Godot)
 			return
 		while arguments.size() < console_commands[text_command].arguments.size():
 			arguments.append("")
@@ -367,5 +370,23 @@ func command_alias(arguments: Array) -> void:
 	if !console_commands.has(alias_name):
 		var new_alias: GSAlias = GSAlias.new(alias_name, " ".join(alias_value))
 		console_alias_commands[alias_name] = new_alias
+	else:
+		print_line("Command name exists in base commands.", Console.PrintTo.Console)
+
+func command_all_commands(arguments: Array) -> void:
+	print_line("Base commands:", Console.PrintTo.Console)
+	for key: String in console_commands:
+		print_line(" - " + key, Console.PrintTo.Console)
+	print_line("Total: " + str(console_commands.size()) + "\n", Console.PrintTo.Console)
+
+	print_line("Aliases:", Console.PrintTo.Console)
+	for key: String in console_alias_commands:
+		print_line(" - " + key, Console.PrintTo.Console)
+	print_line("Total: " + str(console_alias_commands.size()) + "\n", Console.PrintTo.Console)
+
+func command_help(arguments: Array) -> void:
+	if console_commands.has(arguments[0]) or console_alias_commands.has(arguments[0]):
+		print_line("Syntax:\n\t" + console_commands[arguments[0]].syntax, Console.PrintTo.Console)
+		print_line("Description:\n\t" + console_commands[arguments[0]].description, Console.PrintTo.Console)
 
 #endregion

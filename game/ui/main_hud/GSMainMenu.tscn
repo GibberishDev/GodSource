@@ -7,10 +7,10 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7qeha"]
 bg_color = Color(0.121569, 0.121569, 0.121569, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
 
 [sub_resource type="Theme" id="Theme_3m8ha"]
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_7qeha")
@@ -50,7 +50,7 @@ anchor_bottom = 0.5
 offset_left = -272.0
 offset_top = -284.0
 offset_right = 272.0
-offset_bottom = -172.0
+offset_bottom = -164.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_yvenr")
@@ -75,7 +75,7 @@ anchor_right = 0.5
 offset_left = -272.0
 offset_top = -156.0
 offset_right = 272.0
-offset_bottom = 159.0
+offset_bottom = 147.0
 grow_horizontal = 2
 theme = SubResource("Theme_3m8ha")
 metadata/_edit_group_ = true
@@ -89,7 +89,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Elements" type="VBoxContainer" parent="Play Panel/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 
 [node name="Panel Name" type="Label" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
 custom_minimum_size = Vector2(0, 43.135)
@@ -98,7 +98,19 @@ text = " PLAY"
 label_settings = SubResource("LabelSettings_3m8ha")
 vertical_alignment = 2
 
+[node name="Resume" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme = ExtResource("4_b3adm")
+theme_override_font_sizes/font_size = 26
+text = "Resume"
+alignment = 0
+expand_icon = true
+
 [node name="Start Server" type="Button" parent="Play Panel/PanelContainer/MarginContainer/Elements"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme = ExtResource("4_b3adm")
@@ -136,6 +148,7 @@ text = "Exit"
 alignment = 0
 expand_icon = true
 
+[connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Start Server" to="." method="_on_start_server_pressed"]
 [connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Open Console" to="." method="_on_open_console_pressed"]
 [connection signal="pressed" from="Play Panel/PanelContainer/MarginContainer/Elements/Leave From Map" to="." method="_on_leave_from_map_pressed"]

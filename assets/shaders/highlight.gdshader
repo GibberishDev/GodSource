@@ -1,14 +1,19 @@
 shader_type spatial;
+render_mode unshaded, cull_front;
 
-render_mode unshaded, depth_test_disabled, cull_back;
+uniform bool enable = true; // on and off switsch to diesable/enable the outline
+// outline costumization
+uniform float outline_thickness = 0.05; // how thick is the outline?
+uniform vec4 color = vec4(0.0); // which color does the outline have?
 
-uniform bool visible = true;
-uniform vec4 silhouetteColor : source_color = vec4(1.0,1.0,0.0,1.0);
-uniform float outline_width = 2.0;
+void vertex() {
+	if (enable) {
+	VERTEX += NORMAL*outline_thickness; // apply the outlines thickness
+	}
+}
 
 void fragment() {
-	if (!visible) {
-		discard;
+	if (enable) {
+		ALBEDO = color.rgb; // apply the outlines color
 	}
-	ALBEDO = silhouetteColor.rgb;
 }

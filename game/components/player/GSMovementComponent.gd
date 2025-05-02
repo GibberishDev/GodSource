@@ -85,7 +85,7 @@ var wish_left: bool = false
 var wish_forward: bool = false
 var wish_backward: bool = false
 var wish_jump: bool = false
-var wish_crouch: bool = false
+var wish_duck: bool = false
 var wish_swim_up: bool = false
 var old_wish_jump: bool = false
 
@@ -192,23 +192,17 @@ var swimming_mastery: bool = false # This variable defined by valve but never us
 
 #region built-in functions
 func _ready() -> void:
-	GSConsole.add_command("+forward", command_plus_forward, 0, 0)
-	GSConsole.add_command("-forward", command_minus_forward, 0, 0)
-	GSConsole.add_command("+backward", command_plus_backward, 0, 0)
-	GSConsole.add_command("-backward", command_minus_backward, 0, 0)
-	GSConsole.add_command("+left", command_plus_left, 0, 0)
-	GSConsole.add_command("-left", command_minus_left, 0, 0)
-	GSConsole.add_command("+right", command_plus_right, 0, 0)
-	GSConsole.add_command("-right", command_minus_right, 0, 0)
-	GSConsole.add_command("+jump", command_plus_jump, 0, 0)
-	GSConsole.add_command("-jump", command_minus_jump, 0, 0)
-	GSConsole.add_command("+crouch", command_plus_crouch, 0, 0)
-	GSConsole.add_command("-crouch", command_minus_crouch, 0, 0)
-
 	setup_crouching()
 	setup_casts_step_check()
 
 func _physics_process(delta: float) -> void:
+	wish_forward = GSGlobalInput.wish_forward
+	wish_backward = GSGlobalInput.wish_backward
+	wish_left = GSGlobalInput.wish_left
+	wish_right = GSGlobalInput.wish_right
+	wish_jump = GSGlobalInput.wish_jump
+	wish_duck = GSGlobalInput.wish_duck
+
 	process_movement(delta)
 	update_old_keys()
 #endregion
@@ -501,17 +495,17 @@ func setup_crouching() -> void:
 	uncrouch_check_bottom.add_exception(player_root)
 
 func handle_crouching() -> void:
-	if crouched and !wish_crouch:
+	if crouched and !wish_duck:
 		queue_uncrouching = true
 
 	if queue_uncrouching:
 		if try_uncrouch():
 			queue_uncrouching = false
 
-	if crouching_state_last_frame == wish_crouch:
+	if crouching_state_last_frame == wish_duck:
 		return
 
-	if wish_crouch and get_water_level() < 3:
+	if wish_duck and get_water_level() < 3:
 		queue_uncrouching = false
 		if !crouched or !crouching:
 			crouch()
@@ -519,7 +513,8 @@ func handle_crouching() -> void:
 		if crouched or crouching:
 			queue_uncrouching = true
 
-	crouching_state_last_frame = wish_crouch
+	crouching_state_last_frame = wish_duck
+
 
 func crouch() -> void:
 	uncrouching = false
@@ -987,43 +982,4 @@ func water_jump(velocity: Vector3, delta: float) -> Vector3:
 	velocity.x = water_jump_wish_velocity.x
 	velocity.z = water_jump_wish_velocity.z
 	return velocity
-#endregion
-
-#region Commands
-
-func command_plus_forward(arguments: Array) -> void:
-	wish_forward = true
-
-func command_minus_forward(arguments: Array) -> void:
-	wish_forward = false
-
-func command_plus_backward(arguments: Array) -> void:
-	wish_backward = true
-
-func command_minus_backward(arguments: Array) -> void:
-	wish_backward = false
-
-func command_plus_left(arguments: Array) -> void:
-	wish_left = true
-
-func command_minus_left(arguments: Array) -> void:
-	wish_left = false
-
-func command_plus_right(arguments: Array) -> void:
-	wish_right = true
-
-func command_minus_right(arguments: Array) -> void:
-	wish_right = false
-
-func command_plus_jump(arguments: Array) -> void:
-	wish_jump = true
-
-func command_minus_jump(arguments: Array) -> void:
-	wish_jump = false
-
-func command_plus_crouch(arguments: Array) -> void:
-	wish_crouch = true
-
-func command_minus_crouch(arguments: Array) -> void:
-	wish_crouch = false
 #endregion

@@ -11,12 +11,12 @@
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_bstsi"]
 panorama = ExtResource("1_h08px")
 
-[sub_resource type="Sky" id="Sky_a2neu"]
+[sub_resource type="Sky" id="Sky_mhud2"]
 sky_material = SubResource("PanoramaSkyMaterial_bstsi")
 
 [sub_resource type="Environment" id="Environment_1tx2p"]
 background_mode = 2
-sky = SubResource("Sky_a2neu")
+sky = SubResource("Sky_mhud2")
 sky_rotation = Vector3(0, 3.66519, 0)
 ambient_light_color = Color(0.486275, 0.541176, 0.796078, 1)
 ambient_light_sky_contribution = 0.6
@@ -25,6 +25,7 @@ ssao_enabled = true
 ssil_enabled = true
 glow_enabled = true
 glow_bloom = 0.1
+adjustment_enabled = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0sw4b"]
 render_priority = 0
@@ -39,20 +40,20 @@ uv1_scale = Vector3(5.24934, 5.24934, 1)
 uv1_offset = Vector3(0, -4.24934, 0)
 texture_filter = 2
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g733n"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mhud2"]
 albedo_texture = ExtResource("5_qpe5j")
 metallic_specular = 0.0
 uv1_scale = Vector3(5.247, 5.247, 5.247)
 uv1_triplanar = true
 
 [sub_resource type="QuadMesh" id="QuadMesh_5swpv"]
-material = SubResource("StandardMaterial3D_g733n")
+material = SubResource("StandardMaterial3D_mhud2")
 size = Vector2(255, 255)
 orientation = 1
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_vqg8c"]
 
-[node name="map_01" type="Node3D"]
+[node name="map_test" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1tx2p")
@@ -141,9 +142,6 @@ mesh = SubResource("QuadMesh_5swpv")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ground"]
 shape = SubResource("WorldBoundaryShape3D_vqg8c")
 
-[node name="weaponPropPipe" parent="." instance=ExtResource("6_dwrvs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 1, 8)
-
 [node name="water" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.525, 0, 0)
 
@@ -155,7 +153,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.429, 0, 3.429)
 cube_size = Vector3i(220, 139, 220)
 
 [node name="WaterBlock3" parent="water" instance=ExtResource("7_thvsc")]
-transform = Transform3D(1.00045, 0, 0, 0, 1.00045, 0, 0, 0, 1.00045, 13.089, 0, 10.3756)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.089, 0, 10.3756)
 cube_size = Vector3i(400, 60, 8137)
+
+[node name="WeaponPropPipe" parent="." instance=ExtResource("6_dwrvs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.3538, 3.69835, 8.30089)
 
 [editable path="testmap"]
