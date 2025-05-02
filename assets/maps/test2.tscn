@@ -1,0 +1,63 @@
+[gd_scene load_steps=9 format=3 uid="uid://c753pdjl77m4i"]
+
+[ext_resource type="Texture2D" uid="uid://w5lq6kypw5uo" path="res://assets/maps/skyboxes/sky_trainyard_01.png" id="1_7hjri"]
+[ext_resource type="Texture2D" uid="uid://m013m1odiklx" path="res://assets/blender/textures/gray100.png" id="1_a6u7d"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_6b813"]
+panorama = ExtResource("1_7hjri")
+
+[sub_resource type="Sky" id="Sky_a2neu"]
+sky_material = SubResource("PanoramaSkyMaterial_6b813")
+
+[sub_resource type="Environment" id="Environment_q8vcv"]
+background_mode = 2
+sky = SubResource("Sky_a2neu")
+sky_rotation = Vector3(0, 3.66519, 0)
+ambient_light_color = Color(0.486275, 0.541176, 0.796078, 1)
+ambient_light_sky_contribution = 0.6
+ambient_light_energy = 1.6
+ssao_enabled = true
+ssil_enabled = true
+glow_enabled = true
+glow_bloom = 0.1
+adjustment_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g733n"]
+albedo_texture = ExtResource("1_a6u7d")
+metallic_specular = 0.0
+uv1_scale = Vector3(5.247, 5.247, 5.247)
+uv1_triplanar = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_7hjri"]
+material = SubResource("StandardMaterial3D_g733n")
+size = Vector2(256, 256)
+orientation = 1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7hjri"]
+size = Vector3(256, 0, 156)
+
+[node name="map_test2" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_q8vcv")
+
+[node name="sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.422618, 0.694272, 0.582564, -8.752e-08, -0.642788, 0.766044, 0.906308, -0.323744, -0.271654, 0, 1.71728, 0)
+light_color = Color(0.966494, 1, 0.813723, 1)
+light_energy = 3.83033
+shadow_enabled = true
+
+[node name="map_limit" type="CSGBox3D" parent="."]
+transparency = 1.0
+use_collision = true
+flip_faces = true
+size = Vector3(256, 256, 256)
+
+[node name="ground" type="StaticBody3D" parent="."]
+
+[node name="mesh" type="MeshInstance3D" parent="ground"]
+mesh = SubResource("QuadMesh_7hjri")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ground"]
+shape = SubResource("BoxShape3D_7hjri")
