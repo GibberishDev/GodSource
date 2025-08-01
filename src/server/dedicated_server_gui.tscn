@@ -1,0 +1,164 @@
+[gd_scene load_steps=3 format=3 uid="uid://b2ivcf1xigrru"]
+
+[ext_resource type="Script" uid="uid://carjwbmi8j0hj" path="res://src/server/dedicated_server_gui.gd" id="1_be33b"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_be33b"]
+content_margin_left = 16.0
+content_margin_right = 16.0
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.1, 0.1, 0.1, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="dedicated_server_gui" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_be33b")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="server_controls" type="Panel" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/server_controls"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_1"
+
+[node name="Button2" type="Button" parent="VBoxContainer/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_2"
+
+[node name="Button3" type="Button" parent="VBoxContainer/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_3"
+
+[node name="Button4" type="Button" parent="VBoxContainer/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_4"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="dud" type="Control" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="playe_list_panel" type="Panel" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(256, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="player_list_entry" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="name" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "gibbdev"
+horizontal_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="ping" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
+layout_mode = 2
+text = "1000 ms"
+
+[node name="console_panel" type="Panel" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_be33b")
+
+[node name="console_output" type="RichTextLabel" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/console_panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+focus_mode = 2
+bbcode_enabled = true
+scroll_following = true
+vertical_alignment = 2
+threaded = true
+selection_enabled = true
+
+[node name="console_input" type="LineEdit" parent="VBoxContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 1
+placeholder_text = "Enter command..."
+keep_editing_on_text_submit = true
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_enabled = false
+clear_button_enabled = true
+select_all_on_focus = true
+
+[node name="dud2" type="Control" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="dud2" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Timer" type="Timer" parent="."]
+autostart = true
+
+[connection signal="resized" from="." to="." method="_on_resized"]
+[connection signal="text_submitted" from="VBoxContainer/HBoxContainer/VBoxContainer/console_input" to="." method="_on_console_input_text_submitted"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

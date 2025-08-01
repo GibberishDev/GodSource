@@ -1,0 +1,68 @@
+[gd_scene load_steps=7 format=3 uid="uid://c2lftilegfkn3"]
+
+[ext_resource type="Script" uid="uid://5la2m5qyy7fy" path="res://src/client/gs_player.gd" id="1_xrnbj"]
+[ext_resource type="Script" uid="uid://dn854u3o0g2dm" path="res://src/client/input.gd" id="2_mq8jb"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_c8xaa"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4jgej"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_xrnbj"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_mq8jb"]
+
+[node name="GSPlayer" type="CharacterBody3D"]
+collision_layer = 2
+script = ExtResource("1_xrnbj")
+
+[node name="PlayerInput" type="Node" parent="."]
+script = ExtResource("2_mq8jb")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_c8xaa")
+
+[node name="collsion_hull" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_4jgej")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+fov = 105.0
+
+[node name="SpotLight3D" type="SpotLight3D" parent="Camera3D"]
+spot_range = 10.6234
+spot_attenuation = 2.0
+spot_angle_attenuation = 2.0
+
+[node name="Control" type="Control" parent="Camera3D"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="RichTextLabel" parent="Camera3D/Control"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+bbcode_enabled = true
+fit_content = true
+metadata/_edit_use_anchors_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0.5, 0.25)
+mesh = SubResource("BoxMesh_xrnbj")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -1)
+mesh = SubResource("PrismMesh_mq8jb")
+skeleton = NodePath("../..")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+billboard = 2
+text = "Player 1"
