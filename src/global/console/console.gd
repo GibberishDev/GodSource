@@ -76,4 +76,3 @@ func send_output_message(message: String) -> void:
 	if output_node != null:
 		output_node.append_text("\n] " + message)
 	print_rich(message)
-
