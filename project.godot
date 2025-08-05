@@ -21,6 +21,13 @@ config/icon="res://icon.svg"
 MultiplayerManager="*res://src/global/scripts/multiplayer_manager.gd"
 Console="*res://src/global/console/console.gd"
 
+[debug]
+
+gdscript/warnings/unused_variable=0
+gdscript/warnings/unused_parameter=0
+gdscript/warnings/untyped_declaration=2
+gdscript/warnings/inferred_declaration=2
+
 [display]
 
 window/size/mode=2

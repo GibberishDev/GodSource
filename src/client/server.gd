@@ -1,7 +1,7 @@
 extends Node
 
 var input_thread : Thread;
-var escape = PackedByteArray([0x1b]).get_string_from_ascii()
+var escape: String = PackedByteArray([0x1b]).get_string_from_ascii()
 
 func _ready() -> void:
 	print(IP.resolve_hostname("www.google.com", IP.TYPE_IPV4))

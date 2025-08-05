@@ -1,10 +1,10 @@
 extends Node
 
-const PLAYER_SCENE := preload("res://src/client/gs_player.tscn")
-const SERVER_PORT = 3650
-const SERVER_IP = "127.0.0.1"
+const PLAYER_SCENE: PackedScene = preload("res://src/client/gs_player.tscn")
+const SERVER_PORT: int = 3650
+const SERVER_IP: String = "127.0.0.1"
 
-var dedicated_server_instance = ENetMultiplayerPeer.new()
+var dedicated_server_instance: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 
 func start_dedicated_server() -> void: # Move into dedicated server scripts to reduce dedicated server file size
 	dedicated_server_instance.create_server(SERVER_PORT, 8)
@@ -29,8 +29,8 @@ func get_connected_peers() -> void:
 	multiplayer.multiplayer_peer = dedicated_server_instance
 	peers = multiplayer.get_peers()
 	
-	for i in range(peers.size()):
-		var output := "Peer id: "
+	for i: int in range(peers.size()):
+		var output: String = "Peer id: "
 		output += str(peers[i])
 		output += " - ping: " + str(dedicated_server_instance.get_peer(peers[i]).get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME))
 		output += " - ip: " + str(dedicated_server_instance.get_peer(peers[i]).get_remote_address())
@@ -42,7 +42,7 @@ func host_server() -> void:
 	
 
 func join_server() -> void:
-	var client_peer = ENetMultiplayerPeer.new()
+	var client_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	client_peer.create_client("188.242.90.209", SERVER_PORT)
 	
 	multiplayer.multiplayer_peer = client_peer
@@ -55,7 +55,7 @@ func join_server() -> void:
 
 func _peer_connected(id: int) -> void: # Duplicate into dedicated server scripts to reduce dedicated server file size
 	print_rich("peer connected. id: [color=green] +++ " + str(id)+ "[/color]")
-	var player = PLAYER_SCENE.instantiate()
+	var player: Node = PLAYER_SCENE.instantiate()
 	player.peer_id = id
 	player.name = str(id)
 	get_tree().root.get_node("Node3D/Players").add_child(player, true)

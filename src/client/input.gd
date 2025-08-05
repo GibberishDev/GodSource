@@ -4,12 +4,12 @@ var setting_null_movement : bool = true
 
 var wish_jump          : bool = false
 var wish_move_forward  : bool = false
-var wish_move_back : bool = false
+var wish_move_back     : bool = false
 var wish_move_right    : bool = false
 var wish_move_left     : bool = false
 var look_dir           : Vector2 = Vector2(0, 0)
-var move_strafe_dir : int = 0
-var move_dir : int = 0
+var move_strafe_dir    : int = 0
+var move_dir           : int = 0
 
 
 func get_movement_wish_direction() -> Vector2:
@@ -47,7 +47,6 @@ func get_movement_wish_direction() -> Vector2:
 			move_dir = 1
 		else:
 			move_dir = 0
-	
+
 
 	return Vector2(move_dir, move_strafe_dir)
-		
