@@ -1,12 +1,16 @@
 extends Node
-
-const dedicated_server_scene_path : String = "lib/server/dedicated_server.tscn"
-const main_menu_scene_path : String = "src/server/dedicated_server_gui.tscn"
+@export
+var dedicated_server_scene_path : PackedScene = null
+@export
+var main_menu_scene_path : PackedScene = null
 
 func _ready() -> void:
+	if dedicated_server_scene_path == null or main_menu_scene_path == null:
+		print_rich("[color=red]NOT ENOUGH PACKED SCENES DEFINED FOR SUCCESSFUL STARTUP. TERMINATING")
+		get_tree().quit()
 	var is_dedicated : bool = OS.has_feature("dedicated")
 	if !is_dedicated:
-		get_tree().change_scene_to_file(main_menu_scene_path)
+		get_tree().change_scene_to_packed(main_menu_scene_path)
 	else:
-		get_tree().change_scene_to_file(dedicated_server_scene_path)
+		get_tree().change_scene_to_packed(dedicated_server_scene_path)
 		
