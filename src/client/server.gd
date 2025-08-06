@@ -1,3 +1,4 @@
+class_name DedicatedServer
 extends Node
 
 var input_thread : Thread;

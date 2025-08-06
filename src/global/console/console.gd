@@ -1,6 +1,7 @@
 extends Node
 
 var output_node : RichTextLabel = null
+var terminal_input_thread_semaphore : Semaphore = null
 var command_list : Dictionary = {} #TODO: move to console class
 
 class Command:
@@ -26,17 +27,16 @@ func add_command(command_name: StringName, callable: Callable, operator_status_n
 
 func get_all_commands() -> String:
 	var output_string: String = ""
-	for i: Command in self.command_list:
+	for i : StringName in self.command_list:
 		output_string += ("\n[color=gold]"
 		+ str(i) + "[/color]: " + self.command_list[i].description
 		)
 	return output_string
 
 
-func process_input(input_string: String) -> String:
+func process_input(input_string: String) -> void:
 	var commands_array: Array[String] = split_commands_input(input_string) #Split commands string into an array of commands
 	process_commands(commands_array)
-	return ""
 
 
 func split_commands_input(input_string: String) -> Array[String]:
@@ -62,9 +62,15 @@ func process_commands(commands_array: Array[String]) -> void:
 		var command_name: StringName = regex_selector.search(commands_array[i]).get_string()
 		if !self.command_list.has(command_name):
 			send_output_message("[color=pink]command not found: [/color][color=red][b]" + StringName(command_name) + "[/b][/color]")
+		elif command_name == "quit":
+			var input_arguments: String = commands_array[i].right(command_name.length() * -1)
+			self.command_list[command_name].callable.call(process_arguments(input_arguments))
+			return
 		else:
 			var input_arguments: String = commands_array[i].right(command_name.length() * -1)
 			self.command_list[command_name].callable.call(process_arguments(input_arguments))
+	print("console.gd finished")
+	if terminal_input_thread_semaphore != null: terminal_input_thread_semaphore.post()
 
 func process_arguments(input_arguments: String) -> Array:
 	var regex_expression: RegEx =  RegEx.new()
@@ -82,6 +88,6 @@ func process_arguments(input_arguments: String) -> Array:
 	return arguments_array
 
 func send_output_message(message: String) -> void:
+	print_rich(message)
 	if output_node != null:
 		output_node.append_text("\n] " + message)
-	print_rich(message)

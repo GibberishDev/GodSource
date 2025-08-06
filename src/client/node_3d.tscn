@@ -74,6 +74,7 @@ _data = {
 environment = SubResource("Environment_3i8ff")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
+metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 shape = SubResource("WorldBoundaryShape3D_gh4e6")
@@ -84,6 +85,7 @@ mesh = SubResource("PlaneMesh_g53n5")
 
 [node name="StaticBody3D2" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.5, -0.5)
+metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D2"]
 shape = SubResource("BoxShape3D_3i8ff")
