@@ -1,6 +1,6 @@
 extends Node
 
-const PLAYER_SCENE: PackedScene = preload("res://src/client/gs_player.tscn")
+#const PLAYER_SCENE: PackedScene = preload("res://src/client/gs_player.tscn")
 const SERVER_PORT: int = 3650
 const SERVER_IP: String = "127.0.0.1"
 

@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://b2ivcf1xigrru"]
 
-[ext_resource type="Script" uid="uid://carjwbmi8j0hj" path="res://src/server/dedicated_server_gui.gd" id="1_be33b"]
+[ext_resource type="Script" uid="uid://carjwbmi8j0hj" path="res://lib/client/dedicated_server_gui.gd" id="1_be33b"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_be33b"]
 content_margin_left = 16.0
@@ -20,6 +20,7 @@ corner_radius_bottom_left = 4
 [sub_resource type="SystemFont" id="SystemFont_be33b"]
 font_names = PackedStringArray("JetBrains Mono NL")
 font_weight = 800
+subpixel_positioning = 0
 
 [node name="dedicated_server_gui" type="Panel"]
 anchors_preset = 15

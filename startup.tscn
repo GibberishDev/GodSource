@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b8orc00xaamno" path="res://startup.gd" id="1_c4aps"]
 [ext_resource type="PackedScene" uid="uid://cdpovqh7ud2e3" path="res://lib/server/dedicated_server.tscn" id="2_u6427"]
-[ext_resource type="PackedScene" uid="uid://b2ivcf1xigrru" path="res://src/server/dedicated_server_gui.tscn" id="3_g014h"]
+[ext_resource type="PackedScene" uid="uid://b2ivcf1xigrru" path="res://lib/client/dedicated_server_gui.tscn" id="3_g014h"]
 
 [node name="startup" type="Node"]
 script = ExtResource("1_c4aps")

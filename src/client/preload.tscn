@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dqr3jyywvhubk"]
-
-[ext_resource type="Script" uid="uid://c1cv4qg6iylbl" path="res://src/client/preload.gd" id="1_1xnas"]
-
-[node name="preload" type="Node"]
-script = ExtResource("1_1xnas")

@@ -2,7 +2,7 @@ extends Node
 
 var escape_character: String = PackedByteArray([0x1b]).get_string_from_ascii() #shorthand for ascii character
 
-var input_thread : Thread; #Separate thread for terminal input reference
+var input_thread : Thread #Separate thread for terminal input reference
 var input_thread_semaphore : Semaphore = Semaphore.new()  #Semaphore to suspend the thread untill all commands complete
 var input_thread_mutex : Mutex = Mutex.new() #Mutex for locking input thread flags to ensure correct memory safety when handling cross thread communication
 var input_thread_exit_flag : bool = false #Indicates input thread that it should kill itself (Thread, you should kill yourself, NOW)
@@ -42,5 +42,3 @@ func _exit_tree() -> void: #Dispose of thread safely to not shit the memory
 	input_thread_semaphore.post()
 	input_thread.wait_to_finish()
 
-
-	
