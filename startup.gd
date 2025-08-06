@@ -10,7 +10,7 @@ func _ready() -> void:
 		get_tree().quit()
 	var is_dedicated : bool = OS.has_feature("dedicated")
 	if !is_dedicated:
-		get_tree().change_scene_to_packed(main_menu_scene_path)
+		get_tree().change_scene_to_packed.call_deferred(main_menu_scene_path)
 	else:
-		get_tree().change_scene_to_packed(dedicated_server_scene_path)
+		get_tree().change_scene_to_packed.call_deferred(dedicated_server_scene_path)
 		

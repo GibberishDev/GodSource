@@ -1,6 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dqq6uixkh638k"]
-
-[ext_resource type="Script" uid="uid://58s5d34vglp0" path="res://src/client/server.gd" id="1_g53n5"]
+[gd_scene load_steps=13 format=3 uid="uid://dqq6uixkh638k"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_g53n5"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -102,18 +100,8 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1,
 shadow_enabled = true
 spot_angle_attenuation = 2.0
 
-[node name="Node" type="Node" parent="."]
-script = ExtResource("1_g53n5")
-
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 &"": SubResource("AnimationLibrary_3i8ff")
 }
 autoplay = "lamp_sway"
-
-[node name="Players" type="Node3D" parent="."]
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("uid://c2lftilegfkn3")
-spawn_path = NodePath("../Players")
-spawn_limit = 8
