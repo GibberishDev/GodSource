@@ -19,12 +19,12 @@ config/icon="res://icon.svg"
 [autoload]
 
 Console="*res://lib/classes/console.gd"
+Register="res://src/register_scripts/commands_registerer.gd"
 NetworkTime="*res://addons/netfox/network-time.gd"
 NetworkTimeSynchronizer="*res://addons/netfox/network-time-synchronizer.gd"
 NetworkRollback="*res://addons/netfox/rollback/network-rollback.gd"
 NetworkEvents="*res://addons/netfox/network-events.gd"
 NetworkPerformance="*res://addons/netfox/network-performance.gd"
-Register="res://src/register_scripts/commands_registerer.gd"
 
 [debug]
 
@@ -78,7 +78,7 @@ flashlight={
 [netfox]
 
 logging/log_level=5
-logging/netfox_log_level=5
+time/tickrate=66
 
 [physics]
 

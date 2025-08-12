@@ -24,7 +24,7 @@ glow_enabled = true
 [node name="Node3D" type="Node3D"]
 
 [node name="gs_player" parent="." instance=ExtResource("1_0qie4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.114, 3)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_gbv3d")
@@ -46,5 +46,3 @@ shape = SubResource("BoxShape3D_0qie4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="box"]
 mesh = SubResource("BoxMesh_nwtsw")
-
-[editable path="gs_player"]
