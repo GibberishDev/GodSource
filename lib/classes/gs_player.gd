@@ -8,7 +8,11 @@ var gravity_multiplier : float = 1.0
 
 var is_grounded : bool = false
 var is_airborne : bool = false
+var is_stuck : bool = false
 var current_movement_type : MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
+
+var unstuck_offsets_table : PackedVector3Array = []
+var unstuck_offsets_table_id : int = 0
 
 enum MOVEMENT_TYPE {
 	AIRBORNE,
@@ -25,8 +29,9 @@ var stuck_check_collider : ShapeCast3D = get_node("stuck_check_collider")
 
 #endregion
 
-	
-
+var first_frame : bool = true
+func _ready() -> void:
+	unstuck_offsets_table = gen_unstuck_offsets_table()
 
 func _physics_process(delta: float) -> void:
 	process_movement(delta)
@@ -34,12 +39,11 @@ func _physics_process(delta: float) -> void:
 
 func process_movement(delta: float) -> void:
 	#step 1: check if stuck and try to unstuck and move to step 14
-	#IMPORTANT! unstuck check is complex and requires writing more complex system to mimic source engine stuck behavior.
-	#refer to source sdk 2013 code here untill explained better. good luck ffs :tf:
-	#https://github.com/ValveSoftware/source-sdk-2013/blob/68c8b82fdcb41b8ad5abde9fe1f0654254217b8e/src/game/shared/gamemovement.cpp#L3233
+	stuck_check_collider.force_shapecast_update()
 	if stuck_check_collider.is_colliding():
-		try_unstuck()
-	if !stuck_check_collider.is_colliding(): #
+		is_stuck = try_unstuck()
+		print(is_stuck)
+	else: #
 		#step 2: check vertical velocity. Become airborne
 		if velocity.y >= upward_velocity_threshhold:
 			is_airborne = true
@@ -75,14 +79,90 @@ func process_movement(delta: float) -> void:
 		#change_collision_hull_size()
 	#step 16:
 		#process_projectiles()
+		first_frame = false
 	pass
 
-func try_unstuck() -> void:
-	pass
+#valve unstuck algorythm goes through fixed list of player nudges. Some stuck bugs in TF2 are cause of this.
+#if this table outputed minimum value of y is -0.125 hammer units. and thats it.
+#Source does not try to nudge player more that in downwards direction.
+#For more human frienly explanation check out Shounic video here: https://www.youtube.com/watch?v=PEhY4vE6krE
 
-func test_motion(from: Transform3D, motion: Vector3, motion_result : PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()) -> bool:
-	var player_rid : RID = self.get_rid()
-	var motion_paramters : PhysicsTestMotionParameters3D = PhysicsTestMotionParameters3D.new()
-	motion_paramters.from = from
-	motion_paramters.motion = motion
-	return PhysicsServer3D.body_test_motion(player_rid, motion_paramters, motion_result)
+func gen_unstuck_offsets_table() -> PackedVector3Array:
+	
+	var table : PackedVector3Array = []
+	#Little Moves
+	var little_move : float = 0.125
+	var y : float = -little_move
+	while y <= little_move:
+		table.append(Vector3(0,y,0))
+		y += little_move
+	var x : float = -little_move
+	while x <= little_move:
+		table.append(Vector3(x,0,0))
+		x += little_move
+	var z : float = -little_move
+	while z <= little_move:
+		table.append(Vector3(0,0,z))
+		z += little_move
+	#Remaining multi axis nudges.
+	y = -little_move
+	while y <= little_move:
+		x = -little_move
+		while x <= little_move:
+			z = -little_move
+			while z <= little_move:
+				table.append(Vector3(x, y, z))
+				z += 0.25
+			x += 0.25
+		y += 0.25
+	
+	# Big Moves.
+	var yi : PackedFloat32Array = [0.0, 1.0, 6.0]
+	
+	for i : float in yi:
+		y = i
+		table.append(Vector3(0, y, 0))
+	x = -2.0
+	while x <= 2.0:
+		table.append(Vector3(x, 0, 0))
+		x += 2.0
+	z = -2.0
+	while z <= 2.0:
+		table.append(Vector3(0, 0, z))
+		z += 2.0
+	
+	for i : float in yi:
+		y = i
+		x = -2.0
+		while x <= 2.0:
+			z = -2.0
+			while z <= 2.0:
+				table.append(Vector3(x, y, z))
+				z += 2.0
+			x += 2.0
+
+	#convert hammer units to meters:
+	for i : int in range(table.size()):
+		table[i] *= 1.905 / 100
+
+	return table
+
+func get_unstuck_offset() -> Vector3:
+	var unstuck_offset : Vector3 = unstuck_offsets_table[unstuck_offsets_table_id % 53]
+	unstuck_offsets_table_id += 1
+	return unstuck_offset
+
+func reset_unstuck_offsets_table_id() -> void:
+	unstuck_offsets_table_id = 0
+
+func try_unstuck() -> bool:
+	var unstuck_offset : Vector3 = get_unstuck_offset()
+	stuck_check_collider.position = unstuck_offset
+	stuck_check_collider.force_shapecast_update()
+	if stuck_check_collider.is_colliding():
+		stuck_check_collider.position = Vector3.ZERO
+		return false
+	stuck_check_collider.position = Vector3.ZERO
+	global_position += unstuck_offset
+	reset_unstuck_offsets_table_id()
+	return true

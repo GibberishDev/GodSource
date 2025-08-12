@@ -25,7 +25,6 @@ NetworkRollback="*res://addons/netfox/rollback/network-rollback.gd"
 NetworkEvents="*res://addons/netfox/network-events.gd"
 NetworkPerformance="*res://addons/netfox/network-performance.gd"
 Register="res://src/register_scripts/commands_registerer.gd"
-MultiplayerManager="res://lib/classes/multiplayer_manager.gd"
 
 [debug]
 

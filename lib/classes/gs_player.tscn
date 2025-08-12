@@ -23,3 +23,5 @@ shape = SubResource("BoxShape3D_xdf4h")
 [node name="stuck_check_collider" type="ShapeCast3D" parent="."]
 shape = SubResource("BoxShape3D_k5xr0")
 target_position = Vector3(0, 0, 0)
+max_results = 1
+debug_shape_custom_color = Color(0.0666666, 0, 1, 1)
