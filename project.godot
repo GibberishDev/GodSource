@@ -25,6 +25,7 @@ NetworkRollback="*res://addons/netfox/rollback/network-rollback.gd"
 NetworkEvents="*res://addons/netfox/network-events.gd"
 NetworkPerformance="*res://addons/netfox/network-performance.gd"
 Register="res://src/register_scripts/commands_registerer.gd"
+MultiplayerManager="res://lib/classes/multiplayer_manager.gd"
 
 [debug]
 
@@ -32,11 +33,6 @@ gdscript/warnings/unused_variable=0
 gdscript/warnings/unused_parameter=0
 gdscript/warnings/untyped_declaration=2
 gdscript/warnings/inferred_declaration=2
-
-[display]
-
-window/size/mode=2
-window/size/initial_position_type=4
 
 [editor_plugins]
 
@@ -80,11 +76,17 @@ flashlight={
 3d_physics/layer_1="WORLD"
 3d_physics/layer_2="Player"
 
+[netfox]
+
+logging/log_level=5
+logging/netfox_log_level=5
+
 [physics]
 
 3d/run_on_separate_thread=true
 common/physics_ticks_per_second=66
 3d/physics_engine="GodotPhysics3D"
+3d/default_gravity=15.24
 
 [rendering]
 
