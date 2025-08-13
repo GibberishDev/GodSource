@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=9 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
 
@@ -21,10 +21,23 @@ glow_enabled = true
 
 [sub_resource type="BoxMesh" id="BoxMesh_nwtsw"]
 
+[sub_resource type="GDScript" id="GDScript_0qie4"]
+script/source = "extends Control
+
+@onready
+var player : CharacterBody3D = self.get_parent().get_node(\"gs_player\")
+
+
+func _process(delta: float) -> void:
+	get_node(\"is_stuck_label\").text = \"Stuck: \" + str(player.is_stuck)
+"
+
 [node name="Node3D" type="Node3D"]
 
 [node name="gs_player" parent="." instance=ExtResource("1_0qie4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.114, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.887, 1.968)
+wall_min_slide_angle = 0.0
+floor_snap_length = 0.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_gbv3d")
@@ -34,15 +47,33 @@ transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -
 shadow_enabled = true
 
 [node name="ground" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+collision_mask = 0
+metadata/_edit_group_ = true
 
 [node name="ground_collision" type="CollisionShape3D" parent="ground"]
 shape = SubResource("WorldBoundaryShape3D_0qie4")
 
 [node name="box" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="box"]
 shape = SubResource("BoxShape3D_0qie4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="box"]
 mesh = SubResource("BoxMesh_nwtsw")
+
+[node name="debug_hud" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_0qie4")
+
+[node name="is_stuck_label" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "player is stuck: "

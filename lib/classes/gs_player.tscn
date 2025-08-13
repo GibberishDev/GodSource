@@ -3,8 +3,11 @@
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
+size = Vector3(0.933, 1.581, 0.933)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_k5xr0"]
+[sub_resource type="SphereMesh" id="SphereMesh_k5xr0"]
+radius = 0.05
+height = 0.1
 
 [node name="gs_player" type="CharacterBody3D"]
 collision_layer = 2
@@ -14,14 +17,18 @@ floor_block_on_wall = false
 script = ExtResource("1_k5xr0")
 
 [node name="collision_hull" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
 shape = SubResource("BoxShape3D_xdf4h")
 
 [node name="player_input" type="Node" parent="."]
 
 [node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [node name="stuck_check_collider" type="ShapeCast3D" parent="."]
-shape = SubResource("BoxShape3D_k5xr0")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
+shape = SubResource("BoxShape3D_xdf4h")
 target_position = Vector3(0, 0, 0)
-max_results = 1
-debug_shape_custom_color = Color(0.0666666, 0, 1, 1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_k5xr0")

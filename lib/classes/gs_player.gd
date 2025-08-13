@@ -11,11 +11,16 @@ var gravity_multiplier : float = 1.0
 var is_grounded : bool = false
 var is_airborne : bool = false
 var is_stuck : bool = false
+
 var current_movement_type : MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
 
 var unstuck_offsets_table : PackedVector3Array = []
 var unstuck_offsets_table_id : int = 0
 var unstuck_check_timer : Timer
+
+var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
+var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
+var wish_hull_size : Vector3 = standart_hull_size
 
 enum MOVEMENT_TYPE {
 	AIRBORNE,
@@ -27,9 +32,12 @@ enum MOVEMENT_TYPE {
 #region nodde references
 @onready
 var stuck_check_collider : ShapeCast3D = get_node("stuck_check_collider")
+@onready
+var player_collision_hull : CollisionShape3D = get_node("collision_hull")
 #endregion
 
 func _ready() -> void:
+	update_hull()
 	unstuck_offsets_table = gen_unstuck_offsets_table()
 
 func _physics_process(delta: float) -> void:
@@ -37,10 +45,12 @@ func _physics_process(delta: float) -> void:
 
 func process_movement(delta: float) -> void:
 	#step 1: check if stuck and try to unstuck and move to step 14
+	stuck_check_collider.force_update_transform()
 	stuck_check_collider.force_shapecast_update()
 	if stuck_check_collider.is_colliding():
 		try_unstuck()
 	else:
+		if is_stuck: is_stuck = false
 		#step 2: check vertical velocity. Become airborne
 		if velocity.y >= upward_velocity_threshhold:
 			is_airborne = true
@@ -73,10 +83,9 @@ func process_movement(delta: float) -> void:
 			velocity = velocity.normalized() * maximum_velocity_cap
 	#step 14: check triggers to activate
 	#step 15: adjust collision hull
-		#change_collision_hull_size()
+		update_hull()
 	#step 16: process projectiles 
 		#process_projectiles()
-
 
 #region unstuck algorythm
 #---
@@ -153,17 +162,32 @@ func get_unstuck_offset() -> Vector3:
 #		Valve decided to iterate no sooner than 0.05 seconds from last iteration. Roughly every 4 physics frames at 66 pfps 
 func try_unstuck() -> void:
 	var unstuck_offset : Vector3
-	for i: int in range(53):
+	is_stuck = true
+	stuck_check_collider.position = Vector3(0.0, stuck_check_collider.shape.size.y/2.0, 0.0)
+	for i:int in range(53):
 		unstuck_offset = get_unstuck_offset()
-		stuck_check_collider.position = unstuck_offset
+		stuck_check_collider.position = unstuck_offset + Vector3(0.0, stuck_check_collider.shape.size.y/2.0, 0.0)
+		stuck_check_collider.force_update_transform()
 		stuck_check_collider.force_shapecast_update()
 		if !stuck_check_collider.is_colliding():
 			global_position += unstuck_offset
-			is_stuck = true
+			is_stuck = false
+			unstuck_offsets_table_id = 0
 			break
-	unstuck_offsets_table_id = 0
-	is_stuck = false
-	stuck_check_collider.position = Vector3.ZERO
 
+
+#endregion
+
+#region collision hull editing
+
+func update_hull() -> void:
+	if player_collision_hull.shape.size == wish_hull_size:
+		return
+	var size : Vector3 = wish_hull_size
+	var hull : CollisionShape3D = player_collision_hull
+	hull.position = Vector3(0.0, size.y/2.0, 0.0)
+	stuck_check_collider.position = Vector3(0.0, size.y/2.0, 0.0)
+	hull.shape.size = size
+	stuck_check_collider.shape = hull.shape
 
 #endregion
