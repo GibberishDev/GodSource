@@ -30,10 +30,8 @@ var player : CharacterBody3D = self.get_parent().get_node(\"gs_player\")
 
 func _process(delta: float) -> void:
 	get_node(\"is_stuck_label\").text = \"Stuck: \" + str(player.is_stuck)
-	get_node(\"is_crouched_label\").text = \"Crouch: \" + str(player.is_crouched)
-	get_node(\"is_wish_crouch_label\").text = \"Wish crouch: \" + str(player.wish_crouch)
-	get_node(\"is_crouching_label\").text = \"Crouching: \" + str(player.is_crouching_animation)
-	get_node(\"is_uncrouching_label\").text = \"Uncrouching: \" + str(player.is_uncrouching_animation)
+	get_node(\"is_airborne\").text = \"Airborne: \" + str(player.is_airborne)
+	
 "
 
 [node name="Node3D" type="Node3D"]
@@ -82,30 +80,9 @@ offset_right = 40.0
 offset_bottom = 23.0
 text = "player is stuck: "
 
-[node name="is_crouched_label" type="Label" parent="debug_hud"]
+[node name="is_airborne" type="Label" parent="debug_hud"]
 layout_mode = 0
 offset_top = 24.0
 offset_right = 150.0
 offset_bottom = 47.0
-text = "player is crouched: "
-
-[node name="is_wish_crouch_label" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_top = 47.0
-offset_right = 150.0
-offset_bottom = 70.0
-text = "player is crouched: "
-
-[node name="is_crouching_label" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_top = 72.0
-offset_right = 150.0
-offset_bottom = 95.0
-text = "player is crouched: "
-
-[node name="is_uncrouching_label" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_top = 90.0
-offset_right = 150.0
-offset_bottom = 113.0
 text = "player is crouched: "

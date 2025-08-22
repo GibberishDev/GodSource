@@ -1,72 +1,120 @@
 class_name godsource_player_movement
 extends CharacterBody3D
 
+## Class description TBD
 
+#region variables
 
+#region server defined variables #TODO: move to server script later
+## Maximum walking speed base value. 300 hu/s is team fortres 2 default
+var maximum_walking_speed_base : float = 300 * 1.905 / 100
+## Amount of velocity enitity can have. Any more is capped to this value
+var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
+#endregion
+
+#region Exported variables
+## Multiplier of default server defined max walking speed. In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
+@export
+var max_walking_speed_multiplier : float = 1.0
+## Amount of vertical velocity that needed to be exceeded for player to become airborne
 @export
 var upward_velocity_threshhold : float = 250 * 1.905 / 100
+## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
-var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
+var jump_strength : float = 289 * 1.905 / 100
+## Amount of mid air jumps player can perform without touching ground
 @export
-var jump_velocity : float = 289 * 1.905 / 100
-
-var gravity_multiplier : float = 1.0
-
-var is_grounded : bool = false
-var is_crouched : bool = false
-var is_crouching_animation : bool = false
-var is_uncrouching_animation : bool = false
-var is_airborne : bool = false
-var is_stuck : bool = false
-
-var current_movement_type : MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
-
-var unstuck_offsets_table : PackedVector3Array = []
-var unstuck_offsets_table_id : int = 0
-var unstuck_check_timer : Timer
-var queue_uncrouch : bool = false
-
+var maximum_mid_air_jumps : int = 0
+## Size of player bounding box hull in normal state
 @export
 var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
+## Size of player bounding box hull in crouched state
 @export
 var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
-var wish_hull_size : Vector3 = standart_hull_size
-
-
-@export_category("Known bugged behavior toggles")
+@export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
 var is_crouch_jump_bug_enabled : bool = true
 ## Causes player jump while uncrouching to be neutered low jump caused by lack of player shift upwards and forced to be crouched when close to the ground. This also allows for much more knockback from explosives.[br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=76HDJIWfVy4]video[/url] by Shounic[/color]
 @export
 var is_ctap_bug_enabled : bool = true
+## Causes player to be able to jump as soon as player touches ground, bypassing ground friction
+@export
+var is_bhop_bug_enabled : bool = true
+## Does not reset player jump key state even if unable to jump at this frame. Meaning that whicj jump key held down player would be able to jump as soon as they touch the ground, performing a bhop, if its enabled. If bhop is disabled frition will still apply
+@export
+var is_auto_jump_enabled : bool = false
+## Limit player movement speed to [jump_speed_cap]
+@export
+var limit_bhop_speed: bool = true
+## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
+@export
+var jump_speed_cap: float = 1.2
+#endregion
 
+#region player state variables
+##	Indicates if player is grounded.[br][color=orange]IMPORTANT! NOT THE SAME AS [method CharacterBody3D.is_on_floor][/color].[br]main difference that player is considered airborne the frame their vertical velocity exceeds [member upward_velocity_threshhold]
+var is_airborne : bool = false
+##	Indicates if player is fully crouched.
+var is_crouched : bool = false
+##	Indicates if player is in process of crouching.
+var is_crouching_animation : bool = false
+##	Indicates if player is in process of uncrouching.
+var is_uncrouching_animation : bool = false
+## Indicates if player is stuck inside the solid geometry. See [method check_stuck] for explanation
+var is_stuck : bool = false
+#endregion
+
+#region local variables
+## Current player movement type from [enum MOVEMENT_TYPE]
+var current_movement_type : MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
+var unstuck_offsets_table : PackedVector3Array = []
+var unstuck_offsets_table_id : int = 0
+var unstuck_check_timer : Timer
+var queue_uncrouch : bool = false
+var wish_hull_size : Vector3 = standart_hull_size
+var gravity_multiplier : float = 1.0
+var current_mid_air_jumps : int = 0
+#endregion
+
+#region enum defenitions
+## Player movement type enumerator that dictates player movement properties
 enum MOVEMENT_TYPE {
-	AIRBORNE,
-	WALK,
-	SWIM,
-	NOCLIP,
+	AIRBORNE, ## Player is airborne
+	WALK, ## Player is walking
+	SWIM, ## Player is considered swimming through liquid
+	NOCLIP, ## No collision fly mode
 }
+#endregion
 
-#region nodde references
+#region node references
+## Reference to the stuck_check_collider node
 @onready
 var stuck_check_collider : ShapeCast3D = get_node("stuck_check_collider")
+## Reference to the uncrocuh_check_collider node
 @onready
 var crouch_check_collider : ShapeCast3D = get_node("uncrocuh_check_collider")
+## Reference to the collision_hull node
 @onready
 var collision_hull : CollisionShape3D = get_node("collision_hull")
+## Reference to the crouch_timer node
 @onready
 var crouch_timer : Timer = get_node("crouch_timer")
+## Reference to the uncrouch_timer node
 @onready
 var uncrouch_timer : Timer = get_node("uncrouch_timer")
 #endregion
 
 #region wish control variables
+#TODO: move this region to the dedicated player input gathering node for easier multiplayer prediction and reconciliation
 var wish_crouch : bool = false
 var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
 #endregion
 
+#endregion variables
+
+#region native godot methods
 func _unhandled_input(event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
 	if Input.is_action_just_released("jump"):
 		wish_jump = false
@@ -84,6 +132,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	wish_crouch = Input.is_action_pressed("crouch")
 	process_movement(delta)
+#endregion
+
+#region main movement processing stack
 
 func process_movement(delta: float) -> void:
 	#step 1: check if stuck and try to unstuck and move to step 14
@@ -97,18 +148,7 @@ func process_movement(delta: float) -> void:
 		#step 4: apply half of gravity
 		velocity.y -= (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier) / ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / 2.0 * Engine.time_scale
 		#step 5: handle jumping
-		if wish_jump and !is_airborne:
-			wish_jump = false
-			is_airborne = true
-			if !is_crouched:
-				if is_crouching_animation:
-					crouch_jump()
-				elif is_uncrouching_animation and is_ctap_bug_enabled:
-					ctap()
-				else:
-					velocity.y = jump_velocity - (((ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier) / Engine.get_physics_ticks_per_second()) / 2.0)
-					print(velocity)
-			
+		handle_jump()	
 		#step 6: cap velocity
 		if velocity.length() > maximum_velocity_cap:
 			velocity = velocity.normalized() * maximum_velocity_cap
@@ -120,6 +160,7 @@ func process_movement(delta: float) -> void:
 		#step 9: move and slide?
 		move_and_slide()
 		#step 10: check if grounded
+
 		if is_on_floor() and velocity.y < upward_velocity_threshhold:
 			is_airborne = false
 		else:
@@ -127,7 +168,7 @@ func process_movement(delta: float) -> void:
 		#step 11: apply second half of gravity
 		velocity.y -= (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier) / ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / 2.0 * Engine.time_scale
 		#step 12: if not airborne, zero out vertical velocity
-		if !is_airborne:
+		if !is_airborne and is_on_floor():
 			velocity.y = 0.0
 		#step 13:
 		if velocity.length() > maximum_velocity_cap:
@@ -137,6 +178,8 @@ func process_movement(delta: float) -> void:
 	update_hull()
 	#step 16: process projectiles 
 	#process_projectiles()
+
+#endregion
 
 #region unstuck algorythm
 #---
@@ -238,56 +281,54 @@ func try_unstuck() -> void:
 #endregion
 
 #region crouching
-
 #---
 # Writing this in full cause im going insane...
 # Character crouching is way more complex in source engine as it actually takes time for character to crouch or uncrouch
-# If player wishes to crouch there are sseveral checks done. If im capable of it I will reordder checks in this commen in order they are actually done.
-# (aka if you see this sentence I failed to do so :P)
+# If player wishes to crouch there are sseveral checks done.
 #	Check for state from last frame: if player changed their mind since last frame
 #	Check if player wishes to crouch or uncrouch
 #	Check if player is fully crouched already or is in process of uncrouching or uncrouching
 #	Check if player is on the ground
 #	Check if collider, for space that player would occupy by uncrouching, is colliding
 #	Depending on checks there would be different outcomes and not only binary crouched/incrouched (I wish lmao)
-
 #--- GibbDev 12AUG2028
 
-
-
-
-
-
 func handle_crouch() -> void:
+	#check if player wants to uncrouch and ask engine to uncrouch as soon as possible
 	if !wish_crouch and (is_crouched or is_crouching_animation):
 		queue_uncrouch = true
-	
 	if queue_uncrouch:
 		try_uncrouch()
 		return
 	
+	#if state didnt change from last frame -> return
 	if (wish_crouch == wish_crouch_last_frame): return
 	wish_crouch_last_frame = wish_crouch
 
 	if wish_crouch:
 		queue_uncrouch = false
 		if is_on_floor():
+			#regular crouch on floor
 			start_delayed_crouch()
 		else:
-			position.y += standart_hull_size.y - crouch_hull_size.y
+			#air crouch with position shift up
+			position.y += standart_hull_size.y - crouch_hull_size.y 
 			crouch()
 			return
 	else:
 		if !is_on_floor():
-			position.y -= standart_hull_size.y - crouch_hull_size.y
-			uncrouch()
+			#air uncrouch with position shift down.
+			crouch_check_collider.position = Vector3(0, (standart_hull_size.y - crouch_hull_size.y) / -2.0, 0)
+			crouch_check_collider.force_update_transform()
+			crouch_check_collider.force_shapecast_update()
+			if !crouch_check_collider.is_colliding():
+				position.y -= standart_hull_size.y - crouch_hull_size.y
+				uncrouch()
 			return
 		elif is_crouched:
 			queue_uncrouch = true
 			try_uncrouch()
 			return
-
-
 
 func crouch() -> void:
 	queue_uncrouch = false
@@ -341,19 +382,19 @@ func try_uncrouch() -> void:
 
 
 func crouch_jump() -> void: #invokled from jumping handle
-	print("crouch_jump_triggered")
 	crouch()
 	if is_crouch_jump_bug_enabled:
-		velocity.y = jump_velocity
+		velocity.y = jump_strength
 	else:
-		velocity.y = jump_velocity - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
+		velocity.y = jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
 	position.y += standart_hull_size.y - crouch_hull_size.y
 
 
 func ctap() -> void: #invokled from jumping handle
-	print("ctap_triggered")
 	crouch()
-	velocity.y = jump_velocity - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
+	velocity.y = jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
+	if !is_ctap_bug_enabled:
+		position.y += standart_hull_size.y - crouch_hull_size.y
 
 func finish_uncrouch() -> void:
 	wish_hull_size = standart_hull_size
@@ -361,6 +402,35 @@ func finish_uncrouch() -> void:
 	is_crouched = false
 	is_uncrouching_animation = false
 	queue_uncrouch = false
+#endregion
+
+#region jumping
+
+func handle_jump() -> void:
+	if !is_on_floor():
+		pass #TODO: make mid air jumping  copying scout from tf2
+	else:
+		current_mid_air_jumps = maximum_mid_air_jumps
+		if wish_jump and !is_crouched:
+			is_airborne = true
+			if is_crouching_animation:
+				crouch_jump()
+			elif is_uncrouching_animation:
+				ctap()
+			else:
+				velocity.y += jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
+			if !is_bhop_bug_enabled:
+				#TODO: add one tick of friction here
+				pass
+			if limit_bhop_speed:
+				var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
+				var speed : float = horizontal_velocity.length()
+				if speed > maximum_walking_speed_base * max_walking_speed_multiplier * jump_speed_cap:
+					horizontal_velocity = horizontal_velocity.normalized() * maximum_walking_speed_base * max_walking_speed_multiplier * jump_speed_cap
+					velocity = Vector3(horizontal_velocity.x, velocity.y, horizontal_velocity.y)
+	if !is_auto_jump_enabled:
+		wish_jump = false
+
 #endregion
 
 #region collision hull editing
