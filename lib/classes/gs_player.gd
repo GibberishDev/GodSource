@@ -141,17 +141,15 @@ func process_movement(delta: float) -> void:
 	check_stuck()
 	if !is_stuck:
 		#step 2: check vertical velocity. Become airborne
-		if velocity.y >= upward_velocity_threshhold:
-			is_airborne = true
+		check_upward_velocity()
 		#step 3: handle crouching
 		handle_crouch()
 		#step 4: apply half of gravity
-		velocity.y -= (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier) / ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / 2.0 * Engine.time_scale
+		apply_half_gravity()
 		#step 5: handle jumping
 		handle_jump()	
 		#step 6: cap velocity
-		if velocity.length() > maximum_velocity_cap:
-			velocity = velocity.normalized() * maximum_velocity_cap
+		limit_velocity()
 		#step 7: if not airborne apply friction and 0 out vertical velocity
 		if !is_airborne:
 			velocity.y = 0.0
@@ -160,19 +158,17 @@ func process_movement(delta: float) -> void:
 		#step 9: move and slide?
 		move_and_slide()
 		#step 10: check if grounded
-
-		if is_on_floor() and velocity.y < upward_velocity_threshhold:
+		if check_grounded():
 			is_airborne = false
 		else:
 			is_airborne = true
 		#step 11: apply second half of gravity
-		velocity.y -= (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier) / ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / 2.0 * Engine.time_scale
+		apply_half_gravity()
 		#step 12: if not airborne, zero out vertical velocity
-		if !is_airborne and is_on_floor():
+		if !is_airborne:
 			velocity.y = 0.0
 		#step 13:
-		if velocity.length() > maximum_velocity_cap:
-			velocity = velocity.normalized() * maximum_velocity_cap
+		limit_velocity()
 	#step 14: check triggers to activate
 	#step 15: adjust collision hull
 	update_hull()
@@ -280,6 +276,33 @@ func try_unstuck() -> void:
 
 #endregion
 
+#region velocity checks
+
+func check_upward_velocity() -> void:
+	if velocity.y >= upward_velocity_threshhold:
+		is_airborne = true
+
+func check_grounded() -> bool:
+	return (is_on_floor() and (velocity.y < upward_velocity_threshhold))
+
+func limit_velocity() -> void:
+	if velocity.length() > maximum_velocity_cap:
+		velocity = velocity.normalized() * maximum_velocity_cap
+
+#endregion
+
+#region gravity
+
+func apply_half_gravity() -> void:
+	velocity.y -= get_gravity_tick()
+
+func get_gravity_tick() -> float:
+	var gravity : float = (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier)
+	var engine_tick_multiplier : float = ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / Engine.time_scale
+	return gravity / engine_tick_multiplier / 2.0
+
+#endregion
+
 #region crouching
 #---
 # Writing this in full cause im going insane...
@@ -380,22 +403,6 @@ func try_uncrouch() -> void:
 		if !crouch_check_collider.is_colliding():
 			uncrouch()
 
-
-func crouch_jump() -> void: #invokled from jumping handle
-	crouch()
-	if is_crouch_jump_bug_enabled:
-		velocity.y = jump_strength
-	else:
-		velocity.y = jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
-	position.y += standart_hull_size.y - crouch_hull_size.y
-
-
-func ctap() -> void: #invokled from jumping handle
-	crouch()
-	velocity.y = jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
-	if !is_ctap_bug_enabled:
-		position.y += standart_hull_size.y - crouch_hull_size.y
-
 func finish_uncrouch() -> void:
 	wish_hull_size = standart_hull_size
 	update_hull()
@@ -418,7 +425,7 @@ func handle_jump() -> void:
 			elif is_uncrouching_animation:
 				ctap()
 			else:
-				velocity.y += jump_strength - (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier / Engine.get_physics_ticks_per_second() / 2.0)
+				velocity.y += jump_strength - get_gravity_tick()
 			if !is_bhop_bug_enabled:
 				#TODO: add one tick of friction here
 				pass
@@ -430,6 +437,20 @@ func handle_jump() -> void:
 					velocity = Vector3(horizontal_velocity.x, velocity.y, horizontal_velocity.y)
 	if !is_auto_jump_enabled:
 		wish_jump = false
+
+func crouch_jump() -> void: #invokled from jumping handle
+	crouch()
+	if is_crouch_jump_bug_enabled:
+		velocity.y = jump_strength
+	else:
+		velocity.y = jump_strength - get_gravity_tick()
+	position.y += standart_hull_size.y - crouch_hull_size.y
+
+func ctap() -> void: #invokled from jumping handle
+	crouch()
+	velocity.y = jump_strength - get_gravity_tick()
+	if !is_ctap_bug_enabled:
+		position.y += standart_hull_size.y - crouch_hull_size.y
 
 #endregion
 
