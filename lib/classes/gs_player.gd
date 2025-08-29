@@ -1,4 +1,4 @@
-class_name godsource_player_movement
+class_name GodsourcePlayerMovement3D
 extends CharacterBody3D
 
 ## Class description TBD
@@ -10,12 +10,22 @@ extends CharacterBody3D
 var maximum_walking_speed_base : float = 300 * 1.905 / 100
 ## Amount of velocity enitity can have. Any more is capped to this value
 var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
+## Global multiplier of surface friction used in [method GodsourcePlayerMovement3D.apply_friction] method
+var server_variable_friction : float = 4.0
+## Global stop speed threshold used in [method GodsourcePlayerMovement3D.apply_friction] method
+var server_variable_stop_speed : float = 100 * 1.905 / 100
+var server_variable_max_speed : float = 320 * 1.905 / 100 #TODO: rename to something more sensible cause it isnt in source engine.
+var server_variable_air_acceleration : float = 10
+#endregion
+
+#region client settings variables #TODO: echange for getters whenever client settings are implemented
+var client_setting_null_movement : bool = true
 #endregion
 
 #region Exported variables
 ## Multiplier of default server defined max walking speed. In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
-var max_walking_speed_multiplier : float = 1.0
+var max_ground_speed_multiplier : float = 1.0
 ## Amount of vertical velocity that needed to be exceeded for player to become airborne
 @export
 var upward_velocity_threshhold : float = 250 * 1.905 / 100
@@ -50,6 +60,10 @@ var limit_bhop_speed: bool = true
 ## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
 @export
 var jump_speed_cap: float = 1.2
+@export
+var max_ground_speed : float = 240 * 1.905 / 100
+@export
+var max_air_speed : float = 30 * 1.905 / 100
 #endregion
 
 #region player state variables
@@ -63,6 +77,8 @@ var is_crouching_animation : bool = false
 var is_uncrouching_animation : bool = false
 ## Indicates if player is stuck inside the solid geometry. See [method check_stuck] for explanation
 var is_stuck : bool = false
+## Surface friction is used in [method apply_friction] method to slow down player movement. This value is modified depending on surface player stand on on step 10 in [method process_movement] method.
+var surface_friction: float = 1.0
 #endregion
 
 #region local variables
@@ -75,6 +91,10 @@ var queue_uncrouch : bool = false
 var wish_hull_size : Vector3 = standart_hull_size
 var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
+var forward : Vector3
+var up : Vector3
+var right : Vector3
+var ground_acceleration : float =  2400 * 1.905 / 100
 #endregion
 
 #region enum defenitions
@@ -103,6 +123,10 @@ var crouch_timer : Timer = get_node("crouch_timer")
 ## Reference to the uncrouch_timer node
 @onready
 var uncrouch_timer : Timer = get_node("uncrouch_timer")
+## Reference to the camera node
+@onready
+var camera : Camera3D = Camera3D.new()
+
 #endregion
 
 #region wish control variables
@@ -110,12 +134,16 @@ var uncrouch_timer : Timer = get_node("uncrouch_timer")
 var wish_crouch : bool = false
 var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
+var wish_left : bool = false
+var wish_right : bool = false
+var wish_forward : bool = false
+var wish_back : bool = false
 #endregion
 
 #endregion variables
 
 #region native godot methods
-func _unhandled_input(event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
+func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
 	if Input.is_action_just_released("jump"):
 		wish_jump = false
 	if Input.is_action_just_pressed("jump"):
@@ -124,10 +152,21 @@ func _unhandled_input(event: InputEvent) -> void: #TODO: move to input gathering
 		Engine.time_scale = 0.05
 	if Input.is_key_pressed(KEY_F2):
 		Engine.time_scale = 1.0
+	wish_left = Input.is_action_pressed("left")
+	wish_right = Input.is_action_pressed("right")
+	wish_forward = Input.is_action_pressed("forward")
+	wish_back = Input.is_action_pressed("back")
 
 func _ready() -> void:
 	update_hull()
 	unstuck_offsets_table = gen_unstuck_offsets_table()
+	#TODO: change to asigning specific camera with multiplayer authority
+	camera.name = "Camera3D"
+	camera.current = true
+	camera.fov = 105.0
+	self.add_child(camera)
+	get_node("CameraAnchor").mount_camera(camera)
+	
 
 func _physics_process(delta: float) -> void:
 	wish_crouch = Input.is_action_pressed("crouch")
@@ -153,15 +192,18 @@ func process_movement(delta: float) -> void:
 		#step 7: if not airborne apply friction and 0 out vertical velocity
 		if !is_airborne:
 			velocity.y = 0.0
-			#apply friction
+			apply_friction(delta)
 		#step 8: accelerate
+		accelerate(delta)
 		#step 9: move and slide?
 		move_and_slide()
-		#step 10: check if grounded
+		#step 10: check if grounded and surface properties
 		if check_grounded():
 			is_airborne = false
+			#TODO: get_surface_properties()
 		else:
 			is_airborne = true
+			#TODO: reset_surface_properies()
 		#step 11: apply second half of gravity
 		apply_half_gravity()
 		#step 12: if not airborne, zero out vertical velocity
@@ -432,8 +474,8 @@ func handle_jump() -> void:
 			if limit_bhop_speed:
 				var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
 				var speed : float = horizontal_velocity.length()
-				if speed > maximum_walking_speed_base * max_walking_speed_multiplier * jump_speed_cap:
-					horizontal_velocity = horizontal_velocity.normalized() * maximum_walking_speed_base * max_walking_speed_multiplier * jump_speed_cap
+				if speed > maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap:
+					horizontal_velocity = horizontal_velocity.normalized() * maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap
 					velocity = Vector3(horizontal_velocity.x, velocity.y, horizontal_velocity.y)
 	if !is_auto_jump_enabled:
 		wish_jump = false
@@ -451,6 +493,127 @@ func ctap() -> void: #invokled from jumping handle
 	velocity.y = jump_strength - get_gravity_tick()
 	if !is_ctap_bug_enabled:
 		position.y += standart_hull_size.y - crouch_hull_size.y
+
+#endregion
+
+#region acceleration
+
+func apply_friction(delta: float) -> void:
+	var speed : float = velocity.length() #Speed of player movement
+	var new_speed : float = 0.0 #New speed after friction calculations
+	var drop : float = 0.0 #Speed that needs to be dropped due to friction
+	var friction : float = 1.0 #friction amount
+	var control : float = 0.0 #control speed threshold
+	#stop infinitelly slow movements
+	if speed < (0.1 * 1.905 / 100.0):
+		velocity = Vector3.ZERO
+		return
+	#apply ground friction
+	if !is_airborne:
+		friction = server_variable_friction * surface_friction
+	#Bleed  off some speed, but if we have less than the bleed threshold, bleed the threshold amount.
+	if (speed < server_variable_stop_speed):
+		control = server_variable_stop_speed
+	else:
+		control = speed
+	drop += control * friction * delta
+	new_speed = max(0.0, speed - drop)
+	#determine the proportion of new speed to old speed
+	if new_speed != speed:
+		new_speed /= speed
+		velocity *= new_speed
+	velocity -= (1.0-new_speed) * velocity
+
+func accelerate(delta: float) -> void:
+	get_view_angles()
+	get_view_rotations()
+	wish_direction = get_wish_direction()
+	if is_airborne:
+		air_move(delta)
+	else:
+		ground_move(delta)
+
+func air_move(delta: float) -> void:
+	var wish_vel : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).normalized().rotated(Vector3.UP, yaw)
+	var wish_dir : Vector3 = wish_vel.normalized()
+	var wish_speed : float = max_air_speed
+	var current_speed : float = velocity.dot(wish_dir)
+	var add_speed : float = wish_speed - current_speed
+	if add_speed <= 0: return
+	var accel_speed : float = delta * server_variable_air_acceleration * min(server_variable_max_speed, max_ground_speed)# * surface_friction
+	accel_speed = min(accel_speed, add_speed)
+	velocity += accel_speed * wish_dir
+
+
+func ground_move(delta: float) -> void:
+	var dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, yaw).normalized()
+	var current_speed : float = velocity.dot(dir)
+	#TODO: make speed multiplier
+	var add_speed : float = clamp(ground_acceleration * delta * max_ground_speed_multiplier, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	velocity += dir * add_speed
+
+
+var wish_direction : Vector2 = Vector2.ZERO
+var null_movement_key_state_last_frame : Dictionary = {
+	"left": false,
+	"right": false,
+	"forward": false,
+	"back": false,
+}
+
+func get_wish_direction() -> Vector2:
+	if client_setting_null_movement:
+		if null_movement_key_state_last_frame["left"] != wish_left:
+			if wish_left:
+				wish_direction.x = -1
+			elif wish_right:
+				wish_direction.x = 1
+			else:
+				wish_direction.x = 0
+		if null_movement_key_state_last_frame["right"] != wish_right:
+			if wish_right:
+				wish_direction.x = 1
+			elif wish_left:
+				wish_direction.x = -1
+			else:
+				wish_direction.x = 0
+		if null_movement_key_state_last_frame["forward"] != wish_forward:
+			if wish_forward:
+				wish_direction.y = -1
+			elif wish_back:
+				wish_direction.y = 1
+			else:
+				wish_direction.y = 0
+		if null_movement_key_state_last_frame["back"] != wish_back:
+			if wish_back:
+				wish_direction.y = 1
+			elif wish_forward:
+				wish_direction.y = -1
+			else:
+				wish_direction.y = 0
+		null_movement_key_state_last_frame = {
+			"left": wish_left,
+			"right": wish_right,
+			"forward": wish_forward,
+			"back": wish_back,
+		}
+	else:
+		wish_direction = Input.get_vector( "left", "right", "forward", "back")
+	return wish_direction
+
+func get_view_angles() -> void:
+	forward = $CameraAnchor.forward
+	up      = $CameraAnchor.up
+	right   = $CameraAnchor.right
+
+
+var pitch : float = 0 #In radians
+var yaw : float = 0 #In radians
+var roll : float = 0 #In radians. Prob unused in most cases. Except if you are building a space game and even then id reconsider that
+func get_view_rotations() -> void:
+	pitch = $CameraAnchor.pitch
+	yaw = $CameraAnchor.yaw
+	roll = $CameraAnchor.roll
 
 #endregion
 
