@@ -41,4 +41,3 @@ func _exit_tree() -> void: #Dispose of thread safely to not shit the memory
 	input_thread_mutex.unlock()
 	input_thread_semaphore.post()
 	input_thread.wait_to_finish()
-

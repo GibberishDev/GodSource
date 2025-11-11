@@ -1,0 +1,143 @@
+[gd_scene load_steps=10 format=3 uid="uid://cag0ewqn75o7y"]
+
+[ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0qie4"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_nwtsw"]
+sky_material = SubResource("ProceduralSkyMaterial_0qie4")
+
+[sub_resource type="Environment" id="Environment_gbv3d"]
+background_mode = 2
+sky = SubResource("Sky_nwtsw")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_0qie4"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0qie4"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nwtsw"]
+
+[sub_resource type="GDScript" id="GDScript_0qie4"]
+script/source = "extends Control
+
+@onready
+var player : CharacterBody3D = self.get_parent().get_node(\"gs_player\")
+
+
+func _process(delta: float) -> void:
+	get_node(\"is_stuck_label\").text = \"Stuck: \" + str(player.is_stuck)
+	get_node(\"is_airborne\").text = \"Airborne: \" + str(player.is_airborne)
+	get_node(\"velocity\").text = \"Velocity: \" + str(player.velocity * 100 / 1.905)
+	get_node(\"speed\").text = \"Speed: \" + str(int(Vector2(player.velocity.x, player.velocity.z).length() * 100 / 1.905))
+	
+"
+
+[sub_resource type="Curve3D" id="Curve3D_0qie4"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.8060391, 1.2955282, 0, -8, 0, 0, 0, 0, 0, 24, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[node name="Node3D" type="Node3D"]
+
+[node name="gs_player" parent="." instance=ExtResource("1_0qie4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.887, 1.968)
+wall_min_slide_angle = 0.0
+floor_stop_on_slope = true
+floor_constant_speed = false
+floor_block_on_wall = true
+is_auto_jump_enabled = true
+limit_bhop_speed = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_gbv3d")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="ground" type="StaticBody3D" parent="."]
+collision_mask = 0
+metadata/_edit_group_ = true
+
+[node name="ground_collision" type="CollisionShape3D" parent="ground"]
+shape = SubResource("WorldBoundaryShape3D_0qie4")
+
+[node name="box" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="box"]
+shape = SubResource("BoxShape3D_0qie4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="box"]
+mesh = SubResource("BoxMesh_nwtsw")
+
+[node name="debug_hud" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_0qie4")
+
+[node name="is_stuck_label" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "player is stuck: "
+
+[node name="is_airborne" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_top = 24.0
+offset_right = 150.0
+offset_bottom = 47.0
+text = "player is crouched: "
+
+[node name="velocity" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 51.0
+offset_right = 151.0
+offset_bottom = 74.0
+text = "player is crouched: "
+
+[node name="speed" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 77.0
+offset_right = 151.0
+offset_bottom = 100.0
+text = "player is crouched: "
+
+[node name="Path3D" type="Path3D" parent="."]
+curve = SubResource("Curve3D_0qie4")
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
+use_collision = true
+collision_mask = 2
+polygon = PackedVector2Array(0, 0, 3, 0, 1.5, 3)
+mode = 2
+path_node = NodePath("../Path3D")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
+
+[node name="stair" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.772794)
+use_collision = true
+collision_mask = 2
+polygon = PackedVector2Array(0, 0, 0, 0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.6, 0.8, 0.8, 0.8, 0.8, 1, 1, 1, 1, 0)
+depth = 2.95
