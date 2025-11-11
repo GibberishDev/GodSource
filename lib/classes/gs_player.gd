@@ -65,6 +65,8 @@ var limit_bhop_speed: bool = true
 var jump_speed_cap: float = 1.2
 @export
 var max_air_speed : float = 30 * 1.905 / 100
+@export
+var max_step_up : float = 18 * 1.905 / 100 
 #endregion
 
 #region player state variables
@@ -93,6 +95,8 @@ var wish_hull_size : Vector3 = standart_hull_size
 var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
 var ground_acceleration : float = 10
+var last_floored_frame : int = 0
+var snapped_to_stairs_last_frame : bool = false
 #endregion
 
 #region enum defenitions
@@ -174,7 +178,7 @@ func _ready() -> void:
 	camera.fov = 110.0 # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
 	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
-	
+	setup_casts_step_check()
 
 func _physics_process(delta: float) -> void:
 	process_movement(delta)
@@ -208,7 +212,9 @@ func process_movement(delta: float) -> void:
 			clip_velocity(get_wall_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
-		move_and_slide()
+		if !step_up_check(delta):
+			step_down_check()
+			move_and_slide()
 		#step 10: check if grounded and surface properties
 		if check_grounded():
 			is_airborne = false
@@ -337,7 +343,10 @@ func check_upward_velocity() -> void:
 		is_airborne = true
 
 func check_grounded() -> bool:
-	return (is_on_floor() and (velocity.y < upward_velocity_threshhold))
+	var state : bool = is_on_floor() and (velocity.y < upward_velocity_threshhold)
+	if state: 
+		last_floored_frame = Engine.get_physics_frames()
+	return state
 
 func limit_velocity() -> void:
 	if velocity.length() > maximum_velocity_cap:
@@ -655,5 +664,137 @@ func update_hull(new_size : Vector3 = wish_hull_size) -> void:
 	collision_hull.shape.size = new_size 						# set new shape size
 	stuck_check_collider.position = collision_hull.position 	# copy hull position
 	stuck_check_collider.shape = collision_hull.shape 			# copy hull shape
+
+#endregion
+
+#region step up logic
+
+# In general its good if game can get by without step up or down. Its all tested over the years
+# and turns our sidden elevation changes and movement shooters do not mix well. use ramps instead where possible
+# But without step up and down logic player will stub their toes on the smallest edges possible and get stopped. No bueno
+
+## [b][u]PURPOSE[/u][/b]:[br] Method executed in [method _ready]. Sets up transforms of step up raycast and stepdown shapecast
+func setup_casts_step_check() -> void:
+	# making step down ShapeCast3D same size as player hull and height of max step up length
+	$step_down_shape_cast.shape.size = Vector3(standart_hull_size.x, max_step_up + 0.1, standart_hull_size.z)
+
+	# positioning step down ShapeCast3D at the bottom of player hull
+	$step_down_shape_cast.position = Vector3(0, (max_step_up + 0.1)/ -2, 0)
+
+	# making step up RayCast3d length be max step up length
+	$step_up_ray_cast.target_position.y = -(max_step_up + 0.1)
+
+## [b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
+## [b][u]ARGS[/u][/b]:[br] surface_normal - [Vector3] - normal of the wall
+func is_wall_too_steep(surface_normal: Vector3) -> bool:
+	# testing if surface angle is more than max walkable surface angle
+	return surface_normal.angle_to(Vector3.UP) > floor_max_angle
+
+
+## [b][u]PURPOSE[/u][/b]:[br] Perfoms a test motion of [CharacterBody3D] with [method PhysicsServer3D.body_test_motion][br]
+## [b][u]ARGS[/u][/b]:[br] from - [Transform3D] - original body transform[br] motion - [Vector3] - test motion destination[br] result - [PhysicsTestMotionResult3D] - [color=gold]NULLABLE[/color] - Describes the motion and collision result[br]
+## [b][u]RETURN[/u][/b]:[br] [bool] - returns if motion was successful
+func test_motion(from: Transform3D, motion: Vector3, result: PhysicsTestMotionResult3D = null) -> bool:
+	# if result is null instance new one
+	if !result:
+		result = PhysicsTestMotionResult3D.new()
+
+	# instance new physcs motion parameters
+	var parameters: PhysicsTestMotionParameters3D = PhysicsTestMotionParameters3D.new()
+
+	# define motion in prams
+	parameters.from = from
+	parameters.motion = motion
+
+	# test motion
+	return PhysicsServer3D.body_test_motion(get_rid(), parameters , result)
+
+## [b][u]PURPOSE[/u][/b]:[br] Snaps player to ground upon walking off ledges shorter than max step up length
+func step_down_check() -> void:
+	# reset state of stepping down
+	var stepped_down: bool = false
+	# determine if player was on floor in last frame or current frame
+	var was_on_floor_last_frame: bool = (Engine.get_physics_frames() - last_floored_frame <= 2)
+	# see if ground below is close enough and wlkable to be stepped down
+	var is_ground_below: bool = ($step_down_shape_cast.is_colliding())
+
+	# if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
+	if is_airborne and (stepped_down or was_on_floor_last_frame) and !wish_jump and velocity.y < 0:
+		# create new physics server test object
+		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+
+		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
+		if test_motion(global_transform, Vector3(0, -max_step_up, 0), motion_test_result) and is_ground_below:
+			# call camera smoothing method from [PlayerCameraComponent]
+			$CameraAnchor.save_start_smoothing_position()
+
+			# get travel distance from motion test
+			var translate_y: float = motion_test_result.get_travel().y
+			# tp player down
+			position.y += translate_y
+			# align player to floor, just in case
+			apply_floor_snap()
+			# stepdown success
+			stepped_down = true
+
+	# Update if player was snapped to ground with state of the method
+	snapped_to_stairs_last_frame = stepped_down
+
+## [b][u]PURPOSE[/u][/b]:[br] Moves player up if ledge height within step up length margin.[br][b][color=gold]!!IMPORTANT!! THIS METHOD MOVES PLAYER!
+## EXECUTING [method CharacterBody3D.move_and_slide] WILL RESULT IN ERRONIOS DOUBLE MOVEMENT![/color][br]
+## [b][u]ARGS[/u][/b]:[br] delta - [float] - delta time of last physics frame[br] new_velocity - [Vector3] - currently modifiable parent [CharacterBody3D] velocity[br]
+## [b][u]RETURN[/u][/b]:[br] [bool] - returns if step up was successful. Use this return to prevent double movent with [method CharacterBody3D.move_and_slide]
+func step_up_check(delta: float) -> bool:
+	# If player is not grounded and wasnt snapped to floor: cancell
+	if !is_on_floor() and !snapped_to_stairs_last_frame:
+		return false
+	# If moving up or not moving horizontally: cancell
+	if velocity.y > 0 or (velocity * Vector3(1, 0, 1)).length() == 0:
+		return false
+
+	# Project next motion using delta and current velocity
+	var expected_motion: Vector3 = velocity * Vector3(1 ,0 ,1) * delta
+	# Predict next motion with step up in mind
+	var step_pos_with_clearance: Transform3D = global_transform.translated(expected_motion + Vector3(0, max_step_up * 2, 0))
+	# New physics collision check instance
+	var down_check_result: KinematicCollision3D = KinematicCollision3D.new()
+	
+	# Test if player can fit in desegnated place and ground is either StaticBody3D or god forbid CSGShape3D. I guess rn you couldnt step up other players...
+	if (test_move(step_pos_with_clearance, Vector3(0, -max_step_up * 2 ,0), down_check_result)):# and (down_check_result.get_collider().is_class("StaticBody3D") or down_check_result.get_collider().is_class("CSGShape3D"))):
+		# Determine travel distance
+		var step_height: float = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - global_position).y
+		
+		# If travel distance is invalid: cancell
+		if step_height > max_step_up or step_height <= 0.01 or (down_check_result.get_position() - global_position).y > max_step_up:
+			return false
+
+		# Move raycast to the predicted motion destination
+		$step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, max_step_up, 0) + expected_motion.normalized() * 0.1
+
+		# Update raycast
+		$step_up_ray_cast.force_raycast_update()
+		# Check if step up spot is valid
+		if $step_up_ray_cast.is_colliding() and not is_wall_too_steep($step_up_ray_cast.get_collision_normal()):
+			# Call camera smoothing method from [PlayerCameraComponent]
+			$CameraAnchor.save_start_smoothing_position()
+
+			# Move player up the ledge
+			global_position = step_pos_with_clearance.origin + down_check_result.get_travel()
+
+			# Align with the floor
+			apply_floor_snap()
+
+			# Update state
+			snapped_to_stairs_last_frame = true
+
+			# On success send true which will cancell out move_and_slide
+			return true
+
+	# In case of fail just pass the method
+	return false
+#endregion
+
+#region step up/down logic. Honestly some sort of black magic with testing motion before doing it...
+
 
 #endregion

@@ -150,8 +150,7 @@ func smooth_camera(delta: float, owner_velocity: Vector3 = Vector3.ZERO) -> void
 		return
 	var movement_amount : float = 3.0 * delta
 	if owner_velocity != Vector3.ZERO:
-		movement_amount = owner_velocity.length() * delta * 2
-	print($smoother.global_position.move_toward(global_position, movement_amount), $smoother.global_position)
+		movement_amount = owner_velocity.length() * delta
 	$smoother.global_position = $smoother.global_position.move_toward(global_position, movement_amount)
 	start_smoothing_position = $smoother.global_position
 	if $smoother.position == Vector3.ZERO:
