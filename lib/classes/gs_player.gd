@@ -23,7 +23,10 @@ var client_setting_null_movement : bool = true
 #endregion
 
 #region Exported variables
-## Multiplier of default server defined max walking speed. In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
+@export
+var max_ground_speed : float = 240 * 1.905 / 100
+## Multiplier of default server defined max walking speed.
+## In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
 var max_ground_speed_multiplier : float = 1.0
 ## Amount of vertical velocity that needed to be exceeded for player to become airborne
@@ -61,8 +64,6 @@ var limit_bhop_speed: bool = true
 @export
 var jump_speed_cap: float = 1.2
 @export
-var max_ground_speed : float = 240 * 1.905 / 100
-@export
 var max_air_speed : float = 30 * 1.905 / 100
 #endregion
 
@@ -91,10 +92,7 @@ var queue_uncrouch : bool = false
 var wish_hull_size : Vector3 = standart_hull_size
 var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
-var forward : Vector3
-var up : Vector3
-var right : Vector3
-var ground_acceleration : float =  2400 * 1.905 / 100
+var ground_acceleration : float = 10
 #endregion
 
 #region enum defenitions
@@ -111,7 +109,7 @@ enum MOVEMENT_TYPE {
 ## Reference to the stuck_check_collider node
 @onready
 var stuck_check_collider : ShapeCast3D = get_node("stuck_check_collider")
-## Reference to the uncrocuh_check_collider node
+## Reference to the uncrocuh_check_collider node[br]Node is utilized in [method check_stuck] method to determine where player can be nudged to 
 @onready
 var crouch_check_collider : ShapeCast3D = get_node("uncrocuh_check_collider")
 ## Reference to the collision_hull node
@@ -130,7 +128,16 @@ var camera : Camera3D = Camera3D.new()
 #endregion
 
 #region wish control variables
-#TODO: move this region to the dedicated player input gathering node for easier multiplayer prediction and reconciliation
+#TODO: move this region to the dedicated player input gathering node for easier multiplayer client prediction and server reconciliation
+## Desired input vector. left is -x, right is +x, forward is -y, back is +y
+var wish_direction : Vector2 = Vector2.ZERO
+## Dictionarry that keeps track of last frame of keys to determine if key was just pressed, still pressed, just released or still released
+var null_movement_key_state_last_frame : Dictionary = {
+	"left": false,
+	"right": false,
+	"forward": false,
+	"back": false,
+}
 var wish_crouch : bool = false
 var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
@@ -144,14 +151,15 @@ var wish_back : bool = false
 
 #region native godot methods
 func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
+	wish_crouch = Input.is_action_pressed("crouch")
 	if Input.is_action_just_released("jump"):
 		wish_jump = false
 	if Input.is_action_just_pressed("jump"):
 		wish_jump = true
-	if Input.is_key_pressed(KEY_F1):
-		Engine.time_scale = 0.05
-	if Input.is_key_pressed(KEY_F2):
-		Engine.time_scale = 1.0
+	if Input.is_key_pressed(KEY_F1):	#TODO: Remove after done testing. Also implement host_time_scale console command	╗ 
+		Engine.time_scale = 0.05		#																					║
+	if Input.is_key_pressed(KEY_F2):	#																					║
+		Engine.time_scale = 1.0			#																					╝
 	wish_left = Input.is_action_pressed("left")
 	wish_right = Input.is_action_pressed("right")
 	wish_forward = Input.is_action_pressed("forward")
@@ -163,18 +171,17 @@ func _ready() -> void:
 	#TODO: change to asigning specific camera with multiplayer authority
 	camera.name = "Camera3D"
 	camera.current = true
-	camera.fov = 105.0
+	camera.fov = 110.0 # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
-	get_node("CameraAnchor").mount_camera(camera)
+	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
 	
 
 func _physics_process(delta: float) -> void:
-	wish_crouch = Input.is_action_pressed("crouch")
 	process_movement(delta)
 #endregion
 
 #region main movement processing stack
-
+##Utter dogshit
 func process_movement(delta: float) -> void:
 	#step 1: check if stuck and try to unstuck and move to step 14
 	check_stuck()
@@ -195,7 +202,12 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		#step 9: move and slide?
+		if is_on_floor():
+			clip_velocity(get_floor_normal())
+		elif is_on_wall_only():
+			clip_velocity(get_wall_normal())
+		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
+		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		move_and_slide()
 		#step 10: check if grounded and surface properties
 		if check_grounded():
@@ -212,9 +224,9 @@ func process_movement(delta: float) -> void:
 		#step 13:
 		limit_velocity()
 	#step 14: check triggers to activate
-	#step 15: adjust collision hull
+	#step 15: adjust collision hull. Source engine adjusts position of world collision hul on this step. In godot it handled by physics server during move_and_slide of player parent node 
 	update_hull()
-	#step 16: process projectiles 
+	#step 16: process projectiles. NOT including releasing stored knockback. Maybe should move this step to main world order physics process
 	#process_projectiles()
 
 #endregion
@@ -225,7 +237,7 @@ func process_movement(delta: float) -> void:
 #If this table outputed minimum value of y is -0.125 hammer units. And thats it.
 #Source engine does not try to nudge player more that in downwards direction.
 #For more human frienly explanation check out Shounic video here: https://www.youtube.com/watch?v=PEhY4vE6krE
-#--- GibbDev 12AUG2028
+#--- GibbDev 12AUG2025
 
 func check_stuck() -> void:
 	stuck_check_collider.force_update_transform()
@@ -356,7 +368,7 @@ func get_gravity_tick() -> float:
 #	Check if player is on the ground
 #	Check if collider, for space that player would occupy by uncrouching, is colliding
 #	Depending on checks there would be different outcomes and not only binary crouched/incrouched (I wish lmao)
-#--- GibbDev 12AUG2028
+#--- GibbDev 12AUG2025
 
 func handle_crouch() -> void:
 	#check if player wants to uncrouch and ask engine to uncrouch as soon as possible
@@ -379,6 +391,8 @@ func handle_crouch() -> void:
 			#air crouch with position shift up
 			position.y += standart_hull_size.y - crouch_hull_size.y 
 			crouch()
+			# $CameraAnchor.save_start_smoothing_position()
+			$CameraAnchor.position.y = 45 * 1.905 / 100
 			return
 	else:
 		if !is_on_floor():
@@ -389,6 +403,8 @@ func handle_crouch() -> void:
 			if !crouch_check_collider.is_colliding():
 				position.y -= standart_hull_size.y - crouch_hull_size.y
 				uncrouch()
+				# $CameraAnchor.save_start_smoothing_position()
+				$CameraAnchor.position.y = 68 * 1.905 / 100
 			return
 		elif is_crouched:
 			queue_uncrouch = true
@@ -404,6 +420,7 @@ func crouch() -> void:
 	is_crouching_animation = false
 	is_uncrouching_animation = false
 	is_crouched = true
+	
 
 func uncrouch() -> void:
 	queue_uncrouch = false
@@ -421,6 +438,8 @@ func start_delayed_crouch() -> void:
 	uncrouch_timer.stop()
 	is_crouching_animation = true
 	crouch_timer.start()
+	$CameraAnchor.save_start_smoothing_position()
+	$CameraAnchor.position.y = 45 * 1.905 / 100
 
 func start_delayed_uncrouch() -> void:
 	if is_uncrouching_animation: return
@@ -428,6 +447,8 @@ func start_delayed_uncrouch() -> void:
 	crouch_timer.stop()
 	is_uncrouching_animation = true
 	uncrouch_timer.start()
+	$CameraAnchor.save_start_smoothing_position()
+	$CameraAnchor.position.y = 68 * 1.905 / 100
 
 
 func try_uncrouch() -> void:
@@ -444,13 +465,6 @@ func try_uncrouch() -> void:
 		crouch_check_collider.force_shapecast_update()
 		if !crouch_check_collider.is_colliding():
 			uncrouch()
-
-func finish_uncrouch() -> void:
-	wish_hull_size = standart_hull_size
-	update_hull()
-	is_crouched = false
-	is_uncrouching_animation = false
-	queue_uncrouch = false
 #endregion
 
 #region jumping
@@ -525,7 +539,7 @@ func apply_friction(delta: float) -> void:
 	velocity -= (1.0-new_speed) * velocity
 
 func accelerate(delta: float) -> void:
-	get_view_angles()
+	# get_view_angles() Unused. skip compilation
 	get_view_rotations()
 	wish_direction = get_wish_direction()
 	if is_airborne:
@@ -533,8 +547,23 @@ func accelerate(delta: float) -> void:
 	else:
 		ground_move(delta)
 
+func clip_velocity(surface_normal: Vector3, overbounce: float = 1.0) -> void:
+	# get modified velocity
+	var backoff: float = velocity.dot(surface_normal)
+	# if negative - cancell
+	if backoff >= 0: return
+	# get reflected velocity component
+	var change: Vector3 = surface_normal * backoff * overbounce
+	# modify and return velocity
+	velocity -= change
+	# iterate once to make sure we aren't still moving through the plane - Valve said that, and I'd say they know a little more about Source than you do, pal, because they invented it, and then they spagetted it so that no living man could make sence of it in the ring of honor.
+	var adjust: float = velocity.dot(surface_normal)
+	if adjust < 0.0:
+		velocity -= surface_normal * adjust
+
+
 func air_move(delta: float) -> void:
-	var wish_vel : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).normalized().rotated(Vector3.UP, yaw)
+	var wish_vel : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).normalized().rotated(Vector3.UP, get_view_rotations().y)
 	var wish_dir : Vector3 = wish_vel.normalized()
 	var wish_speed : float = max_air_speed
 	var current_speed : float = velocity.dot(wish_dir)
@@ -544,89 +573,87 @@ func air_move(delta: float) -> void:
 	accel_speed = min(accel_speed, add_speed)
 	velocity += accel_speed * wish_dir
 
-
+## Changes velocity of player
 func ground_move(delta: float) -> void:
-	var dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, yaw).normalized()
+	var dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, get_view_rotations().y).normalized()
 	var current_speed : float = velocity.dot(dir)
 	#TODO: make speed multiplier
-	var add_speed : float = clamp(ground_acceleration * delta * max_ground_speed_multiplier, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(ground_acceleration * max_ground_speed * delta * max_ground_speed_multiplier, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	velocity += dir * add_speed
 
-
-var wish_direction : Vector2 = Vector2.ZERO
-var null_movement_key_state_last_frame : Dictionary = {
-	"left": false,
-	"right": false,
-	"forward": false,
-	"back": false,
-}
-
+## Returns [Vector2] of keyboard input. TODO: change to hook from input gatheirng class.[br]
+## left is -x, right is +x, forward is -y, back is +y
 func get_wish_direction() -> Vector2:
+	# Null movement, known as null cancelling script or, stollen by razer and renamed, "snap-tap"
+	# is a way of interpreting cardinal directions movement from keyboard input where new key press
+	# overrides previous one, but also checks if other key is still held on input release to switch
+	# movement direction back to held key
 	if client_setting_null_movement:
-		if null_movement_key_state_last_frame["left"] != wish_left:
-			if wish_left:
+		if null_movement_key_state_last_frame["left"] != wish_left: # if left bind state changed
+			if wish_left: # if left bind was pressed - switch to moving left immediately
 				wish_direction.x = -1
-			elif wish_right:
-				wish_direction.x = 1
-			else:
-				wish_direction.x = 0
+			elif wish_right: # if left bind was released and right bind is still held - switch back to moving right
+				wish_direction.x = 	1
+			else: # if left bind released but right bind also isnt pressed - stop strafing 
+				wish_direction.x = 	0
 		if null_movement_key_state_last_frame["right"] != wish_right:
 			if wish_right:
-				wish_direction.x = 1
+				wish_direction.x = 	1
 			elif wish_left:
 				wish_direction.x = -1
 			else:
-				wish_direction.x = 0
+				wish_direction.x = 	0
 		if null_movement_key_state_last_frame["forward"] != wish_forward:
 			if wish_forward:
 				wish_direction.y = -1
 			elif wish_back:
-				wish_direction.y = 1
+				wish_direction.y = 	1
 			else:
-				wish_direction.y = 0
+				wish_direction.y = 	0
 		if null_movement_key_state_last_frame["back"] != wish_back:
 			if wish_back:
-				wish_direction.y = 1
+				wish_direction.y = 	1
 			elif wish_forward:
 				wish_direction.y = -1
 			else:
-				wish_direction.y = 0
+				wish_direction.y = 	0
 		null_movement_key_state_last_frame = {
 			"left": wish_left,
 			"right": wish_right,
 			"forward": wish_forward,
 			"back": wish_back,
 		}
-	else:
+	else: # if null movement isnt enabled jsut use simple integer math to determine direction
 		wish_direction = Input.get_vector( "left", "right", "forward", "back")
 	return wish_direction
 
-func get_view_angles() -> void:
-	forward = $CameraAnchor.forward
-	up      = $CameraAnchor.up
-	right   = $CameraAnchor.right
+## Returns [PackedVector3Array] containing [param forward], [param up] and [param right] direction vectors from [GodsourceCameraAnchor3D]
+##[br][br]
+##Currently unused. Implemented just in case someone needs direction vector instead of rotating basis vectors by camera rotations
+func get_view_angles() -> PackedVector3Array:
+	var angles_array : PackedVector3Array
+	angles_array.append($CameraAnchor.forward)
+	angles_array.append($CameraAnchor.up)
+	angles_array.append($CameraAnchor.right)
+	return angles_array
 
-
-var pitch : float = 0 #In radians
-var yaw : float = 0 #In radians
-var roll : float = 0 #In radians. Prob unused in most cases. Except if you are building a space game and even then id reconsider that
-func get_view_rotations() -> void:
-	pitch = $CameraAnchor.pitch
-	yaw = $CameraAnchor.yaw
-	roll = $CameraAnchor.roll
+## Returns [Vector3] containing [param pitch], [param yaw] and [param roll] from [GodsourceCameraAnchor3D]
+func get_view_rotations() -> Vector3:
+	return Vector3($CameraAnchor.pitch, $CameraAnchor.yaw, $CameraAnchor.roll)
 
 #endregion
 
 #region collision hull editing
 
-func update_hull() -> void:
-	if collision_hull.shape.size == wish_hull_size:
-		return
-	var size : Vector3 = wish_hull_size
-	var hull : CollisionShape3D = collision_hull
-	hull.position = Vector3(0.0, size.y/2.0, 0.0)
-	stuck_check_collider.position = Vector3(0.0, size.y/2.0, 0.0)
-	hull.shape.size = size
-	stuck_check_collider.shape = hull.shape
+## Updates player [CollisionShape3D] hull shape size. Sets hull and [member stuck_check_collider] position to the center of parent node and raised to half of the vertical size.[br]
+## [br]
+## [param new_size] - If provided sets dimensions of the collision hull to new_size. If not - set size to [member wish_hull_size]
+func update_hull(new_size : Vector3 = wish_hull_size) -> void:
+	if collision_hull.shape.size == new_size: return			#/if hull shape is already of new_size -> return.
+																#\might cause possible descrepancy between hull shape and stuck_check_collider. If this is the case Ill go back and fix it
+	collision_hull.position = Vector3(0.0, new_size.y/2.0, 0.0) # set new position of the hull
+	collision_hull.shape.size = new_size 						# set new shape size
+	stuck_check_collider.position = collision_hull.position 	# copy hull position
+	stuck_check_collider.shape = collision_hull.shape 			# copy hull shape
 
 #endregion

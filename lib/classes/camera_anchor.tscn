@@ -5,4 +5,6 @@
 [node name="CameraAnchor" type="Node3D"]
 script = ExtResource("1_fafm6")
 
-[node name="anchor" type="Node3D" parent="."]
+[node name="smoother" type="Node3D" parent="."]
+
+[node name="anchor" type="Node3D" parent="smoother"]

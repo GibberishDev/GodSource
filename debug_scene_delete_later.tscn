@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=10 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
 
@@ -35,6 +35,13 @@ func _process(delta: float) -> void:
 	get_node(\"speed\").text = \"Speed: \" + str(int(Vector2(player.velocity.x, player.velocity.z).length() * 100 / 1.905))
 	
 "
+
+[sub_resource type="Curve3D" id="Curve3D_0qie4"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.8060391, 1.2955282, 0, -8, 0, 0, 0, 0, 0, 24, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
 
 [node name="Node3D" type="Node3D"]
 
@@ -108,3 +115,22 @@ offset_top = 77.0
 offset_right = 151.0
 offset_bottom = 100.0
 text = "player is crouched: "
+
+[node name="Path3D" type="Path3D" parent="."]
+curve = SubResource("Curve3D_0qie4")
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
+use_collision = true
+collision_mask = 2
+polygon = PackedVector2Array(0, 0, 3, 0, 1.5, 3)
+mode = 2
+path_node = NodePath("../Path3D")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
