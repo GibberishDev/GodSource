@@ -1,6 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=16 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
+[ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
+[ext_resource type="PackedScene" uid="uid://bi86818wi0ajw" path="res://untracked/test_map.blend" id="2_nwtsw"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0qie4"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -18,8 +20,22 @@ glow_enabled = true
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_0qie4"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_0qie4"]
+size = Vector3(1.905, 0.953, 1.905)
 
 [sub_resource type="BoxMesh" id="BoxMesh_nwtsw"]
+size = Vector3(1.905, 0.953, 1.905)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gbv3d"]
+size = Vector3(1.905, 1.334, 1.905)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c1pod"]
+size = Vector3(1.905, 1.334, 1.905)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c1pod"]
+size = Vector3(1.905, 1.372, 1.905)
+
+[sub_resource type="BoxMesh" id="BoxMesh_e4n7c"]
+size = Vector3(1.905, 1.372, 1.905)
 
 [sub_resource type="GDScript" id="GDScript_0qie4"]
 script/source = "extends Control
@@ -33,6 +49,8 @@ func _process(delta: float) -> void:
 	get_node(\"is_airborne\").text = \"Airborne: \" + str(player.is_airborne)
 	get_node(\"velocity\").text = \"Velocity: \" + str(player.velocity * 100 / 1.905)
 	get_node(\"speed\").text = \"Speed: \" + str(int(Vector2(player.velocity.x, player.velocity.z).length() * 100 / 1.905))
+	get_node(\"position\").text = \"Pos: \" + str(player.global_position)
+	get_node(\"positionHU\").text = \"Pos HU: \" + str(player.global_position * 100 / 1.905)
 	
 "
 
@@ -69,14 +87,37 @@ metadata/_edit_group_ = true
 shape = SubResource("WorldBoundaryShape3D_0qie4")
 
 [node name="box" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95000035, 0.477, 0)
 metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="box"]
 shape = SubResource("BoxShape3D_0qie4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="box"]
+material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_nwtsw")
+
+[node name="box2" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 0.667, -2.096)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="box2"]
+shape = SubResource("BoxShape3D_gbv3d")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="box2"]
+material_override = ExtResource("2_gbv3d")
+mesh = SubResource("BoxMesh_c1pod")
+
+[node name="box3" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 0.686, -4.192)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="box3"]
+shape = SubResource("BoxShape3D_c1pod")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="box3"]
+material_override = ExtResource("2_gbv3d")
+mesh = SubResource("BoxMesh_e4n7c")
 
 [node name="debug_hud" type="Control" parent="."]
 layout_mode = 3
@@ -116,10 +157,27 @@ offset_right = 151.0
 offset_bottom = 100.0
 text = "player is crouched: "
 
+[node name="position" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 101.0
+offset_right = 151.0
+offset_bottom = 124.0
+text = "pos:"
+
+[node name="positionHU" type="Label" parent="debug_hud"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 125.0
+offset_right = 151.0
+offset_bottom = 148.0
+text = "pos HU: "
+
 [node name="Path3D" type="Path3D" parent="."]
 curve = SubResource("Curve3D_0qie4")
 
 [node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
+material_override = ExtResource("2_gbv3d")
 use_collision = true
 collision_mask = 2
 polygon = PackedVector2Array(0, 0, 3, 0, 1.5, 3)
@@ -137,7 +195,19 @@ path_joined = false
 
 [node name="stair" type="CSGPolygon3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.772794)
+material_override = ExtResource("2_gbv3d")
 use_collision = true
 collision_mask = 2
-polygon = PackedVector2Array(0, 0, 0, 0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.6, 0.8, 0.8, 0.8, 0.8, 1, 1, 1, 1, 0)
+polygon = PackedVector2Array(0, 0, 0, 0.343, 0.572, 0.343, 0.572, 0.686, 1.144, 0.686, 1.144, 1.029, 1.716, 1.029, 1.716, 1.372, 2.288, 1.372, 2.288, 1.715, 2.86, 1.715, 2.86, 0)
 depth = 2.95
+
+[node name="stair2" type="CSGPolygon3D" parent="."]
+transform = Transform3D(0.778085, 0, -0.62815905, 0, 1, 0, 0.62815905, 0, 0.778085, 0, 0, 14.513131)
+material_override = ExtResource("2_gbv3d")
+use_collision = true
+collision_mask = 2
+polygon = PackedVector2Array(0, 0, 0, 0.343, 0.572, 0.343, 0.572, 0.686, 1.144, 0.686, 1.144, 1.029, 1.716, 1.029, 1.716, 1.372, 2.288, 1.372, 2.288, 1.715, 2.86, 1.715, 2.86, 0)
+depth = 2.95
+
+[node name="test_map" parent="." instance=ExtResource("2_nwtsw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.976, 0, 7.927)
