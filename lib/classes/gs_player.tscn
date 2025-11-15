@@ -22,6 +22,7 @@ script = ExtResource("1_k5xr0")
 [node name="collision_hull" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
 shape = SubResource("BoxShape3D_xdf4h")
+debug_color = Color(18.892157, 18.892157, 0, 1)
 
 [node name="CameraAnchor" parent="." instance=ExtResource("2_ga4fc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
@@ -42,6 +43,8 @@ target_position = Vector3(0, 0, 0)
 debug_shape_custom_color = Color(0.6117647, 1, 0, 1)
 
 [node name="step_up_ray_cast" type="RayCast3D" parent="."]
+hit_from_inside = true
+collide_with_areas = true
 
 [node name="crouch_timer" type="Timer" parent="."]
 process_callback = 0
