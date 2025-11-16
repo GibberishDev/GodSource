@@ -64,7 +64,7 @@ point_count = 2
 [node name="Node3D" type="Node3D"]
 
 [node name="gs_player" parent="." instance=ExtResource("1_0qie4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.133, 1.968)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.968)
 wall_min_slide_angle = 0.0
 floor_stop_on_slope = true
 floor_constant_speed = false
@@ -211,3 +211,5 @@ depth = 2.95
 
 [node name="test_map" parent="." instance=ExtResource("2_nwtsw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.976, 0, 7.927)
+
+[editable path="test_map"]

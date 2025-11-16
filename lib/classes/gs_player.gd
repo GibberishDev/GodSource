@@ -66,7 +66,11 @@ var jump_speed_cap: float = 1.2
 @export
 var max_air_speed : float = 30 * 1.905 / 100
 @export
-var max_step_up : float = 18 * 1.905 / 100 
+var max_step_up : float = 18 * 1.905 / 100
+@export
+var crouch_speed_multiplier : float = 1.0 / 3.0
+@export
+var backwards_speed_multiplier : float = 0.9
 #endregion
 
 #region player state variables
@@ -696,9 +700,10 @@ func ground_move(delta: float) -> void:
 	var dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, get_view_rotations().y).normalized()
 	#this is a wrong way to get current speed but... its where magic happens ( ͡° ͜ʖ ͡°)
 	var current_speed : float = velocity.dot(dir)
-	#TODO: make speed multiplier and surface friction
+	#get speed multiplier
+	max_ground_speed_multiplier = get_speed_multiplier()
 	#determine how much speed we want to add
-	var add_speed : float = clamp(ground_acceleration * max_ground_speed * delta * max_ground_speed_multiplier, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(ground_acceleration * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
 
@@ -766,6 +771,15 @@ func get_view_angles() -> PackedVector3Array:
 func get_view_rotations() -> Vector3:
 	return Vector3($CameraAnchor.pitch, $CameraAnchor.yaw, $CameraAnchor.roll)
 
+## [b][u]PURPOSE[/u][/b]:
+## [br]Returns multiplier of speed based on bunch of parameters. Crouching, status effects and so on
+func get_speed_multiplier() -> float:
+	var mult : float = 1.0
+	if is_crouched:
+		mult *= crouch_speed_multiplier
+	if !is_crouched and wish_direction == Vector2(0, 1.0):
+		mult *= backwards_speed_multiplier
+	return mult
 #endregion acceleration
 
 #region collision hull editing
