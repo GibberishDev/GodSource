@@ -1,0 +1,62 @@
+[gd_scene load_steps=6 format=3 uid="uid://cjcvs4n5ja40x"]
+
+[ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
+[ext_resource type="PackedScene" uid="uid://djvirr62l5q1n" path="res://lib/classes/camera_anchor.tscn" id="2_ga4fc"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
+size = Vector3(0.933, 1.581, 0.933)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k5xr0"]
+size = Vector3(0.933, 0.381, 0.933)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ga4fc"]
+size = Vector3(0.933, 0.15, 0.933)
+
+[node name="gs_player" type="CharacterBody3D"]
+collision_layer = 2
+floor_stop_on_slope = false
+floor_constant_speed = true
+floor_block_on_wall = false
+script = ExtResource("1_k5xr0")
+
+[node name="collision_hull" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
+shape = SubResource("BoxShape3D_xdf4h")
+debug_color = Color(18.892157, 18.892157, 0, 1)
+
+[node name="CameraAnchor" parent="." instance=ExtResource("2_ga4fc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
+
+[node name="stuck_check_collider" type="ShapeCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
+shape = SubResource("BoxShape3D_xdf4h")
+target_position = Vector3(0, 0, 0)
+
+[node name="uncrocuh_check_collider" type="ShapeCast3D" parent="."]
+shape = SubResource("BoxShape3D_k5xr0")
+target_position = Vector3(0, 0, 0)
+
+[node name="step_down_shape_cast" type="ShapeCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.343, 0)
+shape = SubResource("BoxShape3D_ga4fc")
+target_position = Vector3(0, 0, 0)
+debug_shape_custom_color = Color(0.6117647, 1, 0, 1)
+
+[node name="step_up_ray_cast" type="RayCast3D" parent="."]
+hit_from_inside = true
+collide_with_areas = true
+
+[node name="crouch_timer" type="Timer" parent="."]
+process_callback = 0
+wait_time = 0.15
+one_shot = true
+
+[node name="uncrouch_timer" type="Timer" parent="."]
+process_callback = 0
+wait_time = 0.15
+one_shot = true
+
+[node name="player_input" type="Node" parent="."]
+
+[connection signal="timeout" from="crouch_timer" to="." method="crouch"]
+[connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]
