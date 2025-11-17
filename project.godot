@@ -88,6 +88,7 @@ jump={
 
 logging/log_level=5
 time/tickrate=66
+logging/netfox_log_level=5
 
 [physics]
 

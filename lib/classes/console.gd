@@ -69,7 +69,6 @@ func process_commands(commands_array: Array[String]) -> void:
 		else:
 			var input_arguments: String = commands_array[i].right(command_name.length() * -1)
 			self.command_list[command_name].callable.call(process_arguments(input_arguments))
-	print("console.gd finished")
 	if terminal_input_thread_semaphore != null: terminal_input_thread_semaphore.post()
 
 func process_arguments(input_arguments: String) -> Array:

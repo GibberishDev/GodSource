@@ -8,7 +8,8 @@ func _register_console_commands() -> void:
 	Console.add_command("echo", echo_command_callable, false, false, -1, "Prints suppled text in console output\n	Syntax: echo <text...>\n	Is cheat: false - Is admin only: false")
 	Console.add_command("clear", clear_command_callable, false, false, -1, "Clears console\n	Syntax: clear\n	Is cheat: false - Is admin only: false")
 	Console.add_command("quit", quit_command_callable, false, false, -1, "Shutdowns the aplication\n	Syntax: quit\n	Is cheat: false - Is admin only: false")
-
+	Console.add_command("connect", connect_command_callable, false, false, -1, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
+	Console.add_command("start_server", start_server_command_callable, false, false, -1, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 
 #region command callables
 
@@ -53,6 +54,11 @@ func clear_command_callable(arguments_array: Array = []) -> void:
 func quit_command_callable(arguments_array: Array = []) -> void:
 	get_tree().quit(0)
 
+func connect_command_callable(arguments_array: Array = []) -> void:
+	MultiplayerManager.connect_to_server.call_deferred("127.0.0.1", 8080)
+
+func start_server_command_callable(arguments_array: Array = []) -> void:
+	MultiplayerManager.start_server.call_deferred(8080, 8)
 
 
 #endregion
