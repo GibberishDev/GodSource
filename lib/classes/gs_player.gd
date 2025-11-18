@@ -149,10 +149,6 @@ var null_movement_key_state_last_frame : Dictionary = {
 var wish_crouch : bool = false
 var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
-var wish_left : bool = false
-var wish_right : bool = false
-var wish_forward : bool = false
-var wish_back : bool = false
 #endregion
 
 #endregion variables
@@ -168,10 +164,6 @@ func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gatherin
 		Engine.time_scale = 0.05		#																					║
 	if Input.is_key_pressed(KEY_F2):	#																					║
 		Engine.time_scale = 1.0			#																					╝
-	wish_left = Input.is_action_pressed("left")
-	wish_right = Input.is_action_pressed("right")
-	wish_forward = Input.is_action_pressed("forward")
-	wish_back = Input.is_action_pressed("back")
 
 func _ready() -> void:
 	update_hull()
@@ -716,43 +708,43 @@ func get_wish_direction() -> Vector2:
 	# overrides previous one, but also checks if other key is still held on input release to switch
 	# movement direction back to held key
 	if client_setting_null_movement:
-		if null_movement_key_state_last_frame["left"] != wish_left: # if left bind state changed
-			if wish_left: # if left bind was pressed - switch to moving left immediately
+		if null_movement_key_state_last_frame["left"] != GSInput.wish_sates["wish_left"]: # if left bind state changed
+			if GSInput.wish_sates["wish_left"]: # if left bind was pressed - switch to moving left immediately
 				wish_direction.x = -1
-			elif wish_right: # if left bind was released and right bind is still held - switch back to moving right
+			elif GSInput.wish_sates["wish_right"]: # if left bind was released and right bind is still held - switch back to moving right
 				wish_direction.x = 	1
 			else: # if left bind released but right bind also isnt pressed - stop strafing 
 				wish_direction.x = 	0
-		if null_movement_key_state_last_frame["right"] != wish_right:
-			if wish_right:
+		if null_movement_key_state_last_frame["right"] != GSInput.wish_sates["wish_right"]:
+			if GSInput.wish_sates["wish_right"]:
 				wish_direction.x = 	1
-			elif wish_left:
+			elif GSInput.wish_sates["wish_left"]:
 				wish_direction.x = -1
 			else:
 				wish_direction.x = 	0
-		if null_movement_key_state_last_frame["forward"] != wish_forward:
-			if wish_forward:
+		if null_movement_key_state_last_frame["forward"] != GSInput.wish_sates["wish_forward"]:
+			if GSInput.wish_sates["wish_forward"]:
 				wish_direction.y = -1
-			elif wish_back:
+			elif GSInput.wish_sates["wish_back"]:
 				wish_direction.y = 	1
 			else:
 				wish_direction.y = 	0
-		if null_movement_key_state_last_frame["back"] != wish_back:
-			if wish_back:
+		if null_movement_key_state_last_frame["back"] != GSInput.wish_sates["wish_back"]:
+			if GSInput.wish_sates["wish_back"]:
 				wish_direction.y = 	1
-			elif wish_forward:
+			elif GSInput.wish_sates["wish_forward"]:
 				wish_direction.y = -1
 			else:
 				wish_direction.y = 	0
 		null_movement_key_state_last_frame = {
-			"left": wish_left,
-			"right": wish_right,
-			"forward": wish_forward,
-			"back": wish_back,
+			"left": GSInput.wish_sates["wish_left"],
+			"right": GSInput.wish_sates["wish_right"],
+			"forward": GSInput.wish_sates["wish_forward"],
+			"back": GSInput.wish_sates["wish_back"],
 		}
 	# if null movement isnt enabled jsut use simple integer math to determine direction
 	else:
-		wish_direction = Input.get_vector( "left", "right", "forward", "back")
+		wish_direction = Input.get_vector(GSInput.wish_sates["wish_left"], GSInput.wish_sates["wish_right"], GSInput.wish_sates["wish_forward"], GSInput.wish_sates["wish_back"])
 	return wish_direction
 
 ## [b][u]PURPOSE[/u][/b]:

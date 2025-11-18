@@ -35,17 +35,17 @@ func get_all_commands() -> String:
 
 
 func process_input(input_string: String) -> void:
-	var commands_array: Array[String] = split_commands_input(input_string) #Split commands string into an array of commands
+	var commands_array: PackedStringArray = split_commands_input(input_string) #Split commands string into an array of commands
 	process_commands(commands_array)
 
 
-func split_commands_input(input_string: String) -> Array[String]:
+func split_commands_input(input_string: String) -> PackedStringArray:
 	var regex_selector: RegEx = RegEx.new()
 
 	regex_selector.compile("(\"(.*?)\"|[^;])*")
 
 	var regex_matches: Array[RegExMatch] = regex_selector.search_all(input_string)
-	var output: Array[String] = []
+	var output: PackedStringArray = []
 
 	for i: int in (regex_matches.size()):
 		var match: String = regex_matches[i].get_string().strip_edges()
@@ -56,7 +56,7 @@ func split_commands_input(input_string: String) -> Array[String]:
 
 func process_commands(commands_array: Array[String]) -> void:
 	var regex_selector: RegEx = RegEx.new()
-	regex_selector.compile("^[a-zA-Z0-9_-]*")
+	regex_selector.compile("^[a-zA-Z0-9_\\-\\+]*")
 
 	for i: int in range(commands_array.size()):
 		var command_name: StringName = regex_selector.search(commands_array[i]).get_string()

@@ -1,16 +1,14 @@
-extends Panel
+extends Control
 
-@onready var input: LineEdit = get_node("VBoxContainer/HBoxContainer/VBoxContainer/console_input")
-@onready var output: RichTextLabel = get_node("VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/console_panel/console_output")
+@onready var input: LineEdit = %console_input
+@onready var output: RichTextLabel = %console_output
 
 func _ready() -> void:
 	Console.output_node = output
 	output.focus_mode = Control.FOCUS_NONE
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
+func _exit_tree() -> void:
+	Console.output_node = null
 
 func _on_console_input_text_submitted(new_text: String) -> void:
 	input.clear()
@@ -22,3 +20,14 @@ func _on_console_input_text_submitted(new_text: String) -> void:
 	output.add_text("\n> " + new_text)
 
 	Console.process_input(new_text)
+
+func input_focused() -> void:
+	GSInput.ui_focused = true
+
+func input_unfocused() -> void:
+	GSInput.ui_focused = false
+
+
+func _on_console_input_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		%console_input.grab_focus()

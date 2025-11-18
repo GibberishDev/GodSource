@@ -10,21 +10,31 @@ func _register_console_commands() -> void:
 	Console.add_command("quit", quit_command_callable, false, false, -1, "Shutdowns the aplication\n	Syntax: quit\n	Is cheat: false - Is admin only: false")
 	Console.add_command("connect", connect_command_callable, false, false, -1, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	Console.add_command("start_server", start_server_command_callable, false, false, -1, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
+	Console.add_command("toggle_console", toggle_console_ui_callable, false, false, -1, "Show/hide console window\n   Syntax: toggle_console\n	Is cheat: false - Is admin only: false")
+	
+	Console.add_command("+left", enable_wish_left, false, false, -1, "")
+	Console.add_command("-left", disable_wish_left, false, false, -1, "")
+	Console.add_command("+right", enable_wish_right, false, false, -1, "")
+	Console.add_command("-right", disable_wish_right, false, false, -1, "")
+	Console.add_command("+forward", enable_wish_forward, false, false, -1, "")
+	Console.add_command("-forward", disable_wish_forward, false, false, -1, "")
+	Console.add_command("+back", enable_wish_back, false, false, -1, "")
+	Console.add_command("-back", disable_wish_back, false, false, -1, "")
 
 #region command callables
 
 
-func help_command_callable(command_name_array: Array = []) -> void:
+func help_command_callable(arguments_array: Array = []) -> void:
 	var output_text: String = ""
 
-	if command_name_array.size() == 0:
+	if arguments_array.size() == 0:
 		output_text += ("All avaliable commands are:" + Console.get_all_commands())
 		Console.send_output_message(output_text)
 
-		return
+		return 
 
-	for i : int in range(command_name_array.size()):
-		var command_name : String = command_name_array[i]
+	for i : int in range(arguments_array.size()):
+		var command_name : String = arguments_array[i]
 
 		if  Console.command_list.get(command_name) == null:
 			output_text += ("\n] [color=pink]command not found: [/color][color=red][b]" + command_name + "[/b][/color]")
@@ -52,6 +62,7 @@ func clear_command_callable(arguments_array: Array = []) -> void:
 	printraw(escape + "[2J" + escape + "[;H")
 
 func quit_command_callable(arguments_array: Array = []) -> void:
+	Console.send_output_message("Terminating application...")
 	get_tree().quit(0)
 
 func connect_command_callable(arguments_array: Array = []) -> void:
@@ -60,5 +71,39 @@ func connect_command_callable(arguments_array: Array = []) -> void:
 func start_server_command_callable(arguments_array: Array = []) -> void:
 	MultiplayerManager.start_server.call_deferred(8080, 8)
 
+func toggle_console_ui_callable(arguments_array: Array = []) -> void:
+	#TODO: call ui manager when class is added.
+	if get_tree().root.find_child("console_window", true, false) != null:
+		var console_window : Node = get_tree().root.find_child("console_window", true, false)
+		if console_window.visible:
+			console_window.hide()
+			return
+		else:
+			console_window.show()
+
+
+func enable_wish_left(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_left"] = true
+
+func disable_wish_left(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_left"] = false
+
+func enable_wish_right(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_right"] = true
+
+func disable_wish_right(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_right"] = false
+
+func enable_wish_forward(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_forward"] = true
+
+func disable_wish_forward(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_forward"] = false
+
+func enable_wish_back(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_back"] = true
+
+func disable_wish_back(arguments_array: Array = []) -> void:
+	GSInput.wish_sates["wish_back"] = false
 
 #endregion

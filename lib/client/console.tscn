@@ -1,0 +1,173 @@
+[gd_scene load_steps=4 format=3 uid="uid://bl83m452q456f"]
+
+[ext_resource type="Script" uid="uid://carjwbmi8j0hj" path="res://lib/client/console_window.gd" id="1_nhbo0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_be33b"]
+content_margin_left = 16.0
+content_margin_right = 16.0
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.1, 0.1, 0.1, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="SystemFont" id="SystemFont_be33b"]
+font_names = PackedStringArray("JetBrains Mono NL")
+font_weight = 800
+subpixel_positioning = 0
+
+[node name="console" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nhbo0")
+
+[node name="Vbox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="server_controls" type="Panel" parent="Vbox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Vbox/server_controls"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="Vbox/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_1"
+
+[node name="Button2" type="Button" parent="Vbox/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_2"
+
+[node name="Button3" type="Button" parent="Vbox/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_3"
+
+[node name="Button4" type="Button" parent="Vbox/server_controls/HBoxContainer"]
+layout_mode = 2
+text = "btn_4"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Vbox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="dud" type="Control" parent="Vbox/HBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Vbox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Vbox/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="playe_list_panel" type="Panel" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(256, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="player_list_entry" type="HBoxContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="name" type="Label" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "gibbdev"
+horizontal_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="ping" type="Label" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
+layout_mode = 2
+text = "1000 ms"
+
+[node name="console_panel" type="Panel" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_be33b")
+
+[node name="console_output" type="RichTextLabel" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/console_panel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+focus_mode = 0
+focus_behavior_recursive = 1
+theme_override_fonts/normal_font = SubResource("SystemFont_be33b")
+bbcode_enabled = true
+scroll_following = true
+vertical_alignment = 2
+threaded = true
+selection_enabled = true
+
+[node name="console_input" type="LineEdit" parent="Vbox/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+placeholder_text = "Enter command..."
+keep_editing_on_text_submit = true
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_enabled = false
+clear_button_enabled = true
+select_all_on_focus = true
+
+[node name="dud2" type="Control" parent="Vbox/HBoxContainer"]
+layout_mode = 2
+
+[node name="dud2" type="Control" parent="Vbox"]
+layout_mode = 2
+
+[connection signal="focus_entered" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="input_focused"]
+[connection signal="focus_exited" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="input_unfocused"]
+[connection signal="gui_input" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="_on_console_input_gui_input"]
+[connection signal="text_submitted" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="_on_console_input_text_submitted"]
