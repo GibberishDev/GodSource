@@ -7,6 +7,13 @@ func _ready() -> void:
 	Console.output_node = output
 	output.focus_mode = Control.FOCUS_NONE
 
+#release focus of input node on click outside
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == 1:
+		if !Rect2(%console_input.global_position, abs(%console_input.size)).has_point(event.global_position):
+			%console_input.release_focus()
+			GSInput.current_input_context = GSInput.INPUT_CONTEXT.UI
+
 func _exit_tree() -> void:
 	Console.output_node = null
 
@@ -22,12 +29,8 @@ func _on_console_input_text_submitted(new_text: String) -> void:
 	Console.process_input(new_text)
 
 func input_focused() -> void:
-	GSInput.ui_focused = true
+	GSInput.current_input_context = GSInput.INPUT_CONTEXT.TEXT_INPUT
 
-func input_unfocused() -> void:
-	GSInput.ui_focused = false
-
-
-func _on_console_input_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		%console_input.grab_focus()
+func focus_input() -> void:
+	GSInput.current_input_context = GSInput.INPUT_CONTEXT.UI
+	GSInput.release_mouse()

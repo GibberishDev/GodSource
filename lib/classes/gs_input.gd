@@ -1,5 +1,13 @@
 extends Node
 
+var current_input_context : INPUT_CONTEXT = INPUT_CONTEXT.UI
+
+enum INPUT_CONTEXT {
+	UI,
+	TEXT_INPUT,
+	CHARACTER
+}
+
 var ui_focused : bool = false
 
 var wish_sates : Dictionary = {
@@ -10,6 +18,9 @@ var wish_sates : Dictionary = {
 	"wish_jump": false,
 	"wish_crouch": false,
 }
+var mouse_motion : Vector2 = Vector2.ZERO
+var last_mouse_motion : Vector2 = Vector2.ZERO
+var mouse_moved : bool = false
 
 enum KEYSTATE {
 	JUST_PRESSED,
@@ -19,6 +30,15 @@ enum KEYSTATE {
 
 var keylist : Dictionary = {}
 var bound_keys : Dictionary = {}
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if Input.is_action_just_pressed("ui_cancel"):
+		if current_input_context == INPUT_CONTEXT.UI:
+			current_input_context = INPUT_CONTEXT.CHARACTER
+		elif current_input_context == INPUT_CONTEXT.CHARACTER:
+			current_input_context = INPUT_CONTEXT.UI
+			release_mouse()
 
 func _ready()-> void:
 	update_binds()
@@ -31,8 +51,16 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		handleKeyboardInput(event)
 
+func _process(delta: float) -> void:
+	if current_input_context == INPUT_CONTEXT.CHARACTER and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if mouse_motion == last_mouse_motion: mouse_moved = false
+	last_mouse_motion = mouse_motion
+
 func handleMouseMotion(event: InputEventMouseMotion) -> void:
-	pass
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		mouse_moved = true
+		mouse_motion = event.screen_relative
 
 func handleMouseButton(event: InputEventMouseButton) -> void:
 	pass
@@ -41,7 +69,7 @@ func handleKeyboardInput(event: InputEventKey) -> void:
 	keylist[event.keycode] = {"state": resolve_key_state(event)}
 	var bind_command : String = determine_bind(event.keycode)
 
-	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and !ui_focused:
+	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
 		if bind_command != "":
 			Console.process_input(bind_command)
 	if resolve_key_state(event) == KEYSTATE.RELEASED:
@@ -109,3 +137,9 @@ func construct_negative_command(bind_command: String) -> String:
 			i[0] = "-"
 			bind_command += i + ";"
 	return bind_command
+
+func release_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func capture_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

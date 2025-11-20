@@ -40,10 +40,6 @@ var max_smoothing_distance : float = 1.0
 var smoothing_frames : int = 10
 var start_smoothing_position : Vector3 = Vector3.ZERO
 
-#TODO: remove and make global script in input gathering class
-var mouse_motion : Vector2
-var mouse_moved : bool = false
-
 #region native methods
 
 func _ready() -> void:
@@ -60,20 +56,6 @@ func _physics_process(delta: float) -> void:
 	update_rotations()
 	view_angle = $smoother/anchor.global_rotation
 	adjust_mounted_cameras()
-
-func _input(event: InputEvent) -> void: #TODO: replace with process to work server side where no input is possible
-	mouse_moved = false
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		mouse_moved = true
-		mouse_motion = event.screen_relative
-	
-	if event is InputEventKey:
-		if Input.is_physical_key_pressed(KEY_ESCAPE):
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			else:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
 	if can_be_controlled:
 		rotate_with_mouse()
 
@@ -101,8 +83,8 @@ func adjust_mounted_cameras() -> void:
 #region input
 
 func rotate_with_mouse() -> void:
-	if !mouse_moved: return
-	var motion : Vector2 = get_mouse_motion()
+	if !GSInput.mouse_moved: return
+	var motion : Vector2 = GSInput.mouse_motion
 	var motion_x : float = motion.x
 	var motion_y : float = motion.y
 	motion_x *= client_setting_mouse_sensetivity_x
@@ -111,9 +93,6 @@ func rotate_with_mouse() -> void:
 	$smoother/anchor.rotate_x(-motion_y)
 	$smoother/anchor.rotation.x = clampf($smoother/anchor.rotation.x, deg_to_rad(-89), deg_to_rad(89))
 
-func get_mouse_motion() -> Vector2:
-	#TODO: replace with hook to input gathering class
-	return mouse_motion
 
 #endregion
 
@@ -150,7 +129,7 @@ func smooth_camera(delta: float, owner_velocity: Vector3 = Vector3.ZERO) -> void
 		return
 	var movement_amount : float = 3.0 * delta
 	if owner_velocity != Vector3.ZERO:
-		movement_amount = owner_velocity.length() * delta
+		movement_amount = (owner_velocity * Vector3(1,0,1)).length() * delta / 1.5
 	$smoother.global_position = $smoother.global_position.move_toward(global_position, movement_amount)
 	start_smoothing_position = $smoother.global_position
 	if $smoother.position == Vector3.ZERO:

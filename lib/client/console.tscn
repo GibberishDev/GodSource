@@ -22,7 +22,7 @@ font_names = PackedStringArray("JetBrains Mono NL")
 font_weight = 800
 subpixel_positioning = 0
 
-[node name="console" type="Panel"]
+[node name="console_window" type="Panel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -138,7 +138,7 @@ offset_right = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
-focus_mode = 0
+focus_mode = 2
 focus_behavior_recursive = 1
 theme_override_fonts/normal_font = SubResource("SystemFont_be33b")
 bbcode_enabled = true
@@ -152,7 +152,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
+focus_mode = 1
 placeholder_text = "Enter command..."
 keep_editing_on_text_submit = true
 context_menu_enabled = false
@@ -168,6 +168,5 @@ layout_mode = 2
 layout_mode = 2
 
 [connection signal="focus_entered" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="input_focused"]
-[connection signal="focus_exited" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="input_unfocused"]
 [connection signal="gui_input" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="_on_console_input_gui_input"]
 [connection signal="text_submitted" from="Vbox/HBoxContainer/VBoxContainer/console_input" to="." method="_on_console_input_text_submitted"]

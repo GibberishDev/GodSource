@@ -77,9 +77,15 @@ func toggle_console_ui_callable(arguments_array: Array = []) -> void:
 		var console_window : Node = get_tree().root.find_child("console_window", true, false)
 		if console_window.visible:
 			console_window.hide()
-			return
 		else:
 			console_window.show()
+			console_window.focus_input()
+	else:
+		var console_window_scene : Resource = load("res://lib/client/console.tscn")
+		var console_window : Node = console_window_scene.instantiate()
+		console_window.visible = true
+		get_tree().root.add_child(console_window)
+		console_window.focus_input()
 
 
 func enable_wish_left(arguments_array: Array = []) -> void:
