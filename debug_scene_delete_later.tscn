@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=17 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
 [ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
@@ -37,23 +37,6 @@ size = Vector3(1.905, 1.372, 1.905)
 
 [sub_resource type="BoxMesh" id="BoxMesh_e4n7c"]
 size = Vector3(1.905, 1.372, 1.905)
-
-[sub_resource type="GDScript" id="GDScript_0qie4"]
-script/source = "extends Control
-
-@onready
-var player : CharacterBody3D = self.get_parent().get_node(\"gs_player\")
-
-
-func _process(delta: float) -> void:
-	get_node(\"is_stuck_label\").text = \"Stuck: \" + str(player.is_stuck)
-	get_node(\"is_airborne\").text = \"Airborne: \" + str(player.is_airborne)
-	get_node(\"velocity\").text = \"Velocity: \" + str(player.velocity * 100 / 1.905)
-	get_node(\"speed\").text = \"Speed: \" + str(int(Vector2(player.velocity.x, player.velocity.z).length() * 100 / 1.905))
-	get_node(\"position\").text = \"Pos: \" + str(player.global_position)
-	get_node(\"positionHU\").text = \"Pos HU: \" + str(player.global_position * 100 / 1.905)
-	
-"
 
 [sub_resource type="Curve3D" id="Curve3D_0qie4"]
 _data = {
@@ -121,61 +104,6 @@ shape = SubResource("BoxShape3D_c1pod")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="box3"]
 material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_e4n7c")
-
-[node name="debug_hud" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = SubResource("GDScript_0qie4")
-
-[node name="is_stuck_label" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "player is stuck: "
-
-[node name="is_airborne" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_top = 24.0
-offset_right = 150.0
-offset_bottom = 47.0
-text = "player is crouched: "
-
-[node name="velocity" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 51.0
-offset_right = 151.0
-offset_bottom = 74.0
-text = "player is crouched: "
-
-[node name="speed" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 77.0
-offset_right = 151.0
-offset_bottom = 100.0
-text = "player is crouched: "
-
-[node name="position" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 101.0
-offset_right = 151.0
-offset_bottom = 124.0
-text = "pos:"
-
-[node name="positionHU" type="Label" parent="debug_hud"]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 125.0
-offset_right = 151.0
-offset_bottom = 148.0
-text = "pos HU: "
 
 [node name="Path3D" type="Path3D" parent="."]
 curve = SubResource("Curve3D_0qie4")

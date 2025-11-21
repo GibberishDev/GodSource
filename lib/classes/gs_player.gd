@@ -1,4 +1,4 @@
-class_name GodsourcePlayerMovement3D
+class_name GSPlayer
 extends CharacterBody3D
 
 ## This is a dedicated Godsource player movement script. This script implements a bunch of movement techniques present in Source engine. Most of them stem from bugged behaviour or coding oversights that are brought all the way from original quake and doom engines
@@ -10,9 +10,9 @@ extends CharacterBody3D
 var maximum_walking_speed_base : float = 320 * 1.905 / 100
 ## Amount of velocity enitity can have. Any more is capped to this value
 var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
-## Global multiplier of surface friction used in [method GodsourcePlayerMovement3D.apply_friction] method
+## Global multiplier of surface friction used in [method GSPlayer.apply_friction] method
 var server_variable_friction : float = 4.0
-## Global stop speed threshold used in [method GodsourcePlayerMovement3D.apply_friction] method
+## Global stop speed threshold used in [method GSPlayer.apply_friction] method
 var server_variable_stop_speed : float = 100 * 1.905 / 100
 var server_variable_max_speed : float = 320 * 1.905 / 100 #TODO: rename to something more sensible cause it isnt in source engine.
 var server_variable_air_acceleration : float = 10
@@ -146,8 +146,6 @@ var null_movement_key_state_last_frame : Dictionary = {
 	"forward": false,
 	"back": false,
 }
-var wish_crouch : bool = false
-var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
 #endregion
 
@@ -155,11 +153,6 @@ var wish_crouch_last_frame : bool = false
 
 #region native godot methods
 func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
-	wish_crouch = Input.is_action_pressed("crouch")
-	if Input.is_action_just_released("jump"):
-		wish_jump = false
-	if Input.is_action_just_pressed("jump"):
-		wish_jump = true
 	if Input.is_key_pressed(KEY_F1):	#TODO: Remove after done testing. Also implement host_time_scale console command	╗ 
 		Engine.time_scale = 0.05		#																					║
 	if Input.is_key_pressed(KEY_F2):	#																					║
@@ -413,23 +406,23 @@ func get_gravity_tick() -> float:
 ## [br]decodes player intention to uncrouch depending on player state
 func handle_crouch() -> void:
 	#check if player wants to uncrouch and ask engine to uncrouch as soon as possible
-	if !wish_crouch and (is_crouched or is_crouching_animation): queue_uncrouch = true
+	if !GSInput.wish_sates["wish_crouch"] and (is_crouched or is_crouching_animation): queue_uncrouch = true
 	if queue_uncrouch:
 		try_uncrouch()
 		return
 	#TODO: change state check to input gathering script
 	#if state didnt change from last frame -> return
-	if (wish_crouch == wish_crouch_last_frame): return
+	if (GSInput.wish_sates["wish_crouch"] == wish_crouch_last_frame): return
 	#update state from last frame
-	wish_crouch_last_frame = wish_crouch
-	if wish_crouch:
+	wish_crouch_last_frame = GSInput.wish_sates["wish_crouch"]
+	if GSInput.wish_sates["wish_crouch"]:
 		queue_uncrouch = false
 		if is_on_floor():
 			#regular crouch on floor
 			start_delayed_crouch()
 		else:
 			#air crouch with position shift up
-			position.y += standart_hull_size.y - crouch_hull_size.y 
+			position.y += standart_hull_size.y - crouch_hull_size.y
 			crouch()
 			$CameraAnchor.position.y = 45 * 1.905 / 100
 			return
@@ -439,7 +432,7 @@ func handle_crouch() -> void:
 			crouch_check_collider.position = Vector3(0, (standart_hull_size.y - crouch_hull_size.y) / -2.0, 0)
 			crouch_check_collider.force_update_transform()
 			crouch_check_collider.force_shapecast_update()
-			if !crouch_check_collider.is_colliding():
+			if !crouch_check_collider.is_colliding() and is_crouched:
 				position.y -= standart_hull_size.y - crouch_hull_size.y
 				uncrouch()
 				$CameraAnchor.position.y = 68 * 1.905 / 100
@@ -550,7 +543,7 @@ func try_uncrouch() -> void:
 func handle_jump() -> void:
 	#check if airborne
 	if !is_on_floor(): pass #TODO: make mid air jumping
-	elif wish_jump and !is_crouched:
+	elif GSInput.wish_sates["wish_jump"] and !is_crouched:
 		#if player is crouching down perform a crouch jump.
 		if is_crouching_animation: crouch_jump()
 		#if player is uncrouching perform a ctap bug. 
@@ -576,7 +569,7 @@ func handle_jump() -> void:
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
 		is_airborne = true
 	#if auto jumping is disabled void player intent on jumping to prevent input buffering 
-	if !is_auto_jump_enabled: wish_jump = false
+	if !is_auto_jump_enabled: GSInput.wish_sates["wish_jump"] = false
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Forces player into jump crourching position. If [member is_crouch_jump_bug_enabled] is disabled shift player up same way as crouching while airborne, if not player jump force doesnt account for 1 tick of gravity. In TF2 it amounts to two hammer units difference in jump height
@@ -586,6 +579,7 @@ func crouch_jump() -> void: #invokled from jumping handle
 		velocity.y = jump_strength
 	else:
 		velocity.y = jump_strength - get_gravity_tick()
+	$CameraAnchor.reset_smoothing()
 	position.y += standart_hull_size.y - crouch_hull_size.y
 
 ## [b][u]PURPOSE[/u][/b]:
@@ -596,6 +590,7 @@ func ctap() -> void:
 	crouch()
 	velocity.y = jump_strength - get_gravity_tick()
 	#if not bugged shift upwards.
+	$CameraAnchor.reset_smoothing()
 	if !is_ctap_bug_enabled: position.y += standart_hull_size.y - crouch_hull_size.y
 
 #endregion
@@ -843,7 +838,7 @@ func step_down_check() -> void:
 	# see if ground below is close enough
 	var is_ground_below: bool = ($step_down_shape_cast.is_colliding())
 	# if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
-	if is_airborne and (stepped_down or was_on_floor_last_frame) and !wish_jump and velocity.y <= 0:
+	if is_airborne and (stepped_down or was_on_floor_last_frame) and !GSInput.wish_sates["wish_jump"] and velocity.y <= 0:
 		# create new physics server test object
 		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
 		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to

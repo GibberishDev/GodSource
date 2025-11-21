@@ -41,33 +41,8 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="server_controls" type="Panel" parent="Vbox"]
-custom_minimum_size = Vector2(0, 30)
+[node name="dud" type="Control" parent="Vbox"]
 layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Vbox/server_controls"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Button" type="Button" parent="Vbox/server_controls/HBoxContainer"]
-layout_mode = 2
-text = "btn_1"
-
-[node name="Button2" type="Button" parent="Vbox/server_controls/HBoxContainer"]
-layout_mode = 2
-text = "btn_2"
-
-[node name="Button3" type="Button" parent="Vbox/server_controls/HBoxContainer"]
-layout_mode = 2
-text = "btn_3"
-
-[node name="Button4" type="Button" parent="Vbox/server_controls/HBoxContainer"]
-layout_mode = 2
-text = "btn_4"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Vbox"]
 layout_mode = 2

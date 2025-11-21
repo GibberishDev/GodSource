@@ -48,8 +48,8 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if start_smoothing_position != Vector3.ZERO:
-		if owner is CharacterBody3D:
-			smooth_camera(delta, owner.velocity)
+		if owner is GSPlayer:
+			smooth_camera(delta, owner)
 		else:
 			smooth_camera(delta)
 	update_vectors()
@@ -121,18 +121,21 @@ func update_rotations() -> void:
 func save_start_smoothing_position() -> void:
 	start_smoothing_position = $smoother.global_position
 
-func smooth_camera(delta: float, owner_velocity: Vector3 = Vector3.ZERO) -> void:
+func smooth_camera(delta: float, player_owner: GSPlayer = null) -> void:
 	$smoother.global_position.y = start_smoothing_position.y
 	if start_smoothing_position.distance_to(global_position) > max_smoothing_distance:
-		start_smoothing_position = Vector3.ZERO
-		$smoother.position = Vector3.ZERO
+		reset_smoothing()
 		return
 	var movement_amount : float = 3.0 * delta
-	if owner_velocity != Vector3.ZERO:
-		movement_amount = (owner_velocity * Vector3(1,0,1)).length() * delta / 1.5
+	if player_owner != null:
+		movement_amount = max((player_owner.velocity * Vector3(1,0,1)).length() * delta / 1.5, player_owner.max_ground_speed * delta / 1.5)
 	$smoother.global_position = $smoother.global_position.move_toward(global_position, movement_amount)
 	start_smoothing_position = $smoother.global_position
 	if $smoother.position == Vector3.ZERO:
 		start_smoothing_position = Vector3.ZERO
+
+func reset_smoothing() -> void:
+	start_smoothing_position = Vector3.ZERO
+	$smoother.position = Vector3.ZERO
 
 #endregion

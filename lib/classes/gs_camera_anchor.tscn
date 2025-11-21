@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://caixndxsg42tl"]
+[gd_scene load_steps=2 format=3 uid="uid://djvirr62l5q1n"]
 
-[ext_resource type="Script" uid="uid://da41dw0lbisil" path="res://lib/classes/gs_camera_anchor.gd" id="1_fafm6"]
+[ext_resource type="Script" uid="uid://cj4nowg8tqxjx" path="res://lib/classes/camera_anchor.gd" id="1_fafm6"]
 
 [node name="CameraAnchor" type="Node3D"]
 script = ExtResource("1_fafm6")

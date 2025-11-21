@@ -28,9 +28,7 @@ func add_command(command_name: StringName, callable: Callable, operator_status_n
 func get_all_commands() -> String:
 	var output_string: String = ""
 	for i : StringName in self.command_list:
-		output_string += ("\n[color=gold]"
-		+ str(i) + "[/color]: " + self.command_list[i].description
-		)
+		output_string += ("\n[color=gold]" + str(i) + "[/color]")
 	return output_string
 
 
@@ -89,4 +87,4 @@ func process_arguments(input_arguments: String) -> Array:
 func send_output_message(message: String) -> void:
 	print_rich(message)
 	if output_node != null:
-		output_node.append_text("\n] " + message)
+		output_node.append_text("\n " + message)

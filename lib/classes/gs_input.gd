@@ -66,17 +66,16 @@ func handleMouseButton(event: InputEventMouseButton) -> void:
 	pass
 
 func handleKeyboardInput(event: InputEventKey) -> void:
-	keylist[event.keycode] = {"state": resolve_key_state(event)}
+	keylist[event.keycode] = {"state": resolve_key_state(event), "name": OS.get_keycode_string(event.keycode)}
 	var bind_command : String = determine_bind(event.keycode)
-
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
 		if bind_command != "":
-			Console.process_input(bind_command)
+			GSConsole.process_input(bind_command)
 	if resolve_key_state(event) == KEYSTATE.RELEASED:
 		keylist.erase(event.keycode)
 		if bind_command != "":
 			bind_command = construct_negative_command(bind_command)
-			Console.process_input(bind_command)
+			GSConsole.process_input(bind_command)
 	# print(keylist)
 
 func resolve_key_state(event: InputEventKey) -> KEYSTATE:
@@ -102,6 +101,12 @@ func update_binds() -> void:
 		},
 		"83": {
 			"command":"+back"
+		},
+		"4194326": {
+			"command":"+crouch"
+		},
+		"32": {
+			"command":"+jump"
 		}
 	}
 
@@ -115,22 +120,23 @@ func determine_bind(keycode: Key) -> String:
 		var valid_match : bool = true
 		var split_keys : PackedStringArray = k.split("+")
 		for j : String in split_keys:
-			if j == str(keycode): pass
-			if j == "ctrl" and Input.is_key_pressed(KEY_CTRL) != true:
+			if j != str(keycode):
+				if j == "ctrl" and Input.is_key_pressed(KEY_CTRL) != true:
+					valid_match = false
+					break
+				if j == "alt" and Input.is_key_pressed(KEY_ALT) != true:
+					valid_match = false
+					break
+				if j == "shift" and Input.is_key_pressed(KEY_SHIFT) != true:
+					valid_match = false
+					break
 				valid_match = false
-				break
-			if j == "alt" and Input.is_key_pressed(KEY_ALT) != true:
-				valid_match = false
-				break
-			if j == "shift" and Input.is_key_pressed(KEY_SHIFT) != true:
-				valid_match = false
-				break
 		if valid_match == true:
 			return bound_keys[k]["command"]
 	return ""
 
 func construct_negative_command(bind_command: String) -> String:
-	var commands_array : PackedStringArray = Console.split_commands_input(bind_command)
+	var commands_array : PackedStringArray = GSConsole.split_commands_input(bind_command)
 	bind_command = ""
 	for i : String in commands_array:
 		if i[0] == "+":

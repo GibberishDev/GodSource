@@ -4,7 +4,7 @@ extends Control
 @onready var output: RichTextLabel = %console_output
 
 func _ready() -> void:
-	Console.output_node = output
+	GSConsole.output_node = output
 	output.focus_mode = Control.FOCUS_NONE
 
 #release focus of input node on click outside
@@ -15,7 +15,7 @@ func _input(event: InputEvent) -> void:
 			GSInput.current_input_context = GSInput.INPUT_CONTEXT.UI
 
 func _exit_tree() -> void:
-	Console.output_node = null
+	GSConsole.output_node = null
 
 func _on_console_input_text_submitted(new_text: String) -> void:
 	input.clear()
@@ -26,7 +26,7 @@ func _on_console_input_text_submitted(new_text: String) -> void:
 
 	output.add_text("\n> " + new_text)
 
-	Console.process_input(new_text)
+	GSConsole.process_input(new_text)
 
 func input_focused() -> void:
 	GSInput.current_input_context = GSInput.INPUT_CONTEXT.TEXT_INPUT
