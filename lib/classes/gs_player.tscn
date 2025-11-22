@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cjcvs4n5ja40x"]
 
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
-[ext_resource type="PackedScene" uid="uid://djvirr62l5q1n" path="res://lib/classes/camera_anchor.tscn" id="2_ga4fc"]
+[ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/camera_anchor.tscn" id="2_ga4fc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
 size = Vector3(0.933, 1.581, 0.933)
@@ -19,13 +19,13 @@ floor_constant_speed = true
 floor_block_on_wall = false
 script = ExtResource("1_k5xr0")
 
+[node name="CameraAnchor" parent="." instance=ExtResource("2_ga4fc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
+
 [node name="collision_hull" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
 shape = SubResource("BoxShape3D_xdf4h")
 debug_color = Color(18.892157, 18.892157, 0, 1)
-
-[node name="CameraAnchor" parent="." instance=ExtResource("2_ga4fc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [node name="stuck_check_collider" type="ShapeCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
