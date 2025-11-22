@@ -40,10 +40,10 @@ var jump_strength : float = 289 * 1.905 / 100
 var maximum_mid_air_jumps : int = 0
 ## Size of player bounding box hull in normal state
 @export
-var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
+var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
 ## Size of player bounding box hull in crouched state
 @export
-var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
+var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
 @export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
@@ -136,7 +136,6 @@ var camera : Camera3D = Camera3D.new()
 #endregion
 
 #region wish control variables
-#TODO: move this region to the dedicated player input gathering node for easier multiplayer client prediction and server reconciliation
 ## Desired input vector. left is -x, right is +x, forward is -y, back is +y
 var wish_direction : Vector2 = Vector2.ZERO
 ## Dictionarry that keeps track of last frame of keys to determine if key was just pressed, still pressed, just released or still released
@@ -151,12 +150,7 @@ var wish_crouch_last_frame : bool = false
 
 #endregion variables
 
-#region native godot methods
-func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
-	if Input.is_key_pressed(KEY_F1):	#TODO: Remove after done testing. Also implement host_time_scale console command	╗ 
-		Engine.time_scale = 0.05		#																					║
-	if Input.is_key_pressed(KEY_F2):	#																					║
-		Engine.time_scale = 1.0			#																					╝
+#region native godot methods																				╝
 
 func _ready() -> void:
 	update_hull()
@@ -188,7 +182,7 @@ func process_movement(delta: float) -> void:
 		#step 4: apply half of gravity
 		apply_half_gravity()
 		#step 5: handle jumping
-		handle_jump()	
+		handle_jump(delta)	
 		#step 6: cap velocity
 		limit_velocity()
 		#step 7: if not airborne apply friction and 0 out vertical velocity
@@ -410,7 +404,6 @@ func handle_crouch() -> void:
 	if queue_uncrouch:
 		try_uncrouch()
 		return
-	#TODO: change state check to input gathering script
 	#if state didnt change from last frame -> return
 	if (GSInput.wish_sates["wish_crouch"] == wish_crouch_last_frame): return
 	#update state from last frame
@@ -540,7 +533,7 @@ func try_uncrouch() -> void:
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Hadles player intent to jump
-func handle_jump() -> void:
+func handle_jump(delta: float) -> void:
 	#check if airborne
 	if !is_on_floor(): pass #TODO: make mid air jumping
 	elif GSInput.wish_sates["wish_jump"] and !is_crouched:
@@ -552,7 +545,7 @@ func handle_jump() -> void:
 		else: velocity.y += jump_strength - get_gravity_tick()
 		#if bhopping not a thing apply ground friction to horizontal movement
 		if !is_bhop_bug_enabled:
-			#TODO: add one tick of friction here
+			apply_friction(delta)
 			pass
 		#limit horizontal speed to jump_speed_cap. Almost immediate fix from valve in early cycle of team fortress 2 life.
 		if limit_bhop_speed:

@@ -56,7 +56,6 @@ wall_min_slide_angle = 0.0
 floor_stop_on_slope = true
 floor_constant_speed = false
 floor_block_on_wall = true
-is_auto_jump_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_gbv3d")
