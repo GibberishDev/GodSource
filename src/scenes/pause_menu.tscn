@@ -1,0 +1,109 @@
+[gd_scene load_steps=3 format=3 uid="uid://cwoaygw4klrns"]
+
+[ext_resource type="Script" uid="uid://d1b16p4n1v4vq" path="res://src/scenes/pause_menu.gd" id="1_nwvxt"]
+[ext_resource type="FontFile" uid="uid://k35f4hcfpx2s" path="res://assets/fonts/TF2secondary.ttf" id="3_eeh6y"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nwvxt")
+
+[node name="background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.39215687)
+
+[node name="cont_1" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 100.0
+offset_top = -126.0
+offset_right = 400.0
+offset_bottom = 126.0
+grow_vertical = 2
+
+[node name="bg" type="Panel" parent="cont_1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="cont_1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="resume" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_eeh6y")
+theme_override_font_sizes/font_size = 36
+text = "RESUME"
+clip_text = true
+
+[node name="join" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_eeh6y")
+theme_override_font_sizes/font_size = 36
+text = "JOIN"
+clip_text = true
+
+[node name="settings" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_eeh6y")
+theme_override_font_sizes/font_size = 36
+text = "SETTINGS"
+clip_text = true
+
+[node name="quit" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_eeh6y")
+theme_override_font_sizes/font_size = 36
+text = "QUIT"
+clip_text = true
+
+[connection signal="pressed" from="cont_1/VBoxContainer/resume" to="." method="resume"]
+[connection signal="pressed" from="cont_1/VBoxContainer/quit" to="." method="button_quit"]

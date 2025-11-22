@@ -4,26 +4,26 @@ func _ready() -> void:
 	_register_console_commands()
 
 func _register_console_commands() -> void:
-	GSConsole.add_command("help", help_command_callable, false, false, -1, "Show usage of provided command or if none provided print full list of registered commands.\n	Syntax: help <command name>\n	Is cheat: false - Is admin only: false")
-	GSConsole.add_command("echo", echo_command_callable, false, false, -1, "Prints suppled text in console output\n	Syntax: echo <text...>\n	Is cheat: false - Is admin only: false")
-	GSConsole.add_command("clear", clear_command_callable, false, false, -1, "Clears console\n	Syntax: clear\n	Is cheat: false - Is admin only: false")
-	GSConsole.add_command("quit", quit_command_callable, false, false, -1, "Shutdowns the aplication\n	Syntax: quit\n	Is cheat: false - Is admin only: false")
-	# GSConsole.add_command("connect", connect_command_callable, false, false, -1, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
-	# GSConsole.add_command("start_server", start_server_command_callable, false, false, -1, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
-	GSConsole.add_command("toggle_console", toggle_console_ui_callable, false, false, -1, "Show/hide console window\n   Syntax: toggle_console\n	Is cheat: false - Is admin only: false")
+	GSConsole.add_command("help", help_command_callable, -1, "Show usage of provided command or if none provided print full list of registered commands.\n	Syntax: help <command name>\n	Is cheat: false - Is admin only: false")
+	GSConsole.add_command("echo", echo_command_callable, -1, "Prints suppled text in console output\n	Syntax: echo <text...>\n	Is cheat: false - Is admin only: false")
+	GSConsole.add_command("clear", clear_command_callable, -1, "Clears console\n	Syntax: clear\n	Is cheat: false - Is admin only: false")
+	GSConsole.add_command("quit", quit_command_callable, -1, "Shutdowns the aplication\n	Syntax: quit\n	Is cheat: false - Is admin only: false")
+	# GSConsole.add_command("connect", connect_command_callable, -1, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
+	# GSConsole.add_command("start_server", false, -1, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
+	GSConsole.add_command("toggle_console", toggle_console_ui_callable, -1, "Show/hide console window\n   Syntax: toggle_console\n	Is cheat: false - Is admin only: false", [GSInput.INPUT_CONTEXT.UI, GSInput.INPUT_CONTEXT.CHARACTER])
 	
-	GSConsole.add_command("+left", enable_wish_left, false, false, -1, "")
-	GSConsole.add_command("-left", disable_wish_left, false, false, -1, "")
-	GSConsole.add_command("+right", enable_wish_right, false, false, -1, "")
-	GSConsole.add_command("-right", disable_wish_right, false, false, -1, "")
-	GSConsole.add_command("+forward", enable_wish_forward, false, false, -1, "")
-	GSConsole.add_command("-forward", disable_wish_forward, false, false, -1, "")
-	GSConsole.add_command("+back", enable_wish_back, false, false, -1, "")
-	GSConsole.add_command("-back", disable_wish_back, false, false, -1, "")
-	GSConsole.add_command("+crouch", enable_wish_crouch, false, false, -1, "")
-	GSConsole.add_command("-crouch", disable_wish_crouch, false, false, -1, "")
-	GSConsole.add_command("+jump", enable_wish_jump, false, false, -1, "")
-	GSConsole.add_command("-jump", disable_wish_jump, false, false, -1, "")
+	GSConsole.add_command("+left", enable_wish_left, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-left", disable_wish_left, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("+right", enable_wish_right, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-right", disable_wish_right, -1, "")
+	GSConsole.add_command("+forward", enable_wish_forward, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-forward", disable_wish_forward, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("+back", enable_wish_back, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-back", disable_wish_back, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("+crouch", enable_wish_crouch, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-crouch", disable_wish_crouch, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("+jump", enable_wish_jump, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-jump", disable_wish_jump, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 
 #region command callables
 
@@ -79,14 +79,24 @@ func toggle_console_ui_callable(arguments_array: Array = []) -> void:
 	if !GSUi.opened_windows.keys().has("console"):
 		var console_scene : PackedScene = load("res://lib/client/console.tscn")
 		GSUi.add_window(console_scene, Vector2(800,600), "GSConsole", "console")
+		GSUi.show_ui()
 	else:
 		if GSUi.get_node("ui_windows").visible:
-			GSUi.opened_windows["console"].visible = !GSUi.opened_windows["console"].visible
+			if GSUi.focused_window != GSUi.opened_windows["console"] and GSUi.opened_windows["console"].visible:
+				GSUi.focus_window("console")
+			elif GSUi.focused_window == GSUi.opened_windows["console"]:
+				GSUi.hide_window("console")
+			else:
+				GSUi.show_window("console")
 		else:
-			GSUi.hide_ui()
+			GSUi.show_window("console")
+			GSUi.show_ui()
+				
 
 
+#endregion
 
+#region wish commands callables
 
 func enable_wish_left(arguments_array: Array = []) -> void:
 	GSInput.wish_sates["wish_left"] = true

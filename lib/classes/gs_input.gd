@@ -31,15 +31,6 @@ enum KEYSTATE {
 var keylist : Dictionary = {}
 var bound_keys : Dictionary = {}
 
-
-func _unhandled_input(event: InputEvent) -> void:
-	if Input.is_action_just_pressed("ui_cancel"):
-		if current_input_context == INPUT_CONTEXT.UI:
-			current_input_context = INPUT_CONTEXT.CHARACTER
-		elif current_input_context == INPUT_CONTEXT.CHARACTER:
-			current_input_context = INPUT_CONTEXT.UI
-			release_mouse()
-
 func _ready()-> void:
 	update_binds()
 

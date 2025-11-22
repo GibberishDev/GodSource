@@ -19,8 +19,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 GSConsole="*res://lib/classes/gs_console.gd"
-GSInput="*res://lib/classes/gs_input.gd"
 GSUtils="*res://lib/classes/gs_utils.gd"
+GSInput="*res://lib/classes/gs_input.gd"
 GSUi="*res://lib/classes/gs_ui.gd"
 CommandsRegister="*res://src/register_scripts/commands_registerer.gd"
 

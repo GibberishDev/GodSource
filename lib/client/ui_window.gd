@@ -1,6 +1,7 @@
 class_name GSUIWindow
 extends Control
 
+var id : StringName = ""
 var window_focus : bool = false
 @export
 var limit_to_screen : bool = true
@@ -14,7 +15,7 @@ var resize_window_enabled : bool = false
 var resize_start_size : Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	get_tree().root.connect("size_changed", update_window_position)
+	get_tree().root.connect("size_changed", _on_app_window_resize)
 	reset_resize()
 	center_window()
 	set_focused(true)
@@ -50,8 +51,12 @@ func _on_titlebar_gui_input(event: InputEvent) -> void:
 				drag_window_enabled = false
 			
 
-func update_window_position() -> void:
+func _on_app_window_resize() -> void:
 	if limit_to_screen:
+		var new_size : Vector2 = size
+		new_size.x = clamp(new_size.x, 0, get_tree().root.size.x)
+		new_size.y = clamp(new_size.y, 0, get_tree().root.size.y)
+		size = new_size
 		var new_pos : Vector2 = global_position
 		new_pos.x = clamp(new_pos.x, 0, get_tree().root.size.x - size.x)
 		new_pos.y = clamp(new_pos.y, 0, get_tree().root.size.y - size.y)
@@ -88,7 +93,7 @@ func add_contents(contents: PackedScene) -> void:
 	%body.add_child(new_contents)
 
 func _on_close_button_pressed() -> void:
-	self.visible = false
+	GSUi.hide_window(self.id)
 
 func set_window_name(new_name: String) -> void:
 	%window_name.text = new_name
