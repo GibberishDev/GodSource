@@ -11,11 +11,13 @@ func _register_console_commands() -> void:
 	# GSConsole.add_command("connect", connect_command_callable, -1, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	# GSConsole.add_command("start_server", false, -1, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 	GSConsole.add_command("toggle_console", toggle_console_ui_callable, -1, "Show/hide console window\n   Syntax: toggle_console\n	Is cheat: false - Is admin only: false", [GSInput.INPUT_CONTEXT.UI, GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("alias", alias_command_callable, -1, "Asign alias to list of commands\n   Syntax: alias [alias name] \"[commands]\"\n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("remove_alias", remove_alias_command_callable, -1, "Remove alias\n   Syntax: remove_alias [alias name] \n	Is cheat: false - Is admin only: false", [])
 	
 	GSConsole.add_command("+left", enable_wish_left, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("-left", disable_wish_left, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("+right", enable_wish_right, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-right", disable_wish_right, -1, "")
+	GSConsole.add_command("-right", disable_wish_right, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("+forward", enable_wish_forward, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("-forward", disable_wish_forward, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("+back", enable_wish_back, -1, "", [GSInput.INPUT_CONTEXT.CHARACTER])
@@ -92,46 +94,48 @@ func toggle_console_ui_callable(arguments_array: Array = []) -> void:
 			GSUi.show_window("console")
 			GSUi.show_ui()
 				
+func alias_command_callable(arguments_array: Array = [])-> void:
+	if arguments_array == []:
+		var list : Array[GSConsole.Alias] = GSConsole.get_all_aliases()
+		var alias_commands_string : String = ""
+		for i : GSConsole.Alias in list:
+			alias_commands_string += "\n" + i.id
+		GSConsole.send_output_message("All currently defined aliases are:" + alias_commands_string)
+	else:
+		var alias_name : StringName = arguments_array[0]
+		if GSConsole.command_list.keys().has(alias_name):
+			GSConsole.send_output_message("[color=red]Cannot asign alias name [b]" + alias_name + "[/b]: registered command with same name found.[/color]")
+			return
+		if arguments_array.size() > 1:
+			var command : String = arguments_array[1]
+			GSConsole.add_alias(alias_name, command)
+		else:
+			if GSConsole.alias_list.keys().has(alias_name):
+				GSConsole.send_output_message("Alias [b]" + alias_name + "[/b] has following command: \n" + GSConsole.alias_list[alias_name].command)
+			else:
+				GSConsole.send_output_message("Alias [b]" + alias_name + "[/b] not found")
 
+func remove_alias_command_callable(arguments_array: Array = []) -> void:
+	if arguments_array.size() > 0 and GSConsole.alias_list.keys().has(arguments_array[0]):
+		GSConsole.alias_list.erase(arguments_array[0])
+		GSConsole.send_output_message("Removed [b]" + arguments_array[0] + "[/b] alias")
+			
 
 #endregion
 
 #region wish commands callables
 
-func enable_wish_left(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_left"] = true
-
-func disable_wish_left(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_left"] = false
-
-func enable_wish_right(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_right"] = true
-
-func disable_wish_right(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_right"] = false
-
-func enable_wish_forward(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_forward"] = true
-
-func disable_wish_forward(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_forward"] = false
-
-func enable_wish_back(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_back"] = true
-
-func disable_wish_back(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_back"] = false
-
-func enable_wish_crouch(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_crouch"] = true
-
-func disable_wish_crouch(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_crouch"] = false
-
-func enable_wish_jump(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_jump"] = true
-
-func disable_wish_jump(arguments_array: Array = []) -> void:
-	GSInput.wish_sates["wish_jump"] = false
+func enable_wish_left(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_left"] = true
+func disable_wish_left(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_left"] = false
+func enable_wish_right(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_right"] = true
+func disable_wish_right(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_right"] = false
+func enable_wish_forward(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_forward"] = true
+func disable_wish_forward(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_forward"] = false
+func enable_wish_back(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_back"] = true
+func disable_wish_back(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_back"] = false
+func enable_wish_crouch(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_crouch"] = true
+func disable_wish_crouch(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_crouch"] = false
+func enable_wish_jump(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_jump"] = true
+func disable_wish_jump(arguments_array: Array = []) -> void: GSInput.wish_sates["wish_jump"] = false
 
 #endregion

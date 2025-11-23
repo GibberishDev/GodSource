@@ -27,6 +27,8 @@ func sort_array_of_strings(a: String, b: String) -> bool:
 
 func _ready() -> void:
 	environment = determine_environment()
+	if environment == ENV.SERVER:
+		get_tree().change_scene_to_file("res://lib/server/dedicated_server.tscn")
 
 func determine_environment() -> ENV:
 	var is_dedicated : bool = OS.has_feature("dedicated")

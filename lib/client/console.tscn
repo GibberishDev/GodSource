@@ -62,41 +62,6 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="playe_list_panel" type="Panel" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(256, 0)
-layout_mode = 2
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-horizontal_scroll_mode = 0
-vertical_scroll_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="player_list_entry" type="HBoxContainer" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="name" type="Label" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "gibbdev"
-horizontal_alignment = 1
-clip_text = true
-text_overrun_behavior = 3
-
-[node name="ping" type="Label" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer/playe_list_panel/ScrollContainer/VBoxContainer/player_list_entry"]
-layout_mode = 2
-text = "1000 ms"
-
 [node name="console_panel" type="Panel" parent="Vbox/HBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
