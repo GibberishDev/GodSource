@@ -5,6 +5,7 @@ extends Control
 
 func _ready() -> void:
 	GSConsole.output_node = output
+	GSConsole.input_node = input
 	output.focus_mode = Control.FOCUS_NONE
 
 #release focus of input node on click outside
@@ -16,6 +17,7 @@ func _input(event: InputEvent) -> void:
 
 func _exit_tree() -> void:
 	GSConsole.output_node = null
+	GSConsole.input_node = null
 
 func _on_console_input_text_submitted(new_text: String) -> void:
 	input.clear()
@@ -27,6 +29,10 @@ func _on_console_input_text_submitted(new_text: String) -> void:
 	output.add_text("\n> " + new_text)
 
 	GSConsole.process_input(new_text)
+	if !GSConsole.input_history.has(new_text):
+		GSConsole.input_history.insert(0,new_text)
+		if GSConsole.input_history.size() > GSConsole.input_history_amount:
+			GSConsole.input_history.resize(GSConsole.input_history_amount)
 
 func input_focused() -> void:
 	GSInput.current_input_context = GSInput.INPUT_CONTEXT.TEXT_INPUT

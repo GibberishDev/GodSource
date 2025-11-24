@@ -18,7 +18,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="SystemFont" id="SystemFont_be33b"]
-font_names = PackedStringArray("JetBrains Mono NL")
+font_names = PackedStringArray("JetBrains Mono")
 font_weight = 800
 subpixel_positioning = 0
 
@@ -82,6 +82,7 @@ size_flags_vertical = 3
 focus_mode = 2
 focus_behavior_recursive = 1
 theme_override_fonts/normal_font = SubResource("SystemFont_be33b")
+theme_override_fonts/mono_font = SubResource("SystemFont_be33b")
 bbcode_enabled = true
 scroll_following = true
 vertical_alignment = 2

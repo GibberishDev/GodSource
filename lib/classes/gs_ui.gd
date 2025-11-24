@@ -75,7 +75,8 @@ func get_window_at_position(point: Vector2) -> StringName:
 	var clicked_windows : Array = []
 	for i : StringName in opened_windows.keys():
 		if opened_windows[i].get_global_rect().has_point(point):
-			clicked_windows.append(i)
+			if opened_windows[i].visible != false:
+				clicked_windows.append(i)
 	var node_order : Array = []
 	for i : Object in get_node("ui_windows").get_children():
 		node_order.append(i.name)

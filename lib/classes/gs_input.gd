@@ -62,6 +62,11 @@ func handleKeyboardInput(event: InputEventKey) -> void:
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
 		if bind_command != "":
 			GSConsole.process_input(bind_command)
+	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context == INPUT_CONTEXT.TEXT_INPUT:
+		if event.keycode == 4194320:
+			GSConsole.input_node.text = GSConsole.get_history_suggestion(true)
+		if event.keycode == 4194322:
+			GSConsole.input_node.text = GSConsole.get_history_suggestion(false)
 	if resolve_key_state(event) == KEYSTATE.RELEASED:
 		keylist.erase(event.keycode)
 		if bind_command != "":
