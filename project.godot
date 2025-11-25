@@ -24,6 +24,7 @@ GSConfig="*res://lib/classes/gs_config.gd"
 GSInput="*res://lib/classes/gs_input.gd"
 GSUi="*res://lib/classes/gs_ui.gd"
 CommandsRegister="*res://src/register_scripts/commands_registerer.gd"
+ConvarsRegister="*res://src/register_scripts/convars_register.gd"
 
 [debug]
 

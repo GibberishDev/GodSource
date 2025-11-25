@@ -29,10 +29,14 @@ func _on_console_input_text_submitted(new_text: String) -> void:
 	output.add_text("\n> " + new_text)
 
 	GSConsole.process_input(new_text)
+	GSConsole.input_history_last_id = 0
 	if !GSConsole.input_history.has(new_text):
 		GSConsole.input_history.insert(0,new_text)
 		if GSConsole.input_history.size() > GSConsole.input_history_amount:
 			GSConsole.input_history.resize(GSConsole.input_history_amount)
+	else:
+		var index : int = GSConsole.input_history.find(new_text)
+		GSConsole.input_history.push_front(GSConsole.input_history.pop_at(index))
 
 func input_focused() -> void:
 	GSInput.current_input_context = GSInput.INPUT_CONTEXT.TEXT_INPUT

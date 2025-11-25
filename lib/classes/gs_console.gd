@@ -1,5 +1,14 @@
 extends Node
 
+#region variables
+
+enum CONVAR_TYPE {
+	STRING,
+	INTEGER,
+	FLOAT,
+	BOOLEAN
+}
+
 var output_node : RichTextLabel = null
 var input_node : LineEdit = null
 var terminal_input_thread_semaphore : Semaphore = null
@@ -7,11 +16,15 @@ var terminal_input_thread_semaphore : Semaphore = null
 var command_list : Dictionary = {} 
 var alias_list : Dictionary = {} 
 var convar_list : Dictionary = {}
+var valid_float_strings_true : PackedStringArray = ["true","True","1","1b","1.0"]
+var valid_float_strings_false : PackedStringArray = ["false","False","0","0b","0.0"]
 
 @export
 var input_history_amount : int = 10
-var input_history : PackedStringArray = []
+var input_history : Array[String] = []
 var input_history_last_id : int = 0
+
+#endregion
 
 #region Command
 class Command:
@@ -29,6 +42,7 @@ class Command:
 func add_command(command_name: StringName, callable: Callable, description: String = "NO DESCRIPTION PROVIDED", context : Array[GSInput.INPUT_CONTEXT] = []) -> void:
 	var new_command: Command = Command.new(command_name, callable, description, context)
 	self.command_list[command_name] = new_command
+	send_output_message("Registered command \"" + command_name + "\"")
 
 func get_all_commands() -> String:
 	var output_string: String = ""
@@ -63,8 +77,12 @@ func process_commands(commands_array: Array[String]) -> bool:
 		var command_name: StringName = regex_selector.search(commands_array[i]).get_string()
 		if !self.command_list.has(command_name):
 			if !self.alias_list.has(command_name):
-				send_output_message("[color=pink]command not found: [/color][color=red][b]" + StringName(command_name) + "[/b][/color]")
-				return false
+				if !self.convar_list.has(command_name):
+					send_output_message("[color=pink]command not found: [/color][color=red][b]" + StringName(command_name) + "[/b][/color]")
+					return false
+				else:
+					var input_arguments: String = commands_array[i].right(command_name.length() * -1)
+					return process_convar(command_name, process_arguments(input_arguments))
 			else:
 				return process_alias(command_name)
 		else:
@@ -134,4 +152,170 @@ func get_all_aliases() -> Array[Alias]:
 
 func process_alias(id: StringName) -> bool:
 	var command : String = alias_list[id].command
-	return process_input(command)
+	return process_input(command) 
+
+#endregion
+
+#region ConVar
+
+func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: String,value : String = "",min_value : String = "",max_value: String = "", description: String = "") -> void:
+	if value == "":
+		value = default_value
+	
+	var convar_data : Dictionary = {
+		"type" : type,
+		"description" : description
+	}
+	match type:
+		CONVAR_TYPE.STRING:
+			convar_data["default_value"] = default_value
+			convar_data["value"] = value
+			if min_value != "":
+				push_warning("Minimum value for convar \"" + convar_name + "\" of type String is not aplicable. Discarding min_value...")
+			if max_value != "":
+				push_warning("Maximum value for convar \"" + convar_name + "\" of type String is not aplicable. Discarding max_value...")
+			convar_list[convar_name] = convar_data
+		CONVAR_TYPE.INTEGER:
+			if !default_value.is_valid_int():
+				push_error("Default value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !value.is_valid_int() and value != "":
+				push_error("Value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !min_value.is_valid_int() and min_value != "":
+				push_error("Minimum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !max_value.is_valid_int() and max_value != "":
+				push_error("Maximum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			
+			convar_data["default_value"] = int(default_value)
+			convar_data["value"] = int(value)
+			if min_value != "":
+				convar_data["min_value"] = int(min_value)
+			if max_value != "":
+				convar_data["max_value"] = int(max_value)
+			if min_value != "" or max_value != "":
+				if min_value != "" and max_value == "":
+					convar_data["value"] = max(convar_data["value"], convar_data["min_value"])
+				elif min_value == "" and max_value != "":
+					convar_data["value"] = min(convar_data["value"], convar_data["max_value"])
+				else:
+					convar_data["value"] = clamp(convar_data["value"], convar_data["min_value"], convar_data["max_value"])
+			convar_list[convar_name] = convar_data
+		CONVAR_TYPE.FLOAT:
+			if !default_value.is_valid_float():
+				push_error("Default value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !value.is_valid_float() and value != "":
+				push_error("Value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !min_value.is_valid_float() and min_value != "":
+				push_error("Minimum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			if !max_value.is_valid_float() and max_value != "":
+				push_error("Maximum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
+				return
+			
+			convar_data["default_value"] = float(default_value)
+			convar_data["value"] = float(value)
+			if min_value != "":
+				convar_data["min_value"] = float(min_value)
+			if max_value != "":
+				convar_data["max_value"] = float(max_value)
+			if min_value != "" or max_value != "":
+				if min_value != "" and max_value == "":
+					convar_data["value"] = max(convar_data["value"], convar_data["min_value"])
+				elif min_value == "" and max_value != "":
+					convar_data["value"] = min(convar_data["value"], convar_data["max_value"])
+				else:
+					convar_data["value"] = clamp(convar_data["value"], convar_data["min_value"], convar_data["max_value"])
+			convar_list[convar_name] = convar_data
+		CONVAR_TYPE.BOOLEAN:
+			if !valid_float_strings_true.has(default_value) and !valid_float_strings_false.has(default_value):
+				push_error("Default value for convar \"" + convar_name + "\" cannot be converted to type boolean. Not registering...")
+				return
+			if !valid_float_strings_true.has(value) and !valid_float_strings_false.has(value) and value != "":
+				push_error("Value for convar \"" + convar_name + "\" cannot be converted to type boolean. Not registering...")
+				return
+			if min_value != "":
+				push_warning("Minimum value for convar \"" + convar_name + "\" of type Boolean is not aplicable. Discarding min_value...")
+			if max_value != "":
+				push_warning("Maximum value for convar \"" + convar_name + "\" of type Boolean is not aplicable. Discarding max_value...")
+			if value == "":
+				value = default_value
+			
+			if valid_float_strings_true.has(default_value):
+				convar_data["default_value"] = true
+			elif valid_float_strings_false.has(default_value):
+				convar_data["default_value"] = false
+			if valid_float_strings_true.has(value):
+				convar_data["value"] = true
+			elif valid_float_strings_false.has(value):
+				convar_data["value"] = false
+			convar_list[convar_name] = convar_data
+		_:
+			push_error("Invalid type for for convar \"" + convar_name + "\". Not regestering...")
+			return
+	send_output_message("Registered convar \"" + convar_name + "\"")
+
+func get_convar_console_output(convar_name: StringName) -> String:
+	var output : String = ""
+	if convar_list[convar_name]["default_value"] != convar_list[convar_name]["value"]:
+		output = "ConVar " + convar_name + " = " + str(convar_list[convar_name]["value"]) + " (def: " + str(convar_list[convar_name]["default_value"]) + ")"
+	else:
+		output = "ConVar " + convar_name + " = " + str(convar_list[convar_name]["value"])
+
+	return output
+
+func process_convar(convar_name: StringName, arguments_array : Array = []) -> bool:
+	if arguments_array.size() == 0:
+		send_output_message(get_convar_console_output(convar_name))
+		return true
+	else:
+		return set_convar_value(convar_name, arguments_array[0])
+
+func set_convar_value(convar_name: StringName, argument: String) -> bool:
+	match convar_list[convar_name]["type"]:
+		CONVAR_TYPE.STRING:
+			convar_list[convar_name] = argument
+		CONVAR_TYPE.INTEGER:
+			if argument.is_valid_int():
+				var new_value : int = int(argument)
+				convar_list[convar_name]["value"] = new_value
+				if convar_list[convar_name].keys().has("min_value") or convar_list[convar_name].keys().has("max_value"):
+					if convar_list[convar_name].keys().has("min_value") and !convar_list[convar_name].keys().has("max_value"):
+						convar_list[convar_name]["value"] = max(convar_list[convar_name]["value"], convar_list[convar_name]["min_value"])
+					elif !convar_list[convar_name].keys().has("min_value") and convar_list[convar_name].keys().has("max_value"):
+						convar_list[convar_name]["value"] = min(convar_list[convar_name]["value"], convar_list[convar_name]["max_value"])
+					else:
+						convar_list[convar_name]["value"] = clamp(convar_list[convar_name]["value"], convar_list[convar_name]["min_value"], convar_list[convar_name]["max_value"])
+			else:
+				return false
+		CONVAR_TYPE.FLOAT:
+			if argument.is_valid_float():
+				var new_value : float = float(argument)
+				convar_list[convar_name]["value"] = new_value
+				if convar_list[convar_name].keys().has("min_value") or convar_list[convar_name].keys().has("max_value"):
+					if convar_list[convar_name].keys().has("min_value") and !convar_list[convar_name].keys().has("max_value"):
+						convar_list[convar_name]["value"] = max(convar_list[convar_name]["value"], convar_list[convar_name]["min_value"])
+					elif !convar_list[convar_name].keys().has("min_value") and convar_list[convar_name].keys().has("max_value"):
+						convar_list[convar_name]["value"] = min(convar_list[convar_name]["value"], convar_list[convar_name]["max_value"])
+					else:
+						convar_list[convar_name]["value"] = clamp(convar_list[convar_name]["value"], convar_list[convar_name]["min_value"], convar_list[convar_name]["max_value"])
+			else:
+				return false
+		CONVAR_TYPE.BOOLEAN:
+			if valid_float_strings_true.has(argument):
+				convar_list[convar_name]["value"] = true
+			elif valid_float_strings_false.has(argument):
+				convar_list[convar_name]["value"] = false
+			else:
+				return false
+		_:
+			send_output_message("[color=red]HOW did ya manage to reach this message??? anyways: error: invalid convar type at set_convar_value(). Blame dev if ya see it and point out improperly registered convar. Or insane stray electron from neutron star bitflipping your pc lmao - sincerely godsource dev GibbDev[/color]")
+			return false
+	return true
+
+
+#endregion

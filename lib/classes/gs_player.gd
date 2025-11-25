@@ -5,19 +5,6 @@ extends CharacterBody3D
 
 #region variables
 
-#region server defined variables #TODO: move to server script later
-## Maximum walking speed base value. 320 hu/s is team fortres 2 default
-var maximum_walking_speed_base : float = 320 * 1.905 / 100
-## Amount of velocity enitity can have. Any more is capped to this value
-var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
-## Global multiplier of surface friction used in [method GSPlayer.apply_friction] method
-var server_variable_friction : float = 4.0
-## Global stop speed threshold used in [method GSPlayer.apply_friction] method
-var server_variable_stop_speed : float = 100 * 1.905 / 100
-var server_variable_max_speed : float = 320 * 1.905 / 100 #TODO: rename to something more sensible cause it isnt in source engine.
-var server_variable_air_acceleration : float = 10
-#endregion
-
 #region client settings variables #TODO: echange for getters whenever client settings are implemented
 var client_setting_null_movement : bool = true
 #endregion
@@ -57,9 +44,6 @@ var is_bhop_bug_enabled : bool = true
 ## Does not reset player jump key state even if unable to jump at this frame. Meaning that whicj jump key held down player would be able to jump as soon as they touch the ground, performing a bhop, if its enabled. If bhop is disabled frition will still apply
 @export
 var is_auto_jump_enabled : bool = false
-## Limit player movement speed to [jump_speed_cap]
-@export
-var limit_bhop_speed: bool = true
 ## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
 @export
 var jump_speed_cap: float = 1.2
@@ -98,7 +82,6 @@ var queue_uncrouch : bool = false
 var wish_hull_size : Vector3 = standart_hull_size
 var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
-var ground_acceleration : float = 10
 var last_floored_frame : int = 0
 var snapped_to_stairs_last_frame : bool = false
 #endregion
@@ -358,8 +341,8 @@ func check_grounded() -> bool:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Caps velocity to [member maximum_velocity_cap]. This is a hard limit in source engine games and cannot be exceeded. No body can move faster than this for more than 1 frame
 func limit_velocity() -> void:
-	if velocity.length() > maximum_velocity_cap:
-		velocity = velocity.normalized() * maximum_velocity_cap
+	if velocity.length() > GSConsole.convar_list["sv_maxvelocity"]["value"]:
+		velocity = velocity.normalized() * GSConsole.convar_list["sv_maxvelocity"]["value"]
 
 #endregion
 
@@ -374,7 +357,7 @@ func apply_half_gravity() -> void:
 ## [br]Returns 1 tick of gravity used in calculations
 func get_gravity_tick() -> float:
 	#get gravity value from project settings
-	var gravity : float = (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier)
+	var gravity : float = GSConsole.convar_list["sv_gravity"]["value"] * gravity_multiplier
 	#get tickrate from project settings and divide it by current time scale
 	var engine_tick_multiplier : float = ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / Engine.time_scale
 	#return half of gravity as we apply gravity in halves
@@ -548,15 +531,15 @@ func handle_jump(delta: float) -> void:
 			apply_friction(delta)
 			pass
 		#limit horizontal speed to jump_speed_cap. Almost immediate fix from valve in early cycle of team fortress 2 life.
-		if limit_bhop_speed:
+		if GSConsole.convar_list["sv_limit_jump_speed"]["value"]:
 			#get horizontal velocity
 			var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
 			#get horizontal speed of player
 			var speed : float = horizontal_velocity.length()
 			#if speed exceeds limit cap it to that limit
-			if speed > maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap:
+			if speed > max_ground_speed * max_ground_speed_multiplier * jump_speed_cap:
 				#get new horizontal velocity
-				horizontal_velocity = horizontal_velocity.normalized() * maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap
+				horizontal_velocity = horizontal_velocity.normalized() * max_ground_speed * max_ground_speed_multiplier * jump_speed_cap
 				#update player velocity
 				velocity = Vector3(horizontal_velocity.x, velocity.y, horizontal_velocity.y)
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
@@ -604,10 +587,10 @@ func apply_friction(delta: float) -> void:
 		return
 	#apply ground friction
 	if !is_airborne:
-		friction = server_variable_friction * surface_friction
+		friction = GSConsole.convar_list["sv_friction"]["value"] * surface_friction
 	#Bleed off some speed, but if we have less than the bleed threshold, bleed the threshold amount.
-	if (speed < server_variable_stop_speed):
-		control = server_variable_stop_speed
+	if (speed < GSConsole.convar_list["sv_stopspeed"]["value"]):
+		control = GSConsole.convar_list["sv_stopspeed"]["value"]
 	else:
 		control = speed
 	#speed that needs to be dropped due to friction
@@ -665,7 +648,7 @@ func air_move(delta: float) -> void:
 	#if speed is negative do nothing
 	if add_speed <= 0: return
 	#apply acceleration
-	var accel_speed : float = delta * server_variable_air_acceleration * min(server_variable_max_speed, max_ground_speed)
+	var accel_speed : float = delta * GSConsole.convar_list["sv_airaccelerate"]["value"] * min(GSConsole.convar_list["sv_maxspeed"]["value"], max_ground_speed)
 	#cap accel_speed by add_speed
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
@@ -683,7 +666,7 @@ func ground_move(delta: float) -> void:
 	#get speed multiplier
 	max_ground_speed_multiplier = get_speed_multiplier()
 	#determine how much speed we want to add
-	var add_speed : float = clamp(ground_acceleration * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(GSConsole.convar_list["sv_accelerate"]["value"] * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
 
