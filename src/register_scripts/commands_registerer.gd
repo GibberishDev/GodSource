@@ -11,22 +11,25 @@ func _register_console_commands() -> void:
 	GSConsole.add_command("toggle_console", toggle_console_ui_callable, "Show/hide console window\n   Syntax: toggle_console\n	Is cheat: false - Is admin only: false", [GSInput.INPUT_CONTEXT.UI, GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("alias", alias_command_callable, "Asign alias to list of commands\n   Syntax: alias [alias name] \"[commands]\"\n	Is cheat: false - Is admin only: false", [])
 	GSConsole.add_command("remove_alias", remove_alias_command_callable, "Remove alias\n   Syntax: remove_alias [alias name] \n	Is cheat: false - Is admin only: false", [])
-	GSConsole.add_command("exec", exec_command_callable, "load and execute configuration filea at path\n   Syntax: exec [path, relative to cfg folder] \n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("exec", exec_command_callable, "load and execute configuration file at path\n   Syntax: exec [path, relative to cfg folder] \n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("bind", bind_command_callable, "attach a command to a key\n   Syntax: bind [key](optional) \"[command](optional)\" \n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("unbind", unbind_command_callable, "attach a command to a key\n   Syntax: bind [key](optional) \"[command](optional)\" \n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("unbindall", unbind_all_command_callable, "Unbind all keys\n   Syntax: unbindall \n	Is cheat: false - Is admin only: false", [])
 	# GSConsole.add_command("connect", connect_command_callable, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	# GSConsole.add_command("start_server", connect_command_callable, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 	
 	GSConsole.add_command("+left", enable_wish_left, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-left", disable_wish_left, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-left", disable_wish_left, "")
 	GSConsole.add_command("+right", enable_wish_right, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-right", disable_wish_right, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-right", disable_wish_right, "")
 	GSConsole.add_command("+forward", enable_wish_forward, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-forward", disable_wish_forward, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-forward", disable_wish_forward, "")
 	GSConsole.add_command("+back", enable_wish_back, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-back", disable_wish_back, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-back", disable_wish_back, "")
 	GSConsole.add_command("+crouch", enable_wish_crouch, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-crouch", disable_wish_crouch, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-crouch", disable_wish_crouch, "")
 	GSConsole.add_command("+jump", enable_wish_jump, "", [GSInput.INPUT_CONTEXT.CHARACTER])
-	GSConsole.add_command("-jump", disable_wish_jump, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-jump", disable_wish_jump, "")
 
 #region command callables
 
@@ -153,6 +156,50 @@ func exec_command_callable(arguments_array: Array = []) -> bool:
 		GSConfig.load_cfg_file(arguments_array[0])
 	return true
 
+func bind_command_callable(arguments_array: Array = []) -> bool:
+	if arguments_array.size() == 0:
+		for i : String in GSInput.bound_keys.keys():
+			var key : String = OS.get_keycode_string(int(i)).to_upper()
+			var command : String = GSInput.bound_keys[i]["command"].strip_edges()
+			var modifiers : String = ""
+			if GSInput.bound_keys[i].keys().has("modifiers"):
+				for m : String in GSInput.bound_keys[i]["modifiers"]:
+					modifiers += m.to_upper() + "+"
+			GSConsole.send_output_message("[" + modifiers + key + "] - " + command)
+		pass
+	elif arguments_array.size() > 0:
+		var keyname : String = arguments_array[0]
+		var keycode : int = OS.find_keycode_from_string(keyname)
+		if keycode == 0:
+			GSConsole.send_output_message("[color=red]ERROR: invalid keycode - \"" + keyname + "\"[/color]")
+			return false
+		if arguments_array.size() == 1:
+			var key : String = OS.get_keycode_string(keycode).to_upper()
+			var command : String = GSInput.bound_keys[str(keycode)]["command"].strip_edges()
+			var modifiers : String = ""
+			if GSInput.bound_keys[str(keycode)].keys().has("modifiers"):
+				for m : String in GSInput.bound_keys[str(keycode)]["modifiers"]:
+					modifiers += m.to_upper() + "+"
+			GSConsole.send_output_message("[" + modifiers + key + "] - " + command)
+		else:
+			GSInput.bound_keys[str(keycode)] = {"command":arguments_array[1]}
+	return true
+
+func unbind_command_callable(arguments_array: Array = []) -> bool:
+	if arguments_array.size() == 0: return true
+	else:
+
+		var keyname : String = arguments_array[0]
+		var keycode : int = OS.find_keycode_from_string(keyname)
+		if keycode == 0:
+			GSConsole.send_output_message("[color=red]ERROR: invalid keycode - \"" + keyname + "\"[/color]")
+			return false
+		GSInput.bound_keys.erase(str(keycode))
+	return true
+
+func unbind_all_command_callable(arguments_array: Array = []) -> bool:
+	GSInput.bound_keys = {}
+	return true
 #endregion
 
 #region wish commands callables

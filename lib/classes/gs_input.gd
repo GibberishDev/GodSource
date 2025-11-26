@@ -58,7 +58,9 @@ func handleMouseButton(event: InputEventMouseButton) -> void:
 
 func handleKeyboardInput(event: InputEventKey) -> void:
 	keylist[event.keycode] = {"state": resolve_key_state(event), "name": OS.get_keycode_string(event.keycode)}
-	var bind_command : String = determine_bind(event.keycode)
+	var bind_command : String = ""
+	if bound_keys.keys().has(str(str(event.keycode))):
+		bind_command = bound_keys[str(event.keycode)]["command"]
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
 		if bind_command != "":
 			GSConsole.process_input(bind_command)
@@ -105,31 +107,6 @@ func update_binds() -> void:
 			"command":"+jump"
 		}
 	}
-
-func determine_bind(keycode: Key) -> String:
-	var matches : Array = []
-	for i : String in bound_keys.keys():
-		if i.find(str(keycode)) != -1:
-			matches.append(i)
-	matches.sort_custom(GSUtils.sort_array_of_strings)
-	for k : String in matches:
-		var valid_match : bool = true
-		var split_keys : PackedStringArray = k.split("+")
-		for j : String in split_keys:
-			if j != str(keycode):
-				if j == "ctrl" and Input.is_key_pressed(KEY_CTRL) != true:
-					valid_match = false
-					break
-				if j == "alt" and Input.is_key_pressed(KEY_ALT) != true:
-					valid_match = false
-					break
-				if j == "shift" and Input.is_key_pressed(KEY_SHIFT) != true:
-					valid_match = false
-					break
-				valid_match = false
-		if valid_match == true:
-			return bound_keys[k]["command"]
-	return ""
 
 func construct_negative_command(bind_command: String) -> String:
 	var commands_array : PackedStringArray = GSConsole.split_commands_input(bind_command)
