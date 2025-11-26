@@ -1,0 +1,131 @@
+[gd_scene load_steps=11 format=3 uid="uid://c3x3svyyc6bgk"]
+
+[ext_resource type="Script" uid="uid://bpygujghlpyo" path="res://lib/client/ui_window.gd" id="1_ax3cb"]
+[ext_resource type="FontFile" uid="uid://k35f4hcfpx2s" path="res://assets/fonts/TF2secondary.ttf" id="2_mbfaf"]
+[ext_resource type="Theme" uid="uid://23dnm4cbqltm" path="res://assets/themes/default.tres" id="2_q5pkw"]
+[ext_resource type="Texture2D" uid="uid://m6qqr5478a1q" path="res://assets/textures/ui/window_drag_resize_button.png" id="3_x76ui"]
+
+[sub_resource type="Theme" id="Theme_x76ui"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mbfaf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x76ui"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_q5pkw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7pfek"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_thc8i"]
+
+[node name="window" type="Control"]
+clip_contents = true
+custom_minimum_size = Vector2(120, 90)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 800.0
+offset_bottom = 600.0
+theme = SubResource("Theme_x76ui")
+script = ExtResource("1_ax3cb")
+default_size = Vector2(800, 600)
+
+[node name="bg" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_q5pkw")
+theme_type_variation = &"unfocused_widnow_panel"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="titlebar" type="Panel" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+mouse_default_cursor_shape = 6
+theme = ExtResource("2_q5pkw")
+theme_type_variation = &"focused_window_title"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/titlebar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/titlebar/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+
+[node name="window_name" type="Label" parent="VBoxContainer/titlebar/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_fonts/font = ExtResource("2_mbfaf")
+theme_override_font_sizes/font_size = 14
+text = "Name"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="close_button" type="Button" parent="VBoxContainer/titlebar/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_mbfaf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_x76ui")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_q5pkw")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7pfek")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_thc8i")
+text = "X"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="dud" type="Control" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
+[node name="body" type="Control" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="dud2" type="Control" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
+[node name="dud" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="resize_button" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 12
+texture = ExtResource("3_x76ui")
+
+[connection signal="gui_input" from="VBoxContainer/titlebar" to="." method="_on_titlebar_gui_input"]
+[connection signal="pressed" from="VBoxContainer/titlebar/HBoxContainer/close_button" to="." method="_on_close_button_pressed"]
+[connection signal="gui_input" from="resize_button" to="." method="_on_resize_button_gui_input"]
