@@ -5,10 +5,6 @@ extends CharacterBody3D
 
 #region variables
 
-#region client settings variables #TODO: echange for getters whenever client settings are implemented
-var client_setting_null_movement : bool = true
-#endregion
-
 #region Exported variables
 @export
 var max_ground_speed : float = 240 * 1.905 / 100
@@ -16,9 +12,6 @@ var max_ground_speed : float = 240 * 1.905 / 100
 ## In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
 var max_ground_speed_multiplier : float = 1.0
-## Amount of vertical velocity that needed to be exceeded for player to become airborne
-@export
-var upward_velocity_threshhold : float = 250 * 1.905 / 100
 ## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
 var jump_strength : float = 289 * 1.905 / 100
@@ -40,17 +33,9 @@ var is_crouch_jump_bug_enabled : bool = true
 var is_ctap_bug_enabled : bool = true
 ## Causes player to be able to jump as soon as player touches ground, bypassing ground friction
 @export
-var is_bhop_bug_enabled : bool = true
-## Does not reset player jump key state even if unable to jump at this frame. Meaning that whicj jump key held down player would be able to jump as soon as they touch the ground, performing a bhop, if its enabled. If bhop is disabled frition will still apply
-@export
-var is_auto_jump_enabled : bool = false
-## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
-@export
 var jump_speed_cap: float = 1.2
 @export
 var max_air_speed : float = 30 * 1.905 / 100
-@export
-var max_step_up : float = 18 * 1.905 / 100
 @export
 var crouch_speed_multiplier : float = 1.0 / 3.0
 @export
@@ -141,10 +126,11 @@ func _ready() -> void:
 	#TODO: change to asigning specific camera with multiplayer authority
 	camera.name = "Camera3D"
 	camera.current = true
-	camera.fov = 110.0 # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
+	camera.fov = get_convar("fov_desired") # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
 	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
 	setup_casts_step_check()
+	GSConsole.connect("convar_changed", convar_changed)
 
 func _physics_process(delta: float) -> void:
 	process_movement(delta)
@@ -320,14 +306,14 @@ func try_unstuck() -> void:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Checks if player moving up way too fast to be grounded. Cus if body moving up faster than [member upward_velocity_threshhold] it will be considered airborne. This allows some actions to force player airborne if they exceed this threshold. good example is rampsliding. With enough horizontal speed moving into ramp, players velocity will be clipped to slope and this will result of them becoming airborne, sliding up the ramp and being launched off it. aka rampsliding. look up demoman trimping videos, they are awsome
 func check_upward_velocity() -> void:
-	if velocity.y >= upward_velocity_threshhold:
+	if velocity.y >= get_convar("sv_upthreshold"):
 		is_airborne = true
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Determines if character should be considered grounded. Its more than just [method CharacterBody3D.is_on_floor]. This method also checks upward velocity against [member upward_velocity_threshhold]. See [method check_upward_velocity] 
 func check_grounded() -> bool:
 	#determine if grounded
-	var state : bool = is_on_floor() and (velocity.y < upward_velocity_threshhold)
+	var state : bool = is_on_floor() and (velocity.y < get_convar("sv_upthreshold"))
 	#update states
 	if state: 
 		#refresh mid air jumps
@@ -341,8 +327,8 @@ func check_grounded() -> bool:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Caps velocity to [member maximum_velocity_cap]. This is a hard limit in source engine games and cannot be exceeded. No body can move faster than this for more than 1 frame
 func limit_velocity() -> void:
-	if velocity.length() > GSConsole.convar_list["sv_maxvelocity"]["value"]:
-		velocity = velocity.normalized() * GSConsole.convar_list["sv_maxvelocity"]["value"]
+	if velocity.length() > get_convar("sv_maxvelocity"):
+		velocity = velocity.normalized() * get_convar("sv_maxvelocity")
 
 #endregion
 
@@ -357,7 +343,7 @@ func apply_half_gravity() -> void:
 ## [br]Returns 1 tick of gravity used in calculations
 func get_gravity_tick() -> float:
 	#get gravity value from project settings
-	var gravity : float = GSConsole.convar_list["sv_gravity"]["value"] * gravity_multiplier
+	var gravity : float = get_convar("sv_gravity") * gravity_multiplier
 	#get tickrate from project settings and divide it by current time scale
 	var engine_tick_multiplier : float = ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / Engine.time_scale
 	#return half of gravity as we apply gravity in halves
@@ -527,11 +513,11 @@ func handle_jump(delta: float) -> void:
 		#if no crouching interaction perform a regular jump
 		else: velocity.y += jump_strength - get_gravity_tick()
 		#if bhopping not a thing apply ground friction to horizontal movement
-		if !is_bhop_bug_enabled:
+		if !get_convar("sv_bhop"):
 			apply_friction(delta)
 			pass
 		#limit horizontal speed to jump_speed_cap. Almost immediate fix from valve in early cycle of team fortress 2 life.
-		if GSConsole.convar_list["sv_limit_jump_speed"]["value"]:
+		if get_convar("sv_limitjumpspeed"):
 			#get horizontal velocity
 			var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
 			#get horizontal speed of player
@@ -545,7 +531,7 @@ func handle_jump(delta: float) -> void:
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
 		is_airborne = true
 	#if auto jumping is disabled void player intent on jumping to prevent input buffering 
-	if !is_auto_jump_enabled: GSInput.wish_sates["wish_jump"] = false
+	if !get_convar("sv_autojump"): GSInput.wish_sates["wish_jump"] = false
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Forces player into jump crourching position. If [member is_crouch_jump_bug_enabled] is disabled shift player up same way as crouching while airborne, if not player jump force doesnt account for 1 tick of gravity. In TF2 it amounts to two hammer units difference in jump height
@@ -587,10 +573,10 @@ func apply_friction(delta: float) -> void:
 		return
 	#apply ground friction
 	if !is_airborne:
-		friction = GSConsole.convar_list["sv_friction"]["value"] * surface_friction
+		friction = get_convar("sv_friction") * surface_friction
 	#Bleed off some speed, but if we have less than the bleed threshold, bleed the threshold amount.
-	if (speed < GSConsole.convar_list["sv_stopspeed"]["value"]):
-		control = GSConsole.convar_list["sv_stopspeed"]["value"]
+	if (speed < get_convar("sv_stopspeed")):
+		control = get_convar("sv_stopspeed")
 	else:
 		control = speed
 	#speed that needs to be dropped due to friction
@@ -648,7 +634,7 @@ func air_move(delta: float) -> void:
 	#if speed is negative do nothing
 	if add_speed <= 0: return
 	#apply acceleration
-	var accel_speed : float = delta * GSConsole.convar_list["sv_airaccelerate"]["value"] * min(GSConsole.convar_list["sv_maxspeed"]["value"], max_ground_speed)
+	var accel_speed : float = delta * get_convar("sv_airaccelerate") * min(get_convar("sv_maxspeed"), max_ground_speed)
 	#cap accel_speed by add_speed
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
@@ -666,7 +652,7 @@ func ground_move(delta: float) -> void:
 	#get speed multiplier
 	max_ground_speed_multiplier = get_speed_multiplier()
 	#determine how much speed we want to add
-	var add_speed : float = clamp(GSConsole.convar_list["sv_accelerate"]["value"] * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
 
@@ -678,7 +664,7 @@ func get_wish_direction() -> Vector2:
 	# is a way of interpreting cardinal directions movement from keyboard input where new key press
 	# overrides previous one, but also checks if other key is still held on input release to switch
 	# movement direction back to held key
-	if client_setting_null_movement:
+	if get_convar("cl_nullmovement"):
 		if null_movement_key_state_last_frame["left"] != GSInput.wish_sates["wish_left"]: # if left bind state changed
 			if GSInput.wish_sates["wish_left"]: # if left bind was pressed - switch to moving left immediately
 				wish_direction.x = -1
@@ -715,7 +701,7 @@ func get_wish_direction() -> Vector2:
 		}
 	# if null movement isnt enabled jsut use simple integer math to determine direction
 	else:
-		wish_direction = Input.get_vector(GSInput.wish_sates["wish_left"], GSInput.wish_sates["wish_right"], GSInput.wish_sates["wish_forward"], GSInput.wish_sates["wish_back"])
+		wish_direction = Vector2(int(GSInput.wish_sates["wish_right"]) + int(GSInput.wish_sates["wish_left"]) * -1, int(GSInput.wish_sates["wish_back"]) + int(GSInput.wish_sates["wish_forward"]) * -1)
 	return wish_direction
 
 ## [b][u]PURPOSE[/u][/b]:
@@ -770,13 +756,13 @@ func update_hull(new_size : Vector3 = wish_hull_size) -> void:
 ## [br] Method executed in [method _ready]. Sets up transforms of step up raycast and stepdown shapecast
 func setup_casts_step_check() -> void:
 	# making step down ShapeCast3D same size as player hull and height of max step up length
-	$step_down_shape_cast.shape.size = Vector3(standart_hull_size.x, max_step_up + 0.1, standart_hull_size.z)
+	$step_down_shape_cast.shape.size = Vector3(standart_hull_size.x, get_convar("sv_maxstepup") + 0.1, standart_hull_size.z)
 
 	# positioning step down ShapeCast3D at the bottom of player hull
-	$step_down_shape_cast.position = Vector3(0, (max_step_up + 0.1)/ -2 - 0.01, 0)
+	$step_down_shape_cast.position = Vector3(0, (get_convar("sv_maxstepup") + 0.1)/ -2 - 0.01, 0)
 
 	# making step up RayCast3d length be max step up length
-	$step_up_ray_cast.target_position.y = -(max_step_up + 0.1)
+	$step_up_ray_cast.target_position.y = -(get_convar("sv_maxstepup") + 0.1)
 
 ## [b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
 ## [b][u]PARAMETERS[/u][/b]:[br] surface_normal - [Vector3] - normal of the wall
@@ -818,7 +804,7 @@ func step_down_check() -> void:
 		# create new physics server test object
 		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
 		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
-		if test_motion(global_transform, Vector3(0, -max_step_up - 0.01, 0), motion_test_result) and is_ground_below:
+		if test_motion(global_transform, Vector3(0, -get_convar("sv_maxstepup") - 0.01, 0), motion_test_result) and is_ground_below:
 			# call camera smoothing method from [PlayerCameraComponent]
 			$CameraAnchor.save_start_smoothing_position()
 			# get travel distance from motion test
@@ -847,17 +833,17 @@ func step_up_check(delta: float) -> bool:
 	# Project next motion using delta and current velocity
 	var expected_motion: Vector3 = velocity * Vector3(1, 0, 1) * delta
 	# Predict next motion with step up in mind
-	var step_pos_with_clearance: Transform3D = global_transform.translated(expected_motion + Vector3(0, max_step_up * 2, 0))
+	var step_pos_with_clearance: Transform3D = global_transform.translated(expected_motion + Vector3(0, get_convar("sv_maxstepup") * 2, 0))
 	# Create new physics collision check result instance
 	var down_check_result: KinematicCollision3D = KinematicCollision3D.new()
 	# Test if player can fit in desegnated place
-	if test_move(step_pos_with_clearance, Vector3(0, -max_step_up * 2 ,0), down_check_result):
+	if test_move(step_pos_with_clearance, Vector3(0, -get_convar("sv_maxstepup") * 2 ,0), down_check_result):
 		# Determine travel distance
 		var step_height: float = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - global_position).y - 0.001
 		# If travel distance is invalid: return false
-		if step_height > max_step_up or (down_check_result.get_position() - global_position).y > max_step_up: return false
+		if step_height > get_convar("sv_maxstepup") or (down_check_result.get_position() - global_position).y > get_convar("sv_maxstepup"): return false
 		# Move raycast to the predicted motion destination
-		$step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, max_step_up, 0)
+		$step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, get_convar("sv_maxstepup"), 0)
 		# Force raycast update
 		$step_up_ray_cast.force_raycast_update()
 		# Check if step up spot is valid
@@ -876,3 +862,17 @@ func step_up_check(delta: float) -> bool:
 	return false
 
 #endregion step up logic
+
+#region utils
+
+func get_convar(convar_name: StringName) -> Variant:
+	return GSConsole.convar_list[convar_name]["value"]
+
+func convar_changed(convar_name: StringName) -> void:
+	match convar_name:
+		"sv_maxstepup":
+			setup_casts_step_check()
+		"fov_desired":
+			get_node("Camera3D").fov = get_convar("fov_desired")
+
+#endregion
