@@ -47,7 +47,8 @@ enabled=PackedStringArray("res://addons/gd-blender-3d-shortcuts/plugin.cfg")
 [layer_names]
 
 3d_physics/layer_1="WORLD"
-3d_physics/layer_2="Player"
+3d_physics/layer_2="PLAYER"
+3d_physics/layer_3="TRIGGER"
 
 [physics]
 

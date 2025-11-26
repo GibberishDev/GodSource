@@ -7,23 +7,23 @@ extends CharacterBody3D
 
 #region Exported variables
 @export
-var max_ground_speed : float = 240 * 1.905 / 100
+var max_ground_speed : float = GSUtils.to_meters(240)
 ## Multiplier of default server defined max walking speed.
 ## In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
 var max_ground_speed_multiplier : float = 1.0
 ## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
-var jump_strength : float = 289 * 1.905 / 100
+var jump_strength : float = GSUtils.to_meters(289)
 ## Amount of mid air jumps player can perform without touching ground
 @export
 var maximum_mid_air_jumps : int = 0
 ## Size of player bounding box hull in normal state
 @export
-var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
+var standart_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(83), GSUtils.to_meters(49))
 ## Size of player bounding box hull in crouched state
 @export
-var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
+var crouch_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(63), GSUtils.to_meters(49))
 @export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
@@ -35,7 +35,7 @@ var is_ctap_bug_enabled : bool = true
 @export
 var jump_speed_cap: float = 1.2
 @export
-var max_air_speed : float = 30 * 1.905 / 100
+var max_air_speed : float = GSUtils.to_meters(30)
 @export
 var crouch_speed_multiplier : float = 1.0 / 3.0
 @export
@@ -47,6 +47,8 @@ var backwards_speed_multiplier : float = 0.9
 var is_airborne : bool = false
 ##	Indicates if player is fully crouched.
 var is_crouched : bool = false
+##	Indicates if player is in water.
+var is_in_water : bool = false
 ##	Indicates if player is in process of crouching.
 var is_crouching_animation : bool = false
 ##	Indicates if player is in process of uncrouching.
@@ -69,15 +71,23 @@ var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
 var last_floored_frame : int = 0
 var snapped_to_stairs_last_frame : bool = false
+var current_move_type :MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
 #endregion
 
 #region enum defenitions
 ## Player movement type enumerator that dictates player movement properties
 enum MOVEMENT_TYPE {
-	AIRBORNE, ## Player is airborne
-	WALK, ## Player is walking
-	SWIM, ## Player is considered swimming through liquid
-	NOCLIP, ## No collision fly mode
+	AIRBORNE,		## Player is airborne
+	WALK,			## Player is walking
+	SWIM,			## Player is considered swimming through liquid
+	NOCLIP,			## No collision fly mode
+}
+
+enum WATER_LEVEL {
+	NOT_IN_WATER,	## player is not touching water
+	FEET,			## player is touching water
+	WAIST,			## player is half submerged in water
+	EYES,			## player is underwater
 }
 #endregion
 
@@ -114,6 +124,8 @@ var null_movement_key_state_last_frame : Dictionary = {
 	"back": false,
 }
 var wish_crouch_last_frame : bool = false
+var wish_jump : bool = false
+var wish_jump_last_frame : bool = false
 #endregion
 
 #endregion variables
@@ -149,7 +161,8 @@ func process_movement(delta: float) -> void:
 		#step 3: handle crouching
 		handle_crouch()
 		#step 4: apply half of gravity
-		apply_half_gravity()
+		if is_airborne and current_move_type != MOVEMENT_TYPE.SWIM:
+			apply_half_gravity()
 		#step 5: handle jumping
 		handle_jump(delta)	
 		#step 6: cap velocity
@@ -160,7 +173,7 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		if is_on_floor() and (velocity * Vector3(1,0,1)).length() > max_ground_speed*1.1:
+		if is_on_floor() and (velocity * Vector3(1,0,1)).length() > max_ground_speed*1.1*max_ground_speed_multiplier:
 			clip_velocity(get_floor_normal())
 		elif is_on_wall_only():
 			clip_velocity(get_wall_normal())
@@ -177,7 +190,8 @@ func process_movement(delta: float) -> void:
 			is_airborne = true
 			#TODO: reset_surface_properies()
 		#step 11: apply second half of gravity
-		apply_half_gravity()
+		if is_airborne and current_move_type != MOVEMENT_TYPE.SWIM:
+			apply_half_gravity()
 		#step 12: if not airborne, zero out vertical velocity
 		if !is_airborne:
 			velocity.y = 0.0
@@ -316,9 +330,9 @@ func check_grounded() -> bool:
 	var state : bool = is_on_floor() and (velocity.y < get_convar("sv_upthreshold"))
 	#update states
 	if state: 
-		#refresh mid air jumps
+		water_jump_time = 0.0
+		is_water_jumping = false
 		current_mid_air_jumps = maximum_mid_air_jumps
-		#if grounded update last grounded frame for step up calculations
 		last_floored_frame = Engine.get_physics_frames()
 		#take fall damage
 		#reset blast jumping state
@@ -377,7 +391,7 @@ func handle_crouch() -> void:
 	if (GSInput.wish_sates["wish_crouch"] == wish_crouch_last_frame): return
 	#update state from last frame
 	wish_crouch_last_frame = GSInput.wish_sates["wish_crouch"]
-	if GSInput.wish_sates["wish_crouch"]:
+	if GSInput.wish_sates["wish_crouch"] and get_water_level() < WATER_LEVEL.EYES:
 		queue_uncrouch = false
 		if is_on_floor():
 			#regular crouch on floor
@@ -386,7 +400,7 @@ func handle_crouch() -> void:
 			#air crouch with position shift up
 			position.y += standart_hull_size.y - crouch_hull_size.y
 			crouch()
-			$CameraAnchor.position.y = 45 * 1.905 / 100
+			$CameraAnchor.position.y = GSUtils.to_meters(45)
 			return
 	else:
 		if !is_on_floor():
@@ -397,7 +411,7 @@ func handle_crouch() -> void:
 			if !crouch_check_collider.is_colliding() and is_crouched:
 				position.y -= standart_hull_size.y - crouch_hull_size.y
 				uncrouch()
-				$CameraAnchor.position.y = 68 * 1.905 / 100
+				$CameraAnchor.position.y = GSUtils.to_meters(68)
 			return
 		elif is_crouched:
 			queue_uncrouch = true
@@ -417,7 +431,7 @@ func crouch() -> void:
 	wish_hull_size = crouch_hull_size
 	update_hull()
 	#affirm camera in new position in case it was bypassed 
-	$CameraAnchor.position.y = 45 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(45)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Finalizes player uncrouching
@@ -430,11 +444,12 @@ func uncrouch() -> void:
 	is_crouching_animation = false
 	is_uncrouching_animation = false
 	is_crouched = false
+	wish_crouch_last_frame = false
 	#update world collision hull
 	wish_hull_size = standart_hull_size
 	update_hull()
 	#affirm camera in new position in case it was bypassed 
-	$CameraAnchor.position.y = 68 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(68)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Starts delayed crouch and shifts player camera down
@@ -450,7 +465,7 @@ func start_delayed_crouch() -> void:
 	#save camera for smooth transition
 	$CameraAnchor.save_start_smoothing_position()
 	#update camera position
-	$CameraAnchor.position.y = 45 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(45)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Starts delayed uncrouch and shifts player camera up
@@ -466,7 +481,7 @@ func start_delayed_uncrouch() -> void:
 	#save camera for smooth transition
 	$CameraAnchor.save_start_smoothing_position()
 	#update camera position
-	$CameraAnchor.position.y = 68 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(68)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Handles if player can successfully uncrouch. Main concern is if there is enough space to uncrouch. This is NOT how it is in team fortress 2, cus frankly in tf2 its complete bs.
@@ -503,9 +518,13 @@ func try_uncrouch() -> void:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Hadles player intent to jump
 func handle_jump(delta: float) -> void:
+	if GSInput.wish_sates["wish_jump"] != wish_jump_last_frame:
+		wish_jump = GSInput.wish_sates["wish_jump"]
+	wish_jump_last_frame = GSInput.wish_sates["wish_jump"]
+	if get_water_level() > WATER_LEVEL.FEET: return
 	#check if airborne
 	if !is_on_floor(): pass #TODO: make mid air jumping
-	elif GSInput.wish_sates["wish_jump"] and !is_crouched:
+	elif wish_jump and !is_crouched:
 		#if player is crouching down perform a crouch jump.
 		if is_crouching_animation: crouch_jump()
 		#if player is uncrouching perform a ctap bug. 
@@ -531,7 +550,7 @@ func handle_jump(delta: float) -> void:
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
 		is_airborne = true
 	#if auto jumping is disabled void player intent on jumping to prevent input buffering 
-	if !get_convar("sv_autojump"): GSInput.wish_sates["wish_jump"] = false
+	if !get_convar("sv_autojump"): wish_jump = false
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Forces player into jump crourching position. If [member is_crouch_jump_bug_enabled] is disabled shift player up same way as crouching while airborne, if not player jump force doesnt account for 1 tick of gravity. In TF2 it amounts to two hammer units difference in jump height
@@ -568,7 +587,7 @@ func apply_friction(delta: float) -> void:
 	var friction : float = 1.0 #friction amount
 	var control : float = 0.0 #control speed threshold
 	#stop infinitelly slow movements
-	if speed < (0.1 * 1.905 / 100.0):
+	if speed < GSUtils.to_meters(0.1):
 		velocity = Vector3.ZERO
 		return
 	#apply ground friction
@@ -595,9 +614,14 @@ func apply_friction(delta: float) -> void:
 ## [br] delta - delta time of last physics frame
 func accelerate(delta: float) -> void:
 	#upadte wish_direction
-	get_view_rotations()
-	#TODO: implement water acceleration
 	wish_direction = get_wish_direction()
+	if velocity.y < 0:
+		water_jump_time = 0.0
+		is_water_jumping = false
+	water_jump(delta)
+	if get_water_level() > WATER_LEVEL.FEET:
+		full_water_move(delta)
+		return
 	if is_airborne: air_move(delta)
 	else: ground_move(delta)
 
@@ -743,6 +767,8 @@ func update_hull(new_size : Vector3 = wish_hull_size) -> void:
 	collision_hull.shape.size = new_size 						# set new shape size
 	stuck_check_collider.position = collision_hull.position 	# copy hull position
 	stuck_check_collider.shape = collision_hull.shape 			# copy hull shape
+	%water_trigger.get_node("coll").position = collision_hull.position
+	%water_trigger.get_node("coll").shape.size = Vector3(0,new_size.y,0)
 
 #endregion collision hull editing
 
@@ -862,6 +888,213 @@ func step_up_check(delta: float) -> bool:
 	return false
 
 #endregion step up logic
+
+#region swimming
+func get_water_level() -> WATER_LEVEL:
+	var trigger: Area3D = %water_trigger
+
+	if !trigger.has_overlapping_areas():
+		current_move_type = MOVEMENT_TYPE.WALK
+		return WATER_LEVEL.NOT_IN_WATER
+
+	var areas: Array[Area3D] = trigger.get_overlapping_areas()
+
+	for i: int in range(areas.size()):
+		if areas[i] is GSTrigger:
+			if areas[i].type == "liquid":
+				var water: GSTrigger = areas[i]
+
+				var water_body_vertical_extends: Vector2 = Vector2(water.global_position.y, water.global_position.y + water.size.y)
+
+				var eyes_height: float = $CameraAnchor/smoother/anchor.global_position.y
+				var waist_height: float = collision_hull.global_position.y + GSUtils.to_meters(12.5) #half of the player height + 12.5 hamemr units
+
+				if eyes_height > water_body_vertical_extends.x and eyes_height < water_body_vertical_extends.y:
+					# run extinguish and other being submerged in watter effects
+					current_move_type = MOVEMENT_TYPE.SWIM
+
+					if is_crouched:
+						try_uncrouch()
+
+					return WATER_LEVEL.EYES
+
+				elif waist_height > water_body_vertical_extends.x and waist_height < water_body_vertical_extends.y:
+					# run extinguish and other being submerged in watter effects
+					current_move_type = MOVEMENT_TYPE.SWIM
+					return WATER_LEVEL.WAIST
+
+				current_move_type = MOVEMENT_TYPE.WALK
+				return WATER_LEVEL.FEET
+
+	current_move_type = MOVEMENT_TYPE.WALK
+	return WATER_LEVEL.NOT_IN_WATER
+
+#FIXME: move to variables section
+var water_jump_time : float = 0.0
+var is_water_jumping : bool = false
+var can_swim : bool = true
+var water_jump_wish_velocity : Vector3 = Vector3.ZERO 
+var water_jump_power: float = GSUtils.to_meters(400.0)
+var swimming_mastery : bool = false ##unused even in tf2 but present in code
+
+func full_water_move(delta: float) -> void:
+	if get_water_level() >= WATER_LEVEL.FEET:
+		check_water_jump(delta)
+
+	if velocity.y < 0 and water_jump_time != 0.0:
+		water_jump_time = 0.0
+		is_water_jumping = false
+
+	if GSInput.wish_sates["wish_jump"]:
+		swim_up(delta)
+
+	water_move(delta)
+
+	if !is_airborne:
+		velocity.y = 0
+
+	return
+
+func swim_up(delta: float) -> void:
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+
+	if get_water_level() > WATER_LEVEL.FEET and !is_water_jumping:
+		is_airborne = true
+		if !can_swim: return
+		velocity.y = GSUtils.to_meters(100)
+
+func check_water_jump(delta: float) -> void:
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+		if water_jump_time < 0:
+			water_jump_time = 0
+		return
+
+	if velocity.y < GSUtils.to_meters(-180):
+		return
+
+	var flat_velocity: Vector3 = Vector3(velocity.x, 0, velocity.z)
+
+	var current_speed: float = flat_velocity.length()
+
+	var flat_forward_vector: Vector3 = get_view_angles()[0] * -wish_direction.y * max_ground_speed + get_view_angles()[2] * wish_direction.x * max_ground_speed
+
+	flat_forward_vector.y = 0.0
+
+	if current_speed != 0.0 and flat_velocity.normalized().dot(flat_forward_vector.normalized()) < 0.0 and !GSInput.wish_sates["wish_jump"]:
+		return
+
+	var vector_start: Vector3 = collision_hull.global_position
+
+	var vector_end: Vector3 = vector_start + GSUtils.to_meters(30) * flat_forward_vector.normalized()
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if !%water_jump_destination_check.is_colliding():
+		return
+
+	var shore_wall_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
+	water_jump_wish_velocity = shore_wall_normal * GSUtils.to_meters(-50)
+	vector_start.y = $CameraAnchor/smoother/anchor.global_position.y + GSUtils.to_meters(10)
+	vector_end = vector_start + GSUtils.to_meters(30) * flat_forward_vector.normalized()
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if %water_jump_destination_check.is_colliding():
+		return
+
+	vector_start = vector_end
+	vector_end.y -= GSUtils.to_meters(1024)
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if %water_jump_destination_check.is_colliding():
+		var shore_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
+		if shore_normal.y >= 0.7 and !is_water_jumping:
+			water_jump_time = 500.0
+			is_water_jumping = true
+			velocity.y = water_jump_power
+
+func water_move(delta: float) -> void:
+	var wish_velocity: Vector3 = get_view_angles()[0] * -wish_direction.y * max_ground_speed + get_view_angles()[2] * wish_direction.x * max_ground_speed
+
+	if !can_swim:
+		wish_velocity.x *= 0.1
+		wish_velocity.y = GSUtils.to_meters(-60)
+		wish_velocity.z *= 0.1
+
+	if GSInput.wish_sates["wish_jump"]:
+		wish_velocity.y += max_ground_speed
+	elif wish_velocity == Vector3.ZERO:
+		wish_velocity.y -= GSUtils.to_meters(60)
+	else:
+		wish_velocity.y = max_ground_speed * get_view_angles()[0].y
+		is_airborne = true
+
+	var wish_speed: float = wish_velocity.length()
+
+	if wish_speed > max_ground_speed:
+		wish_velocity *= max_ground_speed / wish_speed
+		wish_speed = max_ground_speed
+
+	if !swimming_mastery:
+		wish_speed *= 0.8
+
+	var speed: float = velocity.length()
+	var new_speed: float = 0
+
+	if speed != 0.0:
+		new_speed = speed - delta * speed * 4 * 0.4
+
+		if new_speed < 0.01:
+			new_speed = 0
+
+		velocity *= new_speed / speed
+	else:
+		new_speed = 0
+
+	if wish_speed >= 0.1:
+		var add_speed: float = wish_speed - new_speed
+
+		if add_speed > 0:
+			wish_velocity = wish_velocity.normalized()
+
+			var accelerate_speed: float = get_convar("sv_accelerate") * wish_speed * delta * 0.8
+
+			if accelerate_speed > add_speed:
+				accelerate_speed = add_speed
+
+			var delta_speed: Vector3 = accelerate_speed * wish_velocity
+
+			velocity += delta_speed
+
+func water_jump(delta: float) -> void:
+	if water_jump_time > 10000:
+		water_jump_time = 10000
+
+	if water_jump_time == 0.0:
+		return
+		
+	if water_jump_time <= 0.0 or get_water_level() > WATER_LEVEL.NOT_IN_WATER:
+		water_jump_time = 0.0
+		is_water_jumping = false
+
+	water_jump_time -= 1000.0 * delta
+	velocity.x = water_jump_wish_velocity.x
+	velocity.z = water_jump_wish_velocity.z
+
+#endregion
+
+#region knockback
+
+#endregion
 
 #region utils
 

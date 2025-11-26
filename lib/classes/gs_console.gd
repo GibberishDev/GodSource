@@ -46,12 +46,6 @@ func add_command(command_name: StringName, callable: Callable, description: Stri
 	self.command_list[command_name] = new_command
 	send_output_message("Registered command \"" + command_name + "\"")
 
-func get_all_commands() -> String:
-	var output_string: String = ""
-	for i : StringName in self.command_list:
-		output_string += ("\n[color=gold]" + str(i) + "[/color]")
-	return output_string
-
 func process_input(input_string: String) -> bool:
 	var commands_array: PackedStringArray = split_commands_input(input_string) #Split commands string into an array of commands
 	return process_commands(commands_array)

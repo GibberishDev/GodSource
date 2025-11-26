@@ -1,9 +1,10 @@
-[gd_scene load_steps=17 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=20 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
 [ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
 [ext_resource type="PackedScene" uid="uid://bi86818wi0ajw" path="res://untracked/test_map.blend" id="2_nwtsw"]
 [ext_resource type="Texture2D" uid="uid://bccg6cysts0s8" path="res://untracked/textures/wood_floor01.png" id="4_c1pod"]
+[ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0qie4"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -47,6 +48,12 @@ point_count = 2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4n7c"]
 albedo_texture = ExtResource("4_c1pod")
+
+[sub_resource type="BoxMesh" id="BoxMesh_x23qr"]
+size = Vector3(4.763, 4.953, 0.953)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_biiar"]
+size = Vector3(4.763, 4.953, 0.953)
 
 [node name="Node3D" type="Node3D"]
 
@@ -145,5 +152,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.976, 0, 7.927)
 
 [node name="stairs_coll" parent="test_map" index="0"]
 material_override = SubResource("StandardMaterial3D_e4n7c")
+
+[node name="GSTrigger" parent="." instance=ExtResource("5_e4n7c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 11.43)
+size = Vector3(4.763, 4.763, 4.763)
+
+[node name="GSTrigger2" parent="." instance=ExtResource("5_e4n7c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 8.096)
+size = Vector3(1.905, 1.029, 1.905)
+
+[node name="GSTrigger3" parent="." instance=ExtResource("5_e4n7c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 6.191)
+size = Vector3(1.905, 0.876, 1.905)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 2.381, 14.288)
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+material_override = ExtResource("2_gbv3d")
+mesh = SubResource("BoxMesh_x23qr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_biiar")
 
 [editable path="test_map"]
