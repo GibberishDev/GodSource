@@ -1,22 +1,9 @@
-class_name GodsourcePlayerMovement3D
+class_name GSPlayer
 extends CharacterBody3D
 
 ## This is a dedicated Godsource player movement script. This script implements a bunch of movement techniques present in Source engine. Most of them stem from bugged behaviour or coding oversights that are brought all the way from original quake and doom engines
 
 #region variables
-
-#region server defined variables #TODO: move to server script later
-## Maximum walking speed base value. 320 hu/s is team fortres 2 default
-var maximum_walking_speed_base : float = 320 * 1.905 / 100
-## Amount of velocity enitity can have. Any more is capped to this value
-var maximum_velocity_cap : float = 3500 * 1.905 / 100 #TODO: move maximum velocity to server settings
-## Global multiplier of surface friction used in [method GodsourcePlayerMovement3D.apply_friction] method
-var server_variable_friction : float = 4.0
-## Global stop speed threshold used in [method GodsourcePlayerMovement3D.apply_friction] method
-var server_variable_stop_speed : float = 100 * 1.905 / 100
-var server_variable_max_speed : float = 320 * 1.905 / 100 #TODO: rename to something more sensible cause it isnt in source engine.
-var server_variable_air_acceleration : float = 10
-#endregion
 
 #region client settings variables #TODO: echange for getters whenever client settings are implemented
 var client_setting_null_movement : bool = true
@@ -40,10 +27,10 @@ var jump_strength : float = 289 * 1.905 / 100
 var maximum_mid_air_jumps : int = 0
 ## Size of player bounding box hull in normal state
 @export
-var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
+var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
 ## Size of player bounding box hull in crouched state
 @export
-var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100) #TODO: change default
+var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
 @export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
@@ -57,9 +44,6 @@ var is_bhop_bug_enabled : bool = true
 ## Does not reset player jump key state even if unable to jump at this frame. Meaning that whicj jump key held down player would be able to jump as soon as they touch the ground, performing a bhop, if its enabled. If bhop is disabled frition will still apply
 @export
 var is_auto_jump_enabled : bool = false
-## Limit player movement speed to [jump_speed_cap]
-@export
-var limit_bhop_speed: bool = true
 ## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
 @export
 var jump_speed_cap: float = 1.2
@@ -98,7 +82,6 @@ var queue_uncrouch : bool = false
 var wish_hull_size : Vector3 = standart_hull_size
 var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
-var ground_acceleration : float = 10
 var last_floored_frame : int = 0
 var snapped_to_stairs_last_frame : bool = false
 #endregion
@@ -136,7 +119,6 @@ var camera : Camera3D = Camera3D.new()
 #endregion
 
 #region wish control variables
-#TODO: move this region to the dedicated player input gathering node for easier multiplayer client prediction and server reconciliation
 ## Desired input vector. left is -x, right is +x, forward is -y, back is +y
 var wish_direction : Vector2 = Vector2.ZERO
 ## Dictionarry that keeps track of last frame of keys to determine if key was just pressed, still pressed, just released or still released
@@ -146,32 +128,12 @@ var null_movement_key_state_last_frame : Dictionary = {
 	"forward": false,
 	"back": false,
 }
-var wish_crouch : bool = false
-var wish_jump : bool = false
 var wish_crouch_last_frame : bool = false
-var wish_left : bool = false
-var wish_right : bool = false
-var wish_forward : bool = false
-var wish_back : bool = false
 #endregion
 
 #endregion variables
 
-#region native godot methods
-func _unhandled_input(_event: InputEvent) -> void: #TODO: move to input gathering script. Not bullet proof. TESTING ONLY
-	wish_crouch = Input.is_action_pressed("crouch")
-	if Input.is_action_just_released("jump"):
-		wish_jump = false
-	if Input.is_action_just_pressed("jump"):
-		wish_jump = true
-	if Input.is_key_pressed(KEY_F1):	#TODO: Remove after done testing. Also implement host_time_scale console command	╗ 
-		Engine.time_scale = 0.05		#																					║
-	if Input.is_key_pressed(KEY_F2):	#																					║
-		Engine.time_scale = 1.0			#																					╝
-	wish_left = Input.is_action_pressed("left")
-	wish_right = Input.is_action_pressed("right")
-	wish_forward = Input.is_action_pressed("forward")
-	wish_back = Input.is_action_pressed("back")
+#region native godot methods																				╝
 
 func _ready() -> void:
 	update_hull()
@@ -203,7 +165,7 @@ func process_movement(delta: float) -> void:
 		#step 4: apply half of gravity
 		apply_half_gravity()
 		#step 5: handle jumping
-		handle_jump()	
+		handle_jump(delta)	
 		#step 6: cap velocity
 		limit_velocity()
 		#step 7: if not airborne apply friction and 0 out vertical velocity
@@ -379,8 +341,8 @@ func check_grounded() -> bool:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Caps velocity to [member maximum_velocity_cap]. This is a hard limit in source engine games and cannot be exceeded. No body can move faster than this for more than 1 frame
 func limit_velocity() -> void:
-	if velocity.length() > maximum_velocity_cap:
-		velocity = velocity.normalized() * maximum_velocity_cap
+	if velocity.length() > GSConsole.convar_list["sv_maxvelocity"]["value"]:
+		velocity = velocity.normalized() * GSConsole.convar_list["sv_maxvelocity"]["value"]
 
 #endregion
 
@@ -395,7 +357,7 @@ func apply_half_gravity() -> void:
 ## [br]Returns 1 tick of gravity used in calculations
 func get_gravity_tick() -> float:
 	#get gravity value from project settings
-	var gravity : float = (ProjectSettings.get_setting("physics/3d/default_gravity") * gravity_multiplier)
+	var gravity : float = GSConsole.convar_list["sv_gravity"]["value"] * gravity_multiplier
 	#get tickrate from project settings and divide it by current time scale
 	var engine_tick_multiplier : float = ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / Engine.time_scale
 	#return half of gravity as we apply gravity in halves
@@ -421,23 +383,22 @@ func get_gravity_tick() -> float:
 ## [br]decodes player intention to uncrouch depending on player state
 func handle_crouch() -> void:
 	#check if player wants to uncrouch and ask engine to uncrouch as soon as possible
-	if !wish_crouch and (is_crouched or is_crouching_animation): queue_uncrouch = true
+	if !GSInput.wish_sates["wish_crouch"] and (is_crouched or is_crouching_animation): queue_uncrouch = true
 	if queue_uncrouch:
 		try_uncrouch()
 		return
-	#TODO: change state check to input gathering script
 	#if state didnt change from last frame -> return
-	if (wish_crouch == wish_crouch_last_frame): return
+	if (GSInput.wish_sates["wish_crouch"] == wish_crouch_last_frame): return
 	#update state from last frame
-	wish_crouch_last_frame = wish_crouch
-	if wish_crouch:
+	wish_crouch_last_frame = GSInput.wish_sates["wish_crouch"]
+	if GSInput.wish_sates["wish_crouch"]:
 		queue_uncrouch = false
 		if is_on_floor():
 			#regular crouch on floor
 			start_delayed_crouch()
 		else:
 			#air crouch with position shift up
-			position.y += standart_hull_size.y - crouch_hull_size.y 
+			position.y += standart_hull_size.y - crouch_hull_size.y
 			crouch()
 			$CameraAnchor.position.y = 45 * 1.905 / 100
 			return
@@ -447,7 +408,7 @@ func handle_crouch() -> void:
 			crouch_check_collider.position = Vector3(0, (standart_hull_size.y - crouch_hull_size.y) / -2.0, 0)
 			crouch_check_collider.force_update_transform()
 			crouch_check_collider.force_shapecast_update()
-			if !crouch_check_collider.is_colliding():
+			if !crouch_check_collider.is_colliding() and is_crouched:
 				position.y -= standart_hull_size.y - crouch_hull_size.y
 				uncrouch()
 				$CameraAnchor.position.y = 68 * 1.905 / 100
@@ -555,10 +516,10 @@ func try_uncrouch() -> void:
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Hadles player intent to jump
-func handle_jump() -> void:
+func handle_jump(delta: float) -> void:
 	#check if airborne
 	if !is_on_floor(): pass #TODO: make mid air jumping
-	elif wish_jump and !is_crouched:
+	elif GSInput.wish_sates["wish_jump"] and !is_crouched:
 		#if player is crouching down perform a crouch jump.
 		if is_crouching_animation: crouch_jump()
 		#if player is uncrouching perform a ctap bug. 
@@ -567,24 +528,24 @@ func handle_jump() -> void:
 		else: velocity.y += jump_strength - get_gravity_tick()
 		#if bhopping not a thing apply ground friction to horizontal movement
 		if !is_bhop_bug_enabled:
-			#TODO: add one tick of friction here
+			apply_friction(delta)
 			pass
 		#limit horizontal speed to jump_speed_cap. Almost immediate fix from valve in early cycle of team fortress 2 life.
-		if limit_bhop_speed:
+		if GSConsole.convar_list["sv_limit_jump_speed"]["value"]:
 			#get horizontal velocity
 			var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
 			#get horizontal speed of player
 			var speed : float = horizontal_velocity.length()
 			#if speed exceeds limit cap it to that limit
-			if speed > maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap:
+			if speed > max_ground_speed * max_ground_speed_multiplier * jump_speed_cap:
 				#get new horizontal velocity
-				horizontal_velocity = horizontal_velocity.normalized() * maximum_walking_speed_base * max_ground_speed_multiplier * jump_speed_cap
+				horizontal_velocity = horizontal_velocity.normalized() * max_ground_speed * max_ground_speed_multiplier * jump_speed_cap
 				#update player velocity
 				velocity = Vector3(horizontal_velocity.x, velocity.y, horizontal_velocity.y)
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
 		is_airborne = true
 	#if auto jumping is disabled void player intent on jumping to prevent input buffering 
-	if !is_auto_jump_enabled: wish_jump = false
+	if !is_auto_jump_enabled: GSInput.wish_sates["wish_jump"] = false
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Forces player into jump crourching position. If [member is_crouch_jump_bug_enabled] is disabled shift player up same way as crouching while airborne, if not player jump force doesnt account for 1 tick of gravity. In TF2 it amounts to two hammer units difference in jump height
@@ -594,6 +555,7 @@ func crouch_jump() -> void: #invokled from jumping handle
 		velocity.y = jump_strength
 	else:
 		velocity.y = jump_strength - get_gravity_tick()
+	$CameraAnchor.reset_smoothing()
 	position.y += standart_hull_size.y - crouch_hull_size.y
 
 ## [b][u]PURPOSE[/u][/b]:
@@ -604,6 +566,7 @@ func ctap() -> void:
 	crouch()
 	velocity.y = jump_strength - get_gravity_tick()
 	#if not bugged shift upwards.
+	$CameraAnchor.reset_smoothing()
 	if !is_ctap_bug_enabled: position.y += standart_hull_size.y - crouch_hull_size.y
 
 #endregion
@@ -624,10 +587,10 @@ func apply_friction(delta: float) -> void:
 		return
 	#apply ground friction
 	if !is_airborne:
-		friction = server_variable_friction * surface_friction
+		friction = GSConsole.convar_list["sv_friction"]["value"] * surface_friction
 	#Bleed off some speed, but if we have less than the bleed threshold, bleed the threshold amount.
-	if (speed < server_variable_stop_speed):
-		control = server_variable_stop_speed
+	if (speed < GSConsole.convar_list["sv_stopspeed"]["value"]):
+		control = GSConsole.convar_list["sv_stopspeed"]["value"]
 	else:
 		control = speed
 	#speed that needs to be dropped due to friction
@@ -685,7 +648,7 @@ func air_move(delta: float) -> void:
 	#if speed is negative do nothing
 	if add_speed <= 0: return
 	#apply acceleration
-	var accel_speed : float = delta * server_variable_air_acceleration * min(server_variable_max_speed, max_ground_speed)
+	var accel_speed : float = delta * GSConsole.convar_list["sv_airaccelerate"]["value"] * min(GSConsole.convar_list["sv_maxspeed"]["value"], max_ground_speed)
 	#cap accel_speed by add_speed
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
@@ -703,7 +666,7 @@ func ground_move(delta: float) -> void:
 	#get speed multiplier
 	max_ground_speed_multiplier = get_speed_multiplier()
 	#determine how much speed we want to add
-	var add_speed : float = clamp(ground_acceleration * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(GSConsole.convar_list["sv_accelerate"]["value"] * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
 
@@ -716,43 +679,43 @@ func get_wish_direction() -> Vector2:
 	# overrides previous one, but also checks if other key is still held on input release to switch
 	# movement direction back to held key
 	if client_setting_null_movement:
-		if null_movement_key_state_last_frame["left"] != wish_left: # if left bind state changed
-			if wish_left: # if left bind was pressed - switch to moving left immediately
+		if null_movement_key_state_last_frame["left"] != GSInput.wish_sates["wish_left"]: # if left bind state changed
+			if GSInput.wish_sates["wish_left"]: # if left bind was pressed - switch to moving left immediately
 				wish_direction.x = -1
-			elif wish_right: # if left bind was released and right bind is still held - switch back to moving right
+			elif GSInput.wish_sates["wish_right"]: # if left bind was released and right bind is still held - switch back to moving right
 				wish_direction.x = 	1
 			else: # if left bind released but right bind also isnt pressed - stop strafing 
 				wish_direction.x = 	0
-		if null_movement_key_state_last_frame["right"] != wish_right:
-			if wish_right:
+		if null_movement_key_state_last_frame["right"] != GSInput.wish_sates["wish_right"]:
+			if GSInput.wish_sates["wish_right"]:
 				wish_direction.x = 	1
-			elif wish_left:
+			elif GSInput.wish_sates["wish_left"]:
 				wish_direction.x = -1
 			else:
 				wish_direction.x = 	0
-		if null_movement_key_state_last_frame["forward"] != wish_forward:
-			if wish_forward:
+		if null_movement_key_state_last_frame["forward"] != GSInput.wish_sates["wish_forward"]:
+			if GSInput.wish_sates["wish_forward"]:
 				wish_direction.y = -1
-			elif wish_back:
+			elif GSInput.wish_sates["wish_back"]:
 				wish_direction.y = 	1
 			else:
 				wish_direction.y = 	0
-		if null_movement_key_state_last_frame["back"] != wish_back:
-			if wish_back:
+		if null_movement_key_state_last_frame["back"] != GSInput.wish_sates["wish_back"]:
+			if GSInput.wish_sates["wish_back"]:
 				wish_direction.y = 	1
-			elif wish_forward:
+			elif GSInput.wish_sates["wish_forward"]:
 				wish_direction.y = -1
 			else:
 				wish_direction.y = 	0
 		null_movement_key_state_last_frame = {
-			"left": wish_left,
-			"right": wish_right,
-			"forward": wish_forward,
-			"back": wish_back,
+			"left": GSInput.wish_sates["wish_left"],
+			"right": GSInput.wish_sates["wish_right"],
+			"forward": GSInput.wish_sates["wish_forward"],
+			"back": GSInput.wish_sates["wish_back"],
 		}
 	# if null movement isnt enabled jsut use simple integer math to determine direction
 	else:
-		wish_direction = Input.get_vector( "left", "right", "forward", "back")
+		wish_direction = Input.get_vector(GSInput.wish_sates["wish_left"], GSInput.wish_sates["wish_right"], GSInput.wish_sates["wish_forward"], GSInput.wish_sates["wish_back"])
 	return wish_direction
 
 ## [b][u]PURPOSE[/u][/b]:
@@ -851,7 +814,7 @@ func step_down_check() -> void:
 	# see if ground below is close enough
 	var is_ground_below: bool = ($step_down_shape_cast.is_colliding())
 	# if airborne and was grounded last frame and intending to jump: true -> step down , false -> update last frame grounded
-	if is_airborne and (stepped_down or was_on_floor_last_frame) and !wish_jump and velocity.y <= 0:
+	if is_airborne and (stepped_down or was_on_floor_last_frame) and !GSInput.wish_sates["wish_jump"] and velocity.y <= 0:
 		# create new physics server test object
 		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
 		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to

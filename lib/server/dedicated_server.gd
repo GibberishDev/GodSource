@@ -13,7 +13,7 @@ func _ready() -> void:
 	print_rich("[color=green]Starting CLI thread...[/color]")
 	input_thread = Thread.new()
 	input_thread.start(_cli_input)
-	Console.terminal_input_thread_semaphore = input_thread_semaphore
+	GSConsole.terminal_input_thread_semaphore = input_thread_semaphore
 	input_thread_semaphore.post() 	#Unsuspend thread input activity. Needs to be done first cause of issues with how thread interacts with main thread execution of commands.
 									# (commands usually finish exewcuting later than thread starts listening for new input leading to ability to execute
 									#  one more command input after issuing immediate shutdown of input thread via QUIT command)
@@ -33,7 +33,7 @@ func _cli_input() -> void:
 		
 		printraw.call_deferred("> ") 
 		var input_text : String = OS.read_string_from_stdin(4096).strip_edges() #await user input
-		Console.process_input(input_text) #send input to console class to process it for command inputs
+		GSConsole.process_input(input_text) #send input to console class to process it for command inputs
 
 func _exit_tree() -> void: #Dispose of thread safely to not shit the memory
 	input_thread_mutex.lock()

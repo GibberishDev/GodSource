@@ -1,0 +1,115 @@
+[gd_scene load_steps=4 format=3 uid="uid://du80wx5bebmb7"]
+
+[ext_resource type="Texture2D" uid="uid://c5wm777bq0exy" path="res://assets/textures/tf2-backgrounds-delete-later/competitive_tier3_2650x1600.jpg" id="1_mob6k"]
+[ext_resource type="Script" uid="uid://s80dvpn1gnpg" path="res://src/scenes/main_menu.gd" id="1_rkeyg"]
+[ext_resource type="FontFile" uid="uid://k35f4hcfpx2s" path="res://assets/fonts/TF2secondary.ttf" id="1_rm437"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rkeyg")
+
+[node name="background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_mob6k")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="cont_1" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -204.0
+offset_top = -188.0
+offset_right = 96.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="bg" type="Panel" parent="cont_1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="cont_1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="start" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_rm437")
+theme_override_font_sizes/font_size = 36
+text = "START"
+clip_text = true
+
+[node name="join" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_rm437")
+theme_override_font_sizes/font_size = 36
+text = "JOIN"
+clip_text = true
+
+[node name="settings" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_rm437")
+theme_override_font_sizes/font_size = 36
+text = "SETTINGS"
+clip_text = true
+
+[node name="quit" type="Button" parent="cont_1/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8609761, 0.9057741, 0.6508916, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.47725576, 0.39932021, 0.42427373, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_rm437")
+theme_override_font_sizes/font_size = 36
+text = "QUIT"
+clip_text = true
+
+[connection signal="pressed" from="cont_1/VBoxContainer/start" to="." method="load_debug_map"]
+[connection signal="pressed" from="cont_1/VBoxContainer/quit" to="." method="button_quit"]
