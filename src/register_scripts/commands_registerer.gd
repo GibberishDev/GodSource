@@ -30,6 +30,8 @@ func _register_console_commands() -> void:
 	GSConsole.add_command("-crouch", disable_wish_crouch, "")
 	GSConsole.add_command("+jump", enable_wish_jump, "", [GSInput.INPUT_CONTEXT.CHARACTER])
 	GSConsole.add_command("-jump", disable_wish_jump, "")
+	GSConsole.add_command("+attack", enable_wish_attack, "", [GSInput.INPUT_CONTEXT.CHARACTER])
+	GSConsole.add_command("-attack", disable_wish_attack, "")
 
 #region command callables
 
@@ -159,30 +161,41 @@ func exec_command_callable(arguments_array: Array = []) -> bool:
 func bind_command_callable(arguments_array: Array = []) -> bool:
 	if arguments_array.size() == 0:
 		for i : String in GSInput.bound_keys.keys():
-			var key : String = OS.get_keycode_string(int(i)).to_upper()
+			var key : String = OS.get_keycode_string(int(i)).to_upper().strip_edges()
+			if key == "":
+				key = GSInput.get_mouse_key_names(i).to_upper()
 			var command : String = GSInput.bound_keys[i]["command"].strip_edges()
-			var modifiers : String = ""
-			if GSInput.bound_keys[i].keys().has("modifiers"):
-				for m : String in GSInput.bound_keys[i]["modifiers"]:
-					modifiers += m.to_upper() + "+"
-			GSConsole.send_output_message("[" + modifiers + key + "] - " + command)
+			GSConsole.send_output_message("[" + key + "] - " + command)
 		pass
 	elif arguments_array.size() > 0:
 		var keyname : String = arguments_array[0]
 		var keycode : int = OS.find_keycode_from_string(keyname)
+		var mouse_key : StringName = GSInput.get_mosue_button(keyname)
 		if keycode == 0:
-			GSConsole.send_output_message("[color=red]ERROR: invalid keycode - \"" + keyname + "\"[/color]")
-			return false
+			if mouse_key == "":
+				GSConsole.send_output_message("[color=red]ERROR: invalid keycode - \"" + keyname + "\"[/color]")
+				return false
 		if arguments_array.size() == 1:
-			var key : String = OS.get_keycode_string(keycode).to_upper()
-			var command : String = GSInput.bound_keys[str(keycode)]["command"].strip_edges()
-			var modifiers : String = ""
-			if GSInput.bound_keys[str(keycode)].keys().has("modifiers"):
-				for m : String in GSInput.bound_keys[str(keycode)]["modifiers"]:
-					modifiers += m.to_upper() + "+"
-			GSConsole.send_output_message("[" + modifiers + key + "] - " + command)
+			if !keycode == 0:
+				var key : String = OS.get_keycode_string(keycode).to_upper()
+				if GSInput.bound_keys.keys().has(str(keycode)):
+					var command : String = GSInput.bound_keys[str(keycode)]["command"].strip_edges()
+					GSConsole.send_output_message("[" + key + "] - " + command)
+				else:
+					GSConsole.send_output_message("[" + key + "] - not bound")
+			else:
+				if GSInput.bound_keys.keys().has(str(mouse_key)):
+					var command : String = GSInput.bound_keys[str(mouse_key)]["command"].strip_edges()
+					GSConsole.send_output_message("[" + keyname.to_upper() + "] - " + command)
+				else:
+					GSConsole.send_output_message("[" + keyname.to_upper() + "] - not bound")
+
 		else:
-			GSInput.bound_keys[str(keycode)] = {"command":arguments_array[1]}
+			if !keycode == 0:
+				GSInput.bound_keys[str(keycode)] = {"command":arguments_array[1]}
+			else:
+				GSInput.bound_keys[str(mouse_key)] = {"command":arguments_array[1]}
+
 	return true
 
 func unbind_command_callable(arguments_array: Array = []) -> bool:
@@ -234,11 +247,20 @@ func enable_wish_crouch(arguments_array: Array = []) -> bool:
 func disable_wish_crouch(arguments_array: Array = []) -> bool: 
 	GSInput.wish_sates["wish_crouch"] = false
 	return true
-func enable_wish_jump(arguments_array: Array = []) -> bool: 
+func enable_wish_jump(arguments_array: Array = []) -> bool:
 	GSInput.wish_sates["wish_jump"] = true
 	return true
 func disable_wish_jump(arguments_array: Array = []) -> bool: 
 	GSInput.wish_sates["wish_jump"] = false
+	return true
+func enable_wish_attack(arguments_array: Array = []) -> bool: 
+	GSInput.wish_sates["wish_attack"] = true
+	#TODO: Exchange for proper attack script when ready
+	# var player : GSPlayer = get_tree().root.get_node("Node3D/gs_player")
+	# player.spawn_rocket()
+	return true
+func disable_wish_attack(arguments_array: Array = []) -> bool: 
+	GSInput.wish_sates["wish_attack"] = false
 	return true
 
 #endregion

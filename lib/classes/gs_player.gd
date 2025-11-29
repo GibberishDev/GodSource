@@ -14,7 +14,7 @@ var max_ground_speed : float = GSUtils.to_meters(240)
 var max_ground_speed_multiplier : float = 1.0
 ## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
-var jump_strength : float = GSUtils.to_meters(289)
+var jump_strength : float = GSUtils.to_meters(288)
 ## Amount of mid air jumps player can perform without touching ground
 @export
 var maximum_mid_air_jumps : int = 0
@@ -71,7 +71,7 @@ var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
 var last_floored_frame : int = 0
 var snapped_to_stairs_last_frame : bool = false
-var current_move_type :MOVEMENT_TYPE = MOVEMENT_TYPE.AIRBORNE
+var stored_velocity : Vector3 = Vector3.ZERO
 #endregion
 
 #region enum defenitions
@@ -161,7 +161,7 @@ func process_movement(delta: float) -> void:
 		#step 3: handle crouching
 		handle_crouch()
 		#step 4: apply half of gravity
-		if is_airborne and current_move_type != MOVEMENT_TYPE.SWIM:
+		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
 			apply_half_gravity()
 		#step 5: handle jumping
 		handle_jump(delta)	
@@ -173,14 +173,11 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		if is_on_floor() and (velocity * Vector3(1,0,1)).length() > max_ground_speed*1.1*max_ground_speed_multiplier:
-			clip_velocity(get_floor_normal())
-		elif is_on_wall_only():
-			clip_velocity(get_wall_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		if !step_up_check(delta):
 			step_down_check()
+			
 			move_and_slide()
 		#step 10: check if grounded and surface properties
 		if check_grounded():
@@ -190,7 +187,7 @@ func process_movement(delta: float) -> void:
 			is_airborne = true
 			#TODO: reset_surface_properies()
 		#step 11: apply second half of gravity
-		if is_airborne and current_move_type != MOVEMENT_TYPE.SWIM:
+		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
 			apply_half_gravity()
 		#step 12: if not airborne, zero out vertical velocity
 		if !is_airborne:
@@ -201,6 +198,7 @@ func process_movement(delta: float) -> void:
 	#step 15: adjust collision hull. Source engine adjusts position of world collision hul on this step. In godot it handled by physics server during move_and_slide of player parent node 
 	update_hull()
 	#step 16: process projectiles. NOT including releasing stored knockback. Maybe should move this step to main world order physics process
+	attack_one()
 	#process_projectiles()
 
 #endregion
@@ -324,7 +322,7 @@ func check_upward_velocity() -> void:
 		is_airborne = true
 
 ## [b][u]PURPOSE[/u][/b]:
-## [br]Determines if character should be considered grounded. Its more than just [method CharacterBody3D.is_on_floor]. This method also checks upward velocity against [member upward_velocity_threshhold]. See [method check_upward_velocity] 
+## [br]Determines if character should be considered grounded. Its more than just [method CharacterBody3D.is_on_floor()]. This method also checks upward velocity against [member upward_velocity_threshhold]. See [method check_upward_velocity] 
 func check_grounded() -> bool:
 	#determine if grounded
 	var state : bool = is_on_floor() and (velocity.y < get_convar("sv_upthreshold"))
@@ -615,6 +613,13 @@ func apply_friction(delta: float) -> void:
 func accelerate(delta: float) -> void:
 	#upadte wish_direction
 	wish_direction = get_wish_direction()
+
+	if stored_velocity != Vector3.ZERO:
+		velocity += stored_velocity
+		stored_velocity = Vector3.ZERO
+		is_water_jumping = false
+		water_jump_time = 0.0
+
 	if velocity.y < 0:
 		water_jump_time = 0.0
 		is_water_jumping = false
@@ -643,6 +648,7 @@ func clip_velocity(surface_normal: Vector3, overbounce: float = 1.0) -> void:
 	var adjust: float = velocity.dot(surface_normal)
 	if adjust < 0.0:
 		velocity -= surface_normal * adjust
+	return
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered airborne (see [method check_grounded])
@@ -663,6 +669,8 @@ func air_move(delta: float) -> void:
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
 	velocity += accel_speed * dir
+	if is_on_wall():
+		clip_velocity(get_wall_normal())
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered grounded (see [method check_grounded])
@@ -679,6 +687,8 @@ func ground_move(delta: float) -> void:
 	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
+	if velocity.length() > max_ground_speed * max_ground_speed_multiplier:
+		clip_velocity(get_floor_normal())
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Returns [Vector2] of keyboard input. TODO: change to hook from input gatheirng class.[br]
@@ -753,6 +763,12 @@ func get_speed_multiplier() -> float:
 	if !is_crouched and wish_direction == Vector2(0, 1.0):
 		mult *= backwards_speed_multiplier
 	return mult
+
+func apply_impulse(impulse: Vector3) -> void:
+	#TODO: implement checks for source of impulse and multipliers
+	stored_velocity += impulse
+	print(GSUtils.to_hammer((stored_velocity * Vector3(0,1,0)).length()))
+
 #endregion acceleration
 
 #region collision hull editing
@@ -796,7 +812,8 @@ func setup_casts_step_check() -> void:
 ## [br]returns true if surface is unwalkable
 func is_wall_too_steep(surface_normal: Vector3) -> bool:
 	# testing if surface angle is more than max walkable surface angle
-	return surface_normal.angle_to(Vector3.UP) > floor_max_angle
+	var max_wall_dot : float = up_direction.rotated(Vector3(1,0,0), floor_max_angle).dot(up_direction)
+	return surface_normal.dot(up_direction) < max_wall_dot
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br] Perfoms a test motion of [CharacterBody3D] with [method PhysicsServer3D.body_test_motion][br]
@@ -894,7 +911,7 @@ func get_water_level() -> WATER_LEVEL:
 	var trigger: Area3D = %water_trigger
 
 	if !trigger.has_overlapping_areas():
-		current_move_type = MOVEMENT_TYPE.WALK
+		current_movement_type = MOVEMENT_TYPE.WALK
 		return WATER_LEVEL.NOT_IN_WATER
 
 	var areas: Array[Area3D] = trigger.get_overlapping_areas()
@@ -911,7 +928,7 @@ func get_water_level() -> WATER_LEVEL:
 
 				if eyes_height > water_body_vertical_extends.x and eyes_height < water_body_vertical_extends.y:
 					# run extinguish and other being submerged in watter effects
-					current_move_type = MOVEMENT_TYPE.SWIM
+					current_movement_type = MOVEMENT_TYPE.SWIM
 
 					if is_crouched:
 						try_uncrouch()
@@ -920,13 +937,13 @@ func get_water_level() -> WATER_LEVEL:
 
 				elif waist_height > water_body_vertical_extends.x and waist_height < water_body_vertical_extends.y:
 					# run extinguish and other being submerged in watter effects
-					current_move_type = MOVEMENT_TYPE.SWIM
+					current_movement_type = MOVEMENT_TYPE.SWIM
 					return WATER_LEVEL.WAIST
 
-				current_move_type = MOVEMENT_TYPE.WALK
+				current_movement_type = MOVEMENT_TYPE.WALK
 				return WATER_LEVEL.FEET
 
-	current_move_type = MOVEMENT_TYPE.WALK
+	current_movement_type = MOVEMENT_TYPE.WALK
 	return WATER_LEVEL.NOT_IN_WATER
 
 #FIXME: move to variables section
@@ -1035,7 +1052,7 @@ func water_move(delta: float) -> void:
 	elif wish_velocity == Vector3.ZERO:
 		wish_velocity.y -= GSUtils.to_meters(60)
 	else:
-		wish_velocity.y = max_ground_speed * get_view_angles()[0].y
+		wish_velocity.y = max_ground_speed * get_view_angles()[0].y * -wish_direction.y
 		is_airborne = true
 
 	var wish_speed: float = wish_velocity.length()
@@ -1092,10 +1109,6 @@ func water_jump(delta: float) -> void:
 
 #endregion
 
-#region knockback
-
-#endregion
-
 #region utils
 
 func get_convar(convar_name: StringName) -> Variant:
@@ -1107,5 +1120,25 @@ func convar_changed(convar_name: StringName) -> void:
 			setup_casts_step_check()
 		"fov_desired":
 			get_node("Camera3D").fov = get_convar("fov_desired")
+
+#endregion
+
+#region tests
+
+func attack_one() -> void:
+	if %attack_one_timer.time_left == 0 and GSInput.wish_sates["wish_attack"]:
+		spawn_rocket()
+		%attack_one_timer.start()
+
+var rocket_scene : PackedScene = preload("res://src/scenes/rocket.tscn")
+var explosion_particles_scene : PackedScene = preload("res://assets/particles/explosion_particles.tscn")
+var explosion_scene : PackedScene = preload("res://src/scenes/explosion.tscn")
+func spawn_rocket() -> void:
+	var rocket : Node3D = rocket_scene.instantiate()
+	rocket.explosion_particles = explosion_particles_scene
+	rocket.explosion = explosion_scene
+	rocket.position = get_node("Camera3D").position + global_position
+	rocket.rotation = get_node("Camera3D").global_rotation
+	get_tree().root.get_node("Node3D").add_child(rocket)
 
 #endregion

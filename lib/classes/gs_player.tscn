@@ -96,5 +96,18 @@ offset_right = 65.0
 offset_bottom = 56.0
 text = "Velocity "
 
+[node name="is_airborne" type="Label" parent="test_hud"]
+layout_mode = 0
+offset_top = 63.0
+offset_right = 65.0
+offset_bottom = 86.0
+text = "airborne"
+
+[node name="attack_one_timer" type="Timer" parent="."]
+unique_name_in_owner = true
+process_callback = 0
+wait_time = 0.8
+one_shot = true
+
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
 [connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]

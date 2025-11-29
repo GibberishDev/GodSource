@@ -11,12 +11,25 @@ enum INPUT_CONTEXT {
 var ui_focused : bool = false
 
 var wish_sates : Dictionary = {
+	"wish_attack" : false,
 	"wish_right": false,
 	"wish_left": false,
 	"wish_forward": false,
 	"wish_back": false,
 	"wish_jump": false,
 	"wish_crouch": false,
+}
+
+var mouse_buttons : Dictionary = {
+	&"1":&"mouse1",
+	&"2":&"mouse2",
+	&"3":&"mouse3",
+	&"4":&"wheelup",
+	&"5":&"wheeldown",
+	&"6":&"wheelleft",
+	&"7":&"wheelright",
+	&"8":&"mouse4",
+	&"9":&"mouse5"
 }
 var mouse_motion : Vector2 = Vector2.ZERO
 var last_mouse_motion : Vector2 = Vector2.ZERO
@@ -54,20 +67,31 @@ func handleMouseMotion(event: InputEventMouseMotion) -> void:
 		mouse_motion = event.screen_relative
 
 func handleMouseButton(event: InputEventMouseButton) -> void:
-	pass
+	keylist[event.button_index] = {"state": event.pressed}
+	var bind_command : String = ""
+	if bound_keys.keys().has(str(event.button_index)):
+		bind_command = bound_keys[str(event.button_index)]["command"]
+	if event.pressed and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
+		if bind_command != "":
+			GSConsole.process_input(bind_command)
+	if !event.pressed:
+		keylist.erase(event.button_index)
+		if bind_command != "":
+			bind_command = construct_negative_command(bind_command)
+			GSConsole.process_input(bind_command)
 
 func handleKeyboardInput(event: InputEventKey) -> void:
-	keylist[event.keycode] = {"state": resolve_key_state(event), "name": OS.get_keycode_string(event.keycode)}
+	keylist[event.keycode] = {"state": resolve_key_state(event)}
 	var bind_command : String = ""
-	if bound_keys.keys().has(str(str(event.keycode))):
+	if bound_keys.keys().has(str(event.keycode)):
 		bind_command = bound_keys[str(event.keycode)]["command"]
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
 		if bind_command != "":
 			GSConsole.process_input(bind_command)
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context == INPUT_CONTEXT.TEXT_INPUT:
-		if event.keycode == 4194320:
+		if event.keycode == 4194320: #keyboard UP button
 			GSConsole.input_node.text = GSConsole.get_history_suggestion(true)
-		if event.keycode == 4194322:
+		if event.keycode == 4194322: #keyboard DOWN button
 			GSConsole.input_node.text = GSConsole.get_history_suggestion(false)
 	if resolve_key_state(event) == KEYSTATE.RELEASED:
 		keylist.erase(event.keycode)
@@ -105,6 +129,9 @@ func update_binds() -> void:
 		},
 		"32": {
 			"command":"+jump"
+		},
+		"1": {
+			"command":"+attack"
 		}
 	}
 
@@ -122,3 +149,14 @@ func release_mouse() -> void:
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func get_mouse_key_names(id: StringName) -> StringName:
+	if !mouse_buttons.keys().has(id):
+		return ""
+	print(mouse_buttons[id])
+	return mouse_buttons[id]
+
+func get_mosue_button(button_name: StringName) -> StringName:
+	if mouse_buttons.find_key(button_name) == null:
+		return ""
+	return mouse_buttons.find_key(button_name)
