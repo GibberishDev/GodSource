@@ -5,32 +5,25 @@ extends CharacterBody3D
 
 #region variables
 
-#region client settings variables #TODO: echange for getters whenever client settings are implemented
-var client_setting_null_movement : bool = true
-#endregion
-
 #region Exported variables
 @export
-var max_ground_speed : float = 240 * 1.905 / 100
+var max_ground_speed : float = GSUtils.to_meters(240)
 ## Multiplier of default server defined max walking speed.
 ## In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
 var max_ground_speed_multiplier : float = 1.0
-## Amount of vertical velocity that needed to be exceeded for player to become airborne
-@export
-var upward_velocity_threshhold : float = 250 * 1.905 / 100
 ## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
-var jump_strength : float = 289 * 1.905 / 100
+var jump_strength : float = GSUtils.to_meters(288)
 ## Amount of mid air jumps player can perform without touching ground
 @export
 var maximum_mid_air_jumps : int = 0
 ## Size of player bounding box hull in normal state
 @export
-var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
+var standart_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(83), GSUtils.to_meters(49))
 ## Size of player bounding box hull in crouched state
 @export
-var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
+var crouch_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(63), GSUtils.to_meters(49))
 @export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
@@ -40,17 +33,9 @@ var is_crouch_jump_bug_enabled : bool = true
 var is_ctap_bug_enabled : bool = true
 ## Causes player to be able to jump as soon as player touches ground, bypassing ground friction
 @export
-var is_bhop_bug_enabled : bool = true
-## Does not reset player jump key state even if unable to jump at this frame. Meaning that whicj jump key held down player would be able to jump as soon as they touch the ground, performing a bhop, if its enabled. If bhop is disabled frition will still apply
-@export
-var is_auto_jump_enabled : bool = false
-## Limit player movement speed to 1.2 times the max walking speed upon jumping. Preventative measure to cripple bhop bug
-@export
 var jump_speed_cap: float = 1.2
 @export
-var max_air_speed : float = 30 * 1.905 / 100
-@export
-var max_step_up : float = 18 * 1.905 / 100
+var max_air_speed : float = GSUtils.to_meters(30)
 @export
 var crouch_speed_multiplier : float = 1.0 / 3.0
 @export
@@ -62,6 +47,8 @@ var backwards_speed_multiplier : float = 0.9
 var is_airborne : bool = false
 ##	Indicates if player is fully crouched.
 var is_crouched : bool = false
+##	Indicates if player is in water.
+var is_in_water : bool = false
 ##	Indicates if player is in process of crouching.
 var is_crouching_animation : bool = false
 ##	Indicates if player is in process of uncrouching.
@@ -84,15 +71,23 @@ var gravity_multiplier : float = 1.0
 var current_mid_air_jumps : int = 0
 var last_floored_frame : int = 0
 var snapped_to_stairs_last_frame : bool = false
+var stored_velocity : Vector3 = Vector3.ZERO
 #endregion
 
 #region enum defenitions
 ## Player movement type enumerator that dictates player movement properties
 enum MOVEMENT_TYPE {
-	AIRBORNE, ## Player is airborne
-	WALK, ## Player is walking
-	SWIM, ## Player is considered swimming through liquid
-	NOCLIP, ## No collision fly mode
+	AIRBORNE,		## Player is airborne
+	WALK,			## Player is walking
+	SWIM,			## Player is considered swimming through liquid
+	NOCLIP,			## No collision fly mode
+}
+
+enum WATER_LEVEL {
+	NOT_IN_WATER,	## player is not touching water
+	FEET,			## player is touching water
+	WAIST,			## player is half submerged in water
+	EYES,			## player is underwater
 }
 #endregion
 
@@ -129,6 +124,8 @@ var null_movement_key_state_last_frame : Dictionary = {
 	"back": false,
 }
 var wish_crouch_last_frame : bool = false
+var wish_jump : bool = false
+var wish_jump_last_frame : bool = false
 #endregion
 
 #endregion variables
@@ -141,10 +138,11 @@ func _ready() -> void:
 	#TODO: change to asigning specific camera with multiplayer authority
 	camera.name = "Camera3D"
 	camera.current = true
-	camera.fov = 110.0 # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
+	camera.fov = get_convar("fov_desired") # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
 	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
 	setup_casts_step_check()
+	GSConsole.connect("convar_changed", convar_changed)
 
 func _physics_process(delta: float) -> void:
 	process_movement(delta)
@@ -163,7 +161,8 @@ func process_movement(delta: float) -> void:
 		#step 3: handle crouching
 		handle_crouch()
 		#step 4: apply half of gravity
-		apply_half_gravity()
+		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
+			apply_half_gravity()
 		#step 5: handle jumping
 		handle_jump(delta)	
 		#step 6: cap velocity
@@ -174,14 +173,15 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		if is_on_floor() and (velocity * Vector3(1,0,1)).length() > max_ground_speed*1.1:
+		if velocity.length() > max_ground_speed * max_ground_speed_multiplier and !is_airborne:
 			clip_velocity(get_floor_normal())
-		elif is_on_wall_only():
+		if is_on_wall() and is_airborne:
 			clip_velocity(get_wall_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		if !step_up_check(delta):
 			step_down_check()
+			
 			move_and_slide()
 		#step 10: check if grounded and surface properties
 		if check_grounded():
@@ -191,7 +191,8 @@ func process_movement(delta: float) -> void:
 			is_airborne = true
 			#TODO: reset_surface_properies()
 		#step 11: apply second half of gravity
-		apply_half_gravity()
+		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
+			apply_half_gravity()
 		#step 12: if not airborne, zero out vertical velocity
 		if !is_airborne:
 			velocity.y = 0.0
@@ -201,6 +202,7 @@ func process_movement(delta: float) -> void:
 	#step 15: adjust collision hull. Source engine adjusts position of world collision hul on this step. In godot it handled by physics server during move_and_slide of player parent node 
 	update_hull()
 	#step 16: process projectiles. NOT including releasing stored knockback. Maybe should move this step to main world order physics process
+	attack_one()
 	#process_projectiles()
 
 #endregion
@@ -320,19 +322,19 @@ func try_unstuck() -> void:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Checks if player moving up way too fast to be grounded. Cus if body moving up faster than [member upward_velocity_threshhold] it will be considered airborne. This allows some actions to force player airborne if they exceed this threshold. good example is rampsliding. With enough horizontal speed moving into ramp, players velocity will be clipped to slope and this will result of them becoming airborne, sliding up the ramp and being launched off it. aka rampsliding. look up demoman trimping videos, they are awsome
 func check_upward_velocity() -> void:
-	if velocity.y >= upward_velocity_threshhold:
+	if velocity.y >= get_convar("sv_upthreshold"):
 		is_airborne = true
 
 ## [b][u]PURPOSE[/u][/b]:
-## [br]Determines if character should be considered grounded. Its more than just [method CharacterBody3D.is_on_floor]. This method also checks upward velocity against [member upward_velocity_threshhold]. See [method check_upward_velocity] 
+## [br]Determines if character should be considered grounded. Its more than just [method CharacterBody3D.is_on_floor()]. This method also checks upward velocity against [member upward_velocity_threshhold]. See [method check_upward_velocity] 
 func check_grounded() -> bool:
 	#determine if grounded
-	var state : bool = is_on_floor() and (velocity.y < upward_velocity_threshhold)
+	var state : bool = is_on_floor() and (velocity.y < get_convar("sv_upthreshold"))
 	#update states
 	if state: 
-		#refresh mid air jumps
+		water_jump_time = 0.0
+		is_water_jumping = false
 		current_mid_air_jumps = maximum_mid_air_jumps
-		#if grounded update last grounded frame for step up calculations
 		last_floored_frame = Engine.get_physics_frames()
 		#take fall damage
 		#reset blast jumping state
@@ -341,8 +343,8 @@ func check_grounded() -> bool:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Caps velocity to [member maximum_velocity_cap]. This is a hard limit in source engine games and cannot be exceeded. No body can move faster than this for more than 1 frame
 func limit_velocity() -> void:
-	if velocity.length() > GSConsole.convar_list["sv_maxvelocity"]["value"]:
-		velocity = velocity.normalized() * GSConsole.convar_list["sv_maxvelocity"]["value"]
+	if velocity.length() > get_convar("sv_maxvelocity"):
+		velocity = velocity.normalized() * get_convar("sv_maxvelocity")
 
 #endregion
 
@@ -357,7 +359,7 @@ func apply_half_gravity() -> void:
 ## [br]Returns 1 tick of gravity used in calculations
 func get_gravity_tick() -> float:
 	#get gravity value from project settings
-	var gravity : float = GSConsole.convar_list["sv_gravity"]["value"] * gravity_multiplier
+	var gravity : float = get_convar("sv_gravity") * gravity_multiplier
 	#get tickrate from project settings and divide it by current time scale
 	var engine_tick_multiplier : float = ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 66) / Engine.time_scale
 	#return half of gravity as we apply gravity in halves
@@ -391,7 +393,7 @@ func handle_crouch() -> void:
 	if (GSInput.wish_sates["wish_crouch"] == wish_crouch_last_frame): return
 	#update state from last frame
 	wish_crouch_last_frame = GSInput.wish_sates["wish_crouch"]
-	if GSInput.wish_sates["wish_crouch"]:
+	if GSInput.wish_sates["wish_crouch"] and get_water_level() < WATER_LEVEL.EYES:
 		queue_uncrouch = false
 		if is_on_floor():
 			#regular crouch on floor
@@ -400,7 +402,7 @@ func handle_crouch() -> void:
 			#air crouch with position shift up
 			position.y += standart_hull_size.y - crouch_hull_size.y
 			crouch()
-			$CameraAnchor.position.y = 45 * 1.905 / 100
+			$CameraAnchor.position.y = GSUtils.to_meters(45)
 			return
 	else:
 		if !is_on_floor():
@@ -411,7 +413,7 @@ func handle_crouch() -> void:
 			if !crouch_check_collider.is_colliding() and is_crouched:
 				position.y -= standart_hull_size.y - crouch_hull_size.y
 				uncrouch()
-				$CameraAnchor.position.y = 68 * 1.905 / 100
+				$CameraAnchor.position.y = GSUtils.to_meters(68)
 			return
 		elif is_crouched:
 			queue_uncrouch = true
@@ -431,7 +433,7 @@ func crouch() -> void:
 	wish_hull_size = crouch_hull_size
 	update_hull()
 	#affirm camera in new position in case it was bypassed 
-	$CameraAnchor.position.y = 45 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(45)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Finalizes player uncrouching
@@ -444,11 +446,12 @@ func uncrouch() -> void:
 	is_crouching_animation = false
 	is_uncrouching_animation = false
 	is_crouched = false
+	wish_crouch_last_frame = false
 	#update world collision hull
 	wish_hull_size = standart_hull_size
 	update_hull()
 	#affirm camera in new position in case it was bypassed 
-	$CameraAnchor.position.y = 68 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(68)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Starts delayed crouch and shifts player camera down
@@ -464,7 +467,7 @@ func start_delayed_crouch() -> void:
 	#save camera for smooth transition
 	$CameraAnchor.save_start_smoothing_position()
 	#update camera position
-	$CameraAnchor.position.y = 45 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(45)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Starts delayed uncrouch and shifts player camera up
@@ -480,7 +483,7 @@ func start_delayed_uncrouch() -> void:
 	#save camera for smooth transition
 	$CameraAnchor.save_start_smoothing_position()
 	#update camera position
-	$CameraAnchor.position.y = 68 * 1.905 / 100
+	$CameraAnchor.position.y = GSUtils.to_meters(68)
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Handles if player can successfully uncrouch. Main concern is if there is enough space to uncrouch. This is NOT how it is in team fortress 2, cus frankly in tf2 its complete bs.
@@ -517,9 +520,13 @@ func try_uncrouch() -> void:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Hadles player intent to jump
 func handle_jump(delta: float) -> void:
+	if GSInput.wish_sates["wish_jump"] != wish_jump_last_frame:
+		wish_jump = GSInput.wish_sates["wish_jump"]
+	wish_jump_last_frame = GSInput.wish_sates["wish_jump"]
+	if get_water_level() > WATER_LEVEL.FEET: return
 	#check if airborne
 	if !is_on_floor(): pass #TODO: make mid air jumping
-	elif GSInput.wish_sates["wish_jump"] and !is_crouched:
+	elif wish_jump and !is_crouched:
 		#if player is crouching down perform a crouch jump.
 		if is_crouching_animation: crouch_jump()
 		#if player is uncrouching perform a ctap bug. 
@@ -527,11 +534,11 @@ func handle_jump(delta: float) -> void:
 		#if no crouching interaction perform a regular jump
 		else: velocity.y += jump_strength - get_gravity_tick()
 		#if bhopping not a thing apply ground friction to horizontal movement
-		if !is_bhop_bug_enabled:
+		if !get_convar("sv_bhop"):
 			apply_friction(delta)
 			pass
 		#limit horizontal speed to jump_speed_cap. Almost immediate fix from valve in early cycle of team fortress 2 life.
-		if GSConsole.convar_list["sv_limit_jump_speed"]["value"]:
+		if get_convar("sv_limitjumpspeed"):
 			#get horizontal velocity
 			var horizontal_velocity : Vector2 = Vector2(velocity.x, velocity.z)
 			#get horizontal speed of player
@@ -545,7 +552,7 @@ func handle_jump(delta: float) -> void:
 		#make player airborne immediately and not in main stack where vertical velocity might be voided
 		is_airborne = true
 	#if auto jumping is disabled void player intent on jumping to prevent input buffering 
-	if !is_auto_jump_enabled: GSInput.wish_sates["wish_jump"] = false
+	if !get_convar("sv_autojump"): wish_jump = false
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Forces player into jump crourching position. If [member is_crouch_jump_bug_enabled] is disabled shift player up same way as crouching while airborne, if not player jump force doesnt account for 1 tick of gravity. In TF2 it amounts to two hammer units difference in jump height
@@ -582,15 +589,15 @@ func apply_friction(delta: float) -> void:
 	var friction : float = 1.0 #friction amount
 	var control : float = 0.0 #control speed threshold
 	#stop infinitelly slow movements
-	if speed < (0.1 * 1.905 / 100.0):
+	if speed < GSUtils.to_meters(0.1):
 		velocity = Vector3.ZERO
 		return
 	#apply ground friction
 	if !is_airborne:
-		friction = GSConsole.convar_list["sv_friction"]["value"] * surface_friction
+		friction = get_convar("sv_friction") * surface_friction
 	#Bleed off some speed, but if we have less than the bleed threshold, bleed the threshold amount.
-	if (speed < GSConsole.convar_list["sv_stopspeed"]["value"]):
-		control = GSConsole.convar_list["sv_stopspeed"]["value"]
+	if (speed < get_convar("sv_stopspeed")):
+		control = get_convar("sv_stopspeed")
 	else:
 		control = speed
 	#speed that needs to be dropped due to friction
@@ -609,9 +616,21 @@ func apply_friction(delta: float) -> void:
 ## [br] delta - delta time of last physics frame
 func accelerate(delta: float) -> void:
 	#upadte wish_direction
-	get_view_rotations()
-	#TODO: implement water acceleration
 	wish_direction = get_wish_direction()
+
+	if stored_velocity != Vector3.ZERO:
+		velocity += stored_velocity
+		stored_velocity = Vector3.ZERO
+		is_water_jumping = false
+		water_jump_time = 0.0
+
+	if velocity.y < 0:
+		water_jump_time = 0.0
+		is_water_jumping = false
+	water_jump(delta)
+	if get_water_level() > WATER_LEVEL.FEET:
+		full_water_move(delta)
+		return
 	if is_airborne: air_move(delta)
 	else: ground_move(delta)
 
@@ -633,6 +652,7 @@ func clip_velocity(surface_normal: Vector3, overbounce: float = 1.0) -> void:
 	var adjust: float = velocity.dot(surface_normal)
 	if adjust < 0.0:
 		velocity -= surface_normal * adjust
+	return
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered airborne (see [method check_grounded])
@@ -648,7 +668,7 @@ func air_move(delta: float) -> void:
 	#if speed is negative do nothing
 	if add_speed <= 0: return
 	#apply acceleration
-	var accel_speed : float = delta * GSConsole.convar_list["sv_airaccelerate"]["value"] * min(GSConsole.convar_list["sv_maxspeed"]["value"], max_ground_speed)
+	var accel_speed : float = delta * get_convar("sv_airaccelerate") * min(get_convar("sv_maxspeed"), max_ground_speed)
 	#cap accel_speed by add_speed
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
@@ -666,7 +686,7 @@ func ground_move(delta: float) -> void:
 	#get speed multiplier
 	max_ground_speed_multiplier = get_speed_multiplier()
 	#determine how much speed we want to add
-	var add_speed : float = clamp(GSConsole.convar_list["sv_accelerate"]["value"] * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
+	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
 
@@ -678,7 +698,7 @@ func get_wish_direction() -> Vector2:
 	# is a way of interpreting cardinal directions movement from keyboard input where new key press
 	# overrides previous one, but also checks if other key is still held on input release to switch
 	# movement direction back to held key
-	if client_setting_null_movement:
+	if get_convar("cl_nullmovement"):
 		if null_movement_key_state_last_frame["left"] != GSInput.wish_sates["wish_left"]: # if left bind state changed
 			if GSInput.wish_sates["wish_left"]: # if left bind was pressed - switch to moving left immediately
 				wish_direction.x = -1
@@ -715,7 +735,7 @@ func get_wish_direction() -> Vector2:
 		}
 	# if null movement isnt enabled jsut use simple integer math to determine direction
 	else:
-		wish_direction = Input.get_vector(GSInput.wish_sates["wish_left"], GSInput.wish_sates["wish_right"], GSInput.wish_sates["wish_forward"], GSInput.wish_sates["wish_back"])
+		wish_direction = Vector2(int(GSInput.wish_sates["wish_right"]) + int(GSInput.wish_sates["wish_left"]) * -1, int(GSInput.wish_sates["wish_back"]) + int(GSInput.wish_sates["wish_forward"]) * -1)
 	return wish_direction
 
 ## [b][u]PURPOSE[/u][/b]:
@@ -743,6 +763,11 @@ func get_speed_multiplier() -> float:
 	if !is_crouched and wish_direction == Vector2(0, 1.0):
 		mult *= backwards_speed_multiplier
 	return mult
+
+func apply_impulse(impulse: Vector3) -> void:
+	#TODO: implement checks for source of impulse and multipliers
+	stored_velocity += impulse
+
 #endregion acceleration
 
 #region collision hull editing
@@ -757,6 +782,8 @@ func update_hull(new_size : Vector3 = wish_hull_size) -> void:
 	collision_hull.shape.size = new_size 						# set new shape size
 	stuck_check_collider.position = collision_hull.position 	# copy hull position
 	stuck_check_collider.shape = collision_hull.shape 			# copy hull shape
+	%water_trigger.get_node("coll").position = collision_hull.position
+	%water_trigger.get_node("coll").shape.size = Vector3(0,new_size.y,0)
 
 #endregion collision hull editing
 
@@ -770,13 +797,13 @@ func update_hull(new_size : Vector3 = wish_hull_size) -> void:
 ## [br] Method executed in [method _ready]. Sets up transforms of step up raycast and stepdown shapecast
 func setup_casts_step_check() -> void:
 	# making step down ShapeCast3D same size as player hull and height of max step up length
-	$step_down_shape_cast.shape.size = Vector3(standart_hull_size.x, max_step_up + 0.1, standart_hull_size.z)
+	$step_down_shape_cast.shape.size = Vector3(standart_hull_size.x, get_convar("sv_maxstepup") + 0.1, standart_hull_size.z)
 
 	# positioning step down ShapeCast3D at the bottom of player hull
-	$step_down_shape_cast.position = Vector3(0, (max_step_up + 0.1)/ -2 - 0.01, 0)
+	$step_down_shape_cast.position = Vector3(0, (get_convar("sv_maxstepup") + 0.1)/ -2 - 0.01, 0)
 
 	# making step up RayCast3d length be max step up length
-	$step_up_ray_cast.target_position.y = -(max_step_up + 0.1)
+	$step_up_ray_cast.target_position.y = -(get_convar("sv_maxstepup") + 0.1)
 
 ## [b][u]PURPOSE[/u][/b]:[br] Checks if wall is at walkable angle to be able to step up onto it[br]
 ## [b][u]PARAMETERS[/u][/b]:[br] surface_normal - [Vector3] - normal of the wall
@@ -784,7 +811,8 @@ func setup_casts_step_check() -> void:
 ## [br]returns true if surface is unwalkable
 func is_wall_too_steep(surface_normal: Vector3) -> bool:
 	# testing if surface angle is more than max walkable surface angle
-	return surface_normal.angle_to(Vector3.UP) > floor_max_angle
+	var max_wall_dot : float = up_direction.rotated(Vector3(1,0,0), floor_max_angle).dot(up_direction)
+	return surface_normal.dot(up_direction) < max_wall_dot
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br] Perfoms a test motion of [CharacterBody3D] with [method PhysicsServer3D.body_test_motion][br]
@@ -818,7 +846,7 @@ func step_down_check() -> void:
 		# create new physics server test object
 		var motion_test_result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
 		# ask physics server testmotion if player can conplete step down movement and if there is ground to step down to
-		if test_motion(global_transform, Vector3(0, -max_step_up - 0.01, 0), motion_test_result) and is_ground_below:
+		if test_motion(global_transform, Vector3(0, -get_convar("sv_maxstepup") - 0.01, 0), motion_test_result) and is_ground_below:
 			# call camera smoothing method from [PlayerCameraComponent]
 			$CameraAnchor.save_start_smoothing_position()
 			# get travel distance from motion test
@@ -847,17 +875,17 @@ func step_up_check(delta: float) -> bool:
 	# Project next motion using delta and current velocity
 	var expected_motion: Vector3 = velocity * Vector3(1, 0, 1) * delta
 	# Predict next motion with step up in mind
-	var step_pos_with_clearance: Transform3D = global_transform.translated(expected_motion + Vector3(0, max_step_up * 2, 0))
+	var step_pos_with_clearance: Transform3D = global_transform.translated(expected_motion + Vector3(0, get_convar("sv_maxstepup") * 2, 0))
 	# Create new physics collision check result instance
 	var down_check_result: KinematicCollision3D = KinematicCollision3D.new()
 	# Test if player can fit in desegnated place
-	if test_move(step_pos_with_clearance, Vector3(0, -max_step_up * 2 ,0), down_check_result):
+	if test_move(step_pos_with_clearance, Vector3(0, -get_convar("sv_maxstepup") * 2 ,0), down_check_result):
 		# Determine travel distance
 		var step_height: float = ((step_pos_with_clearance.origin + down_check_result.get_travel()) - global_position).y - 0.001
 		# If travel distance is invalid: return false
-		if step_height > max_step_up or (down_check_result.get_position() - global_position).y > max_step_up: return false
+		if step_height > get_convar("sv_maxstepup") or (down_check_result.get_position() - global_position).y > get_convar("sv_maxstepup"): return false
 		# Move raycast to the predicted motion destination
-		$step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, max_step_up, 0)
+		$step_up_ray_cast.global_position = down_check_result.get_position() + Vector3(0, get_convar("sv_maxstepup"), 0)
 		# Force raycast update
 		$step_up_ray_cast.force_raycast_update()
 		# Check if step up spot is valid
@@ -876,3 +904,242 @@ func step_up_check(delta: float) -> bool:
 	return false
 
 #endregion step up logic
+
+#region swimming
+func get_water_level() -> WATER_LEVEL:
+	var trigger: Area3D = %water_trigger
+
+	if !trigger.has_overlapping_areas():
+		current_movement_type = MOVEMENT_TYPE.WALK
+		is_in_water = false
+		return WATER_LEVEL.NOT_IN_WATER
+
+	var areas: Array[Area3D] = trigger.get_overlapping_areas()
+
+	for i: int in range(areas.size()):
+		if areas[i] is GSTrigger:
+			if areas[i].type == "liquid":
+				var water: GSTrigger = areas[i]
+				var water_body_vertical_extends: Vector2 = Vector2(water.global_position.y, water.global_position.y + water.size.y)
+				var eyes_height: float = $CameraAnchor/smoother/anchor.global_position.y
+				var waist_height: float = collision_hull.global_position.y + GSUtils.to_meters(12.5) #half of the player height + 12.5 hamemr units
+
+				is_in_water = true
+
+				if eyes_height > water_body_vertical_extends.x and eyes_height < water_body_vertical_extends.y:
+					# run extinguish and other being submerged in watter effects
+					current_movement_type = MOVEMENT_TYPE.SWIM
+
+					if is_crouched:
+						try_uncrouch()
+
+					return WATER_LEVEL.EYES
+
+				elif waist_height > water_body_vertical_extends.x and waist_height < water_body_vertical_extends.y:
+					# run extinguish and other being submerged in watter effects
+					current_movement_type = MOVEMENT_TYPE.SWIM
+					return WATER_LEVEL.WAIST
+
+				current_movement_type = MOVEMENT_TYPE.WALK
+				return WATER_LEVEL.FEET
+
+	current_movement_type = MOVEMENT_TYPE.WALK
+	is_in_water = false
+	return WATER_LEVEL.NOT_IN_WATER
+
+#FIXME: move to variables section
+var water_jump_time : float = 0.0
+var is_water_jumping : bool = false
+var can_swim : bool = true
+var water_jump_wish_velocity : Vector3 = Vector3.ZERO 
+var water_jump_power: float = GSUtils.to_meters(400.0)
+var swimming_mastery : bool = false ##unused even in tf2 but present in code
+
+func full_water_move(delta: float) -> void:
+	if get_water_level() >= WATER_LEVEL.FEET:
+		check_water_jump(delta)
+
+	if velocity.y < 0 and water_jump_time != 0.0:
+		water_jump_time = 0.0
+		is_water_jumping = false
+
+	if GSInput.wish_sates["wish_jump"]:
+		swim_up(delta)
+
+	water_move(delta)
+
+	if !is_airborne:
+		velocity.y = 0
+
+	return
+
+func swim_up(delta: float) -> void:
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+
+	if get_water_level() > WATER_LEVEL.FEET and !is_water_jumping:
+		is_airborne = true
+		if !can_swim: return
+		velocity.y = GSUtils.to_meters(100)
+
+func check_water_jump(delta: float) -> void:
+	if water_jump_time != 0.0:
+		water_jump_time -= delta
+		if water_jump_time < 0:
+			water_jump_time = 0
+		return
+
+	if velocity.y < GSUtils.to_meters(-180):
+		return
+
+	var flat_velocity: Vector3 = Vector3(velocity.x, 0, velocity.z)
+
+	var current_speed: float = flat_velocity.length()
+
+	var flat_forward_vector: Vector3 = get_view_angles()[0] * -wish_direction.y * max_ground_speed + get_view_angles()[2] * wish_direction.x * max_ground_speed
+
+	flat_forward_vector.y = 0.0
+
+	if current_speed != 0.0 and flat_velocity.normalized().dot(flat_forward_vector.normalized()) < 0.0 and !GSInput.wish_sates["wish_jump"]:
+		return
+
+	var vector_start: Vector3 = collision_hull.global_position
+
+	var vector_end: Vector3 = vector_start + GSUtils.to_meters(30) * flat_forward_vector.normalized()
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if !%water_jump_destination_check.is_colliding():
+		return
+
+	var shore_wall_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
+	water_jump_wish_velocity = shore_wall_normal * GSUtils.to_meters(-50)
+	vector_start.y = $CameraAnchor/smoother/anchor.global_position.y + GSUtils.to_meters(10)
+	vector_end = vector_start + GSUtils.to_meters(30) * flat_forward_vector.normalized()
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if %water_jump_destination_check.is_colliding():
+		return
+
+	vector_start = vector_end
+	vector_end.y -= GSUtils.to_meters(1024)
+
+	%water_jump_destination_check.global_position = vector_start
+	%water_jump_destination_check.target_position = vector_end
+	%water_jump_destination_check.force_raycast_update()
+
+	if %water_jump_destination_check.is_colliding():
+		var shore_normal: Vector3 = %water_jump_destination_check.get_collision_normal()
+		if shore_normal.y >= 0.7 and !is_water_jumping:
+			water_jump_time = 500.0
+			is_water_jumping = true
+			velocity.y = water_jump_power
+
+func water_move(delta: float) -> void:
+	var wish_velocity: Vector3 = get_view_angles()[0] * -wish_direction.y * max_ground_speed + get_view_angles()[2] * wish_direction.x * max_ground_speed
+
+	if !can_swim:
+		wish_velocity.x *= 0.1
+		wish_velocity.y = GSUtils.to_meters(-60)
+		wish_velocity.z *= 0.1
+
+	if GSInput.wish_sates["wish_jump"]:
+		wish_velocity.y += max_ground_speed
+	elif wish_velocity == Vector3.ZERO:
+		wish_velocity.y -= GSUtils.to_meters(60)
+	else:
+		wish_velocity.y = max_ground_speed * get_view_angles()[0].y * -wish_direction.y
+		is_airborne = true
+
+	var wish_speed: float = wish_velocity.length()
+
+	if wish_speed > max_ground_speed:
+		wish_velocity *= max_ground_speed / wish_speed
+		wish_speed = max_ground_speed
+
+	if !swimming_mastery:
+		wish_speed *= 0.8
+
+	var speed: float = velocity.length()
+	var new_speed: float = 0
+
+	if speed != 0.0:
+		new_speed = speed - delta * speed * 4 * 0.4
+
+		if new_speed < 0.01:
+			new_speed = 0
+
+		velocity *= new_speed / speed
+	else:
+		new_speed = 0
+
+	if wish_speed >= 0.1:
+		var add_speed: float = wish_speed - new_speed
+
+		if add_speed > 0:
+			wish_velocity = wish_velocity.normalized()
+
+			var accelerate_speed: float = get_convar("sv_accelerate") * wish_speed * delta * 0.8
+
+			if accelerate_speed > add_speed:
+				accelerate_speed = add_speed
+
+			var delta_speed: Vector3 = accelerate_speed * wish_velocity
+
+			velocity += delta_speed
+
+func water_jump(delta: float) -> void:
+	if water_jump_time > 10000:
+		water_jump_time = 10000
+
+	if water_jump_time == 0.0:
+		return
+		
+	if water_jump_time <= 0.0 or get_water_level() > WATER_LEVEL.NOT_IN_WATER:
+		water_jump_time = 0.0
+		is_water_jumping = false
+
+	water_jump_time -= 1000.0 * delta
+	velocity.x = water_jump_wish_velocity.x
+	velocity.z = water_jump_wish_velocity.z
+
+#endregion
+
+#region utils
+
+func get_convar(convar_name: StringName) -> Variant:
+	return GSConsole.convar_list[convar_name]["value"]
+
+func convar_changed(convar_name: StringName) -> void:
+	match convar_name:
+		"sv_maxstepup":
+			setup_casts_step_check()
+		"fov_desired":
+			get_node("Camera3D").fov = get_convar("fov_desired")
+
+#endregion
+
+#region tests
+
+func attack_one() -> void:
+	if %attack_one_timer.time_left == 0 and GSInput.wish_sates["wish_attack"]:
+		spawn_rocket()
+		%attack_one_timer.start()
+
+var rocket_scene : PackedScene = preload("res://src/scenes/rocket.tscn")
+var explosion_particles_scene : PackedScene = preload("res://assets/particles/explosion_particles.tscn")
+var explosion_scene : PackedScene = preload("res://src/scenes/explosion.tscn")
+func spawn_rocket() -> void:
+	var rocket : Node3D = rocket_scene.instantiate()
+	rocket.explosion_particles = explosion_particles_scene
+	rocket.explosion = explosion_scene
+	rocket.position = get_node("Camera3D").position + global_position
+	rocket.rotation = get_node("Camera3D").global_rotation
+	get_tree().root.get_node("Node3D").add_child(rocket)
+
+#endregion

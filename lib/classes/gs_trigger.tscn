@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://t7cox8sm1v3j"]
+
+[ext_resource type="Script" uid="uid://twj6d1cahr44" path="res://lib/classes/gs_trigger.gd" id="1_31555"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7c0a2"]
+resource_local_to_scene = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_31555"]
+transparency = 1
+albedo_color = Color(0, 0.4213333, 0.79, 0.48235294)
+metallic = 0.38
+roughness = 0.0
+clearcoat_enabled = true
+clearcoat_roughness = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_78v1h"]
+resource_local_to_scene = true
+
+[node name="GSTrigger" type="Area3D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_31555")
+
+[node name="coll" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_7c0a2")
+
+[node name="mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+material_override = SubResource("StandardMaterial3D_31555")
+mesh = SubResource("BoxMesh_78v1h")

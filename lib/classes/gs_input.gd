@@ -11,12 +11,25 @@ enum INPUT_CONTEXT {
 var ui_focused : bool = false
 
 var wish_sates : Dictionary = {
+	"wish_attack" : false,
 	"wish_right": false,
 	"wish_left": false,
 	"wish_forward": false,
 	"wish_back": false,
 	"wish_jump": false,
 	"wish_crouch": false,
+}
+
+var mouse_buttons : Dictionary = {
+	&"1":&"mouse1",
+	&"2":&"mouse2",
+	&"3":&"mouse3",
+	&"4":&"wheelup",
+	&"5":&"wheeldown",
+	&"6":&"wheelleft",
+	&"7":&"wheelright",
+	&"8":&"mouse4",
+	&"9":&"mouse5"
 }
 var mouse_motion : Vector2 = Vector2.ZERO
 var last_mouse_motion : Vector2 = Vector2.ZERO
@@ -53,26 +66,76 @@ func handleMouseMotion(event: InputEventMouseMotion) -> void:
 		mouse_moved = true
 		mouse_motion = event.screen_relative
 
+func _physics_process(delta: float) -> void:
+	for i : int in keylist.keys():
+		if !bound_keys.keys().has(str(i)): return #Needed in case button was unbound while processing command input
+		if keylist[i]["state"]:
+			if keylist[i]["queue_release"]:
+				keylist[i] = {
+					"state": false,
+					"frame": Engine.get_physics_frames(),
+					"queue_release": false
+				}
+			else:
+				keylist.erase(i)
+			GSConsole.process_input(bound_keys[str(i)]["command"])
+		else:
+			GSConsole.process_input(construct_negative_command(bound_keys[str(i)]["command"]))
+			keylist.erase(i)
+
 func handleMouseButton(event: InputEventMouseButton) -> void:
-	pass
+	if !bound_keys.keys().has(str(event.button_index)): return
+	if event.pressed:
+		keylist[event.button_index] = {
+			"state": true,
+			"frame": Engine.get_physics_frames(),
+			"queue_release": false
+		}
+	else:
+		if keylist.keys().has(event.button_index):
+			if keylist[event.button_index]["frame"] == Engine.get_physics_frames():
+				keylist[event.button_index] = {
+					"state": true,
+					"frame": Engine.get_physics_frames(),
+					"queue_release": true
+				}
+				return
+		keylist[event.button_index] = {
+			"state": false,
+			"frame": Engine.get_physics_frames(),
+			"processed": false,
+			"queue_release": false
+		}
 
 func handleKeyboardInput(event: InputEventKey) -> void:
-	keylist[event.keycode] = {"state": resolve_key_state(event), "name": OS.get_keycode_string(event.keycode)}
-	var bind_command : String = determine_bind(event.keycode)
-	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context != INPUT_CONTEXT.TEXT_INPUT:
-		if bind_command != "":
-			GSConsole.process_input(bind_command)
 	if resolve_key_state(event) == KEYSTATE.JUST_PRESSED and current_input_context == INPUT_CONTEXT.TEXT_INPUT:
-		if event.keycode == 4194320:
+		if event.keycode == 4194320: #keyboard UP button
 			GSConsole.input_node.text = GSConsole.get_history_suggestion(true)
-		if event.keycode == 4194322:
+		if event.keycode == 4194322: #keyboard DOWN button
 			GSConsole.input_node.text = GSConsole.get_history_suggestion(false)
-	if resolve_key_state(event) == KEYSTATE.RELEASED:
-		keylist.erase(event.keycode)
-		if bind_command != "":
-			bind_command = construct_negative_command(bind_command)
-			GSConsole.process_input(bind_command)
-	# print(keylist)
+	
+	if !bound_keys.keys().has(str(event.keycode)): return
+	if event.pressed:
+		keylist[event.keycode] = {
+			"state": true,
+			"frame": Engine.get_physics_frames(),
+			"queue_release": false
+		}
+	else:
+		if keylist.keys().has(event.keycode):
+			if keylist[event.keycode]["frame"] == Engine.get_physics_frames():
+				keylist[event.keycode] = {
+					"state": true,
+					"frame": Engine.get_physics_frames(),
+					"queue_release": true
+				}
+				return
+		keylist[event.keycode] = {
+			"state": false,
+			"frame": Engine.get_physics_frames(),
+			"processed": false,
+			"queue_release": false
+		}
 
 func resolve_key_state(event: InputEventKey) -> KEYSTATE:
 	if event.pressed and !event.echo: return KEYSTATE.JUST_PRESSED
@@ -103,33 +166,11 @@ func update_binds() -> void:
 		},
 		"32": {
 			"command":"+jump"
+		},
+		"1": {
+			"command":"+attack"
 		}
 	}
-
-func determine_bind(keycode: Key) -> String:
-	var matches : Array = []
-	for i : String in bound_keys.keys():
-		if i.find(str(keycode)) != -1:
-			matches.append(i)
-	matches.sort_custom(GSUtils.sort_array_of_strings)
-	for k : String in matches:
-		var valid_match : bool = true
-		var split_keys : PackedStringArray = k.split("+")
-		for j : String in split_keys:
-			if j != str(keycode):
-				if j == "ctrl" and Input.is_key_pressed(KEY_CTRL) != true:
-					valid_match = false
-					break
-				if j == "alt" and Input.is_key_pressed(KEY_ALT) != true:
-					valid_match = false
-					break
-				if j == "shift" and Input.is_key_pressed(KEY_SHIFT) != true:
-					valid_match = false
-					break
-				valid_match = false
-		if valid_match == true:
-			return bound_keys[k]["command"]
-	return ""
 
 func construct_negative_command(bind_command: String) -> String:
 	var commands_array : PackedStringArray = GSConsole.split_commands_input(bind_command)
@@ -145,3 +186,13 @@ func release_mouse() -> void:
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func get_mouse_key_names(id: StringName) -> StringName:
+	if !mouse_buttons.keys().has(id):
+		return ""
+	return mouse_buttons[id]
+
+func get_mosue_button(button_name: StringName) -> StringName:
+	if mouse_buttons.find_key(button_name) == null:
+		return ""
+	return mouse_buttons.find_key(button_name)

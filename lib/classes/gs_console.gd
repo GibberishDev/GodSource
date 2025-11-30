@@ -2,6 +2,8 @@ extends Node
 
 #region variables
 
+signal convar_changed(convar_name: StringName)
+
 enum CONVAR_TYPE {
 	STRING,
 	INTEGER,
@@ -43,12 +45,6 @@ func add_command(command_name: StringName, callable: Callable, description: Stri
 	var new_command: Command = Command.new(command_name, callable, description, context)
 	self.command_list[command_name] = new_command
 	send_output_message("Registered command \"" + command_name + "\"")
-
-func get_all_commands() -> String:
-	var output_string: String = ""
-	for i : StringName in self.command_list:
-		output_string += ("\n[color=gold]" + str(i) + "[/color]")
-	return output_string
 
 func process_input(input_string: String) -> bool:
 	var commands_array: PackedStringArray = split_commands_input(input_string) #Split commands string into an array of commands
@@ -158,7 +154,7 @@ func process_alias(id: StringName) -> bool:
 
 #region ConVar
 
-func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: String,value : String = "",min_value : String = "",max_value: String = "", description: String = "") -> void:
+func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: String,min_value : String = "",max_value: String = "",value : String = "", description: String = "") -> void:
 	if value == "":
 		value = default_value
 	
@@ -176,25 +172,25 @@ func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: Strin
 				push_warning("Maximum value for convar \"" + convar_name + "\" of type String is not aplicable. Discarding max_value...")
 			convar_list[convar_name] = convar_data
 		CONVAR_TYPE.INTEGER:
-			if !default_value.is_valid_int():
+			if (!default_value.is_valid_int() or !default_value.is_valid_float()):
 				push_error("Default value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
 				return
-			if !value.is_valid_int() and value != "":
+			if (!value.is_valid_int() or !value.is_valid_float()) and value != "":
 				push_error("Value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
 				return
-			if !min_value.is_valid_int() and min_value != "":
+			if (!min_value.is_valid_int() or !min_value.is_valid_float()) and min_value != "":
 				push_error("Minimum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
 				return
-			if !max_value.is_valid_int() and max_value != "":
+			if (!max_value.is_valid_int() or !max_value.is_valid_float()) and max_value != "":
 				push_error("Maximum value for convar \"" + convar_name + "\" cannot be converted to type int. Not registering...")
 				return
 			
-			convar_data["default_value"] = int(default_value)
-			convar_data["value"] = int(value)
+			convar_data["default_value"] = round(float(default_value))
+			convar_data["value"] = round(float(value))
 			if min_value != "":
-				convar_data["min_value"] = int(min_value)
+				convar_data["min_value"] = round(float(min_value))
 			if max_value != "":
-				convar_data["max_value"] = int(max_value)
+				convar_data["max_value"] = round(float(max_value))
 			if min_value != "" or max_value != "":
 				if min_value != "" and max_value == "":
 					convar_data["value"] = max(convar_data["value"], convar_data["min_value"])
@@ -262,7 +258,12 @@ func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: Strin
 func get_convar_console_output(convar_name: StringName) -> String:
 	var output : String = ""
 	if convar_list[convar_name]["default_value"] != convar_list[convar_name]["value"]:
-		output = "ConVar " + convar_name + " = " + str(convar_list[convar_name]["value"]) + " (def: " + str(convar_list[convar_name]["default_value"]) + ")"
+		output = "ConVar " + convar_name + " = " + str(convar_list[convar_name]["value"]) + " (def: " + str(convar_list[convar_name]["default_value"])
+		if convar_list[convar_name].keys().has("min_value"):
+			output += " min: " + str(convar_list[convar_name]["min_value"])
+		if convar_list[convar_name].keys().has("max_value"):
+			output += " max: " + str(convar_list[convar_name]["max_value"])
+		output += ")"
 	else:
 		output = "ConVar " + convar_name + " = " + str(convar_list[convar_name]["value"])
 
@@ -280,8 +281,8 @@ func set_convar_value(convar_name: StringName, argument: String) -> bool:
 		CONVAR_TYPE.STRING:
 			convar_list[convar_name] = argument
 		CONVAR_TYPE.INTEGER:
-			if argument.is_valid_int():
-				var new_value : int = int(argument)
+			if argument.is_valid_int() or argument.is_valid_float():
+				var new_value : int = round(float(argument))
 				convar_list[convar_name]["value"] = new_value
 				if convar_list[convar_name].keys().has("min_value") or convar_list[convar_name].keys().has("max_value"):
 					if convar_list[convar_name].keys().has("min_value") and !convar_list[convar_name].keys().has("max_value"):
@@ -315,6 +316,7 @@ func set_convar_value(convar_name: StringName, argument: String) -> bool:
 		_:
 			send_output_message("[color=red]HOW did ya manage to reach this message??? anyways: error: invalid convar type at set_convar_value(). Blame dev if ya see it and point out improperly registered convar. Or insane stray electron from neutron star bitflipping your pc lmao - sincerely godsource dev GibbDev[/color]")
 			return false
+	emit_signal("convar_changed", convar_name)
 	return true
 
 

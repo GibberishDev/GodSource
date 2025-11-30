@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://cjcvs4n5ja40x"]
+[gd_scene load_steps=8 format=3 uid="uid://cjcvs4n5ja40x"]
 
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
 [ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/camera_anchor.tscn" id="2_ga4fc"]
+[ext_resource type="Script" uid="uid://c4llk0ks60g4j" path="res://lib/classes/test_hud.gd" id="3_s3wio"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
 size = Vector3(0.933, 1.581, 0.933)
@@ -11,6 +12,9 @@ size = Vector3(0.933, 0.381, 0.933)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ga4fc"]
 size = Vector3(0.933, 0.15, 0.933)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_s3wio"]
+size = Vector3(0, 1.581, 0)
 
 [node name="gs_player" type="CharacterBody3D"]
 collision_layer = 2
@@ -54,6 +58,55 @@ one_shot = true
 [node name="uncrouch_timer" type="Timer" parent="."]
 process_callback = 0
 wait_time = 0.15
+one_shot = true
+
+[node name="water_trigger" type="Area3D" parent="."]
+unique_name_in_owner = true
+collision_layer = 2
+collision_mask = 4
+
+[node name="coll" type="CollisionShape3D" parent="water_trigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
+shape = SubResource("BoxShape3D_s3wio")
+
+[node name="water_jump_destination_check" type="RayCast3D" parent="."]
+unique_name_in_owner = true
+hit_back_faces = false
+
+[node name="test_hud" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_s3wio")
+
+[node name="velocity_hu" type="Label" parent="test_hud"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Velocity "
+
+[node name="jump_state" type="Label" parent="test_hud"]
+layout_mode = 0
+offset_top = 33.0
+offset_right = 65.0
+offset_bottom = 56.0
+text = "Velocity "
+
+[node name="is_airborne" type="Label" parent="test_hud"]
+layout_mode = 0
+offset_top = 63.0
+offset_right = 65.0
+offset_bottom = 86.0
+text = "airborne"
+
+[node name="attack_one_timer" type="Timer" parent="."]
+unique_name_in_owner = true
+process_callback = 0
+wait_time = 0.8
 one_shot = true
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]

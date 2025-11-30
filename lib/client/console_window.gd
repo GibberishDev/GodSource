@@ -10,7 +10,7 @@ func _ready() -> void:
 
 #release focus of input node on click outside
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.is_pressed() and event.button_index == 1:
+	if event is InputEventMouseButton and GSInput.current_input_context == GSInput.INPUT_CONTEXT.TEXT_INPUT:
 		if !Rect2(%console_input.global_position, abs(%console_input.size)).has_point(event.global_position):
 			%console_input.release_focus()
 			GSInput.current_input_context = GSInput.INPUT_CONTEXT.UI

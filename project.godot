@@ -33,6 +33,13 @@ gdscript/warnings/unused_parameter=0
 gdscript/warnings/untyped_declaration=2
 gdscript/warnings/inferred_declaration=2
 
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
+window/size/borderless=true
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gd-blender-3d-shortcuts/plugin.cfg")
@@ -40,7 +47,9 @@ enabled=PackedStringArray("res://addons/gd-blender-3d-shortcuts/plugin.cfg")
 [layer_names]
 
 3d_physics/layer_1="WORLD"
-3d_physics/layer_2="Player"
+3d_physics/layer_2="PLAYER"
+3d_physics/layer_3="TRIGGER"
+3d_physics/layer_4="PROJECTILE"
 
 [physics]
 
