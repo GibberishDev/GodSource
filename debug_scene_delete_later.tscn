@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://cag0ewqn75o7y"]
+[gd_scene load_steps=26 format=3 uid="uid://cag0ewqn75o7y"]
 
 [ext_resource type="PackedScene" uid="uid://cjcvs4n5ja40x" path="res://lib/classes/gs_player.tscn" id="1_0qie4"]
 [ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
@@ -39,10 +39,13 @@ size = Vector3(1.905, 1.372, 1.905)
 [sub_resource type="BoxMesh" id="BoxMesh_e4n7c"]
 size = Vector3(1.905, 1.372, 1.905)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_x23qr"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_gpr35"]
 size = Vector3(1.905, 13.164, 1.905)
 
 [sub_resource type="BoxMesh" id="BoxMesh_biiar"]
+size = Vector3(1.905, 13.164, 1.905)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_x23qr"]
 size = Vector3(1.905, 13.164, 1.905)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_x23qr"]
@@ -125,13 +128,24 @@ material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_e4n7c")
 
 [node name="box4" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 6.582, -6.3907394)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 6.582, -6.682089)
 metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="box4"]
-shape = SubResource("BoxShape3D_x23qr")
+shape = SubResource("BoxShape3D_gpr35")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="box4"]
+material_override = ExtResource("2_gbv3d")
+mesh = SubResource("BoxMesh_biiar")
+
+[node name="box5" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 6.582, -9.092361)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="box5"]
+shape = SubResource("BoxShape3D_x23qr")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="box5"]
 material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_biiar")
 

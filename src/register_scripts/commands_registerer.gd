@@ -43,13 +43,11 @@ func help_command_callable(arguments_array: Array = []) -> bool:
 		output_text = "All avaliable commands are:\n[color=yellow]█ - commands[/color],[color=lime] █ - convars[/color],[color=pink] █ - aliases[/color]\n[color=yellow]"
 		var commands : PackedStringArray = GSConsole.command_list.keys()
 		commands.sort()
-		print(commands)
 		for i : StringName in commands:
 			output_text += i + "\n"
 		output_text += "[/color][color=lime]"
 		var convars : PackedStringArray = GSConsole.convar_list.keys()
 		convars.sort()
-		print(convars)
 		for i : StringName in convars:
 			output_text += i + "\n"
 		output_text += "[/color][color=pink]"

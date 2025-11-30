@@ -43,6 +43,6 @@ func get_player_knockback(player: GSPlayer) -> float:
 		player_mass = 0.67
 	if player.is_airborne:
 		tf2_soldier_knockback_multiplier = 10.0
-	if player.is_airborne or player.is_in_water:
+	if player.is_airborne and !player.is_in_water:
 		knockback_damage_reduction = 0.6
 	return min(GSUtils.to_meters(1000.0), GSUtils.to_meters((knockback_damage * tf2_soldier_knockback_multiplier * knockback_damage_reduction) / player_mass))

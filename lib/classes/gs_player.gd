@@ -173,6 +173,10 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
+		if velocity.length() > max_ground_speed * max_ground_speed_multiplier and !is_airborne:
+			clip_velocity(get_floor_normal())
+		if is_on_wall() and is_airborne:
+			clip_velocity(get_wall_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		if !step_up_check(delta):
@@ -669,8 +673,6 @@ func air_move(delta: float) -> void:
 	accel_speed = min(accel_speed, add_speed)
 	#update velocity
 	velocity += accel_speed * dir
-	if is_on_wall():
-		clip_velocity(get_wall_normal())
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered grounded (see [method check_grounded])
@@ -687,8 +689,6 @@ func ground_move(delta: float) -> void:
 	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
-	if velocity.length() > max_ground_speed * max_ground_speed_multiplier:
-		clip_velocity(get_floor_normal())
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Returns [Vector2] of keyboard input. TODO: change to hook from input gatheirng class.[br]
@@ -767,7 +767,6 @@ func get_speed_multiplier() -> float:
 func apply_impulse(impulse: Vector3) -> void:
 	#TODO: implement checks for source of impulse and multipliers
 	stored_velocity += impulse
-	print(GSUtils.to_hammer((stored_velocity * Vector3(0,1,0)).length()))
 
 #endregion acceleration
 
@@ -912,6 +911,7 @@ func get_water_level() -> WATER_LEVEL:
 
 	if !trigger.has_overlapping_areas():
 		current_movement_type = MOVEMENT_TYPE.WALK
+		is_in_water = false
 		return WATER_LEVEL.NOT_IN_WATER
 
 	var areas: Array[Area3D] = trigger.get_overlapping_areas()
@@ -920,11 +920,11 @@ func get_water_level() -> WATER_LEVEL:
 		if areas[i] is GSTrigger:
 			if areas[i].type == "liquid":
 				var water: GSTrigger = areas[i]
-
 				var water_body_vertical_extends: Vector2 = Vector2(water.global_position.y, water.global_position.y + water.size.y)
-
 				var eyes_height: float = $CameraAnchor/smoother/anchor.global_position.y
 				var waist_height: float = collision_hull.global_position.y + GSUtils.to_meters(12.5) #half of the player height + 12.5 hamemr units
+
+				is_in_water = true
 
 				if eyes_height > water_body_vertical_extends.x and eyes_height < water_body_vertical_extends.y:
 					# run extinguish and other being submerged in watter effects
@@ -944,6 +944,7 @@ func get_water_level() -> WATER_LEVEL:
 				return WATER_LEVEL.FEET
 
 	current_movement_type = MOVEMENT_TYPE.WALK
+	is_in_water = false
 	return WATER_LEVEL.NOT_IN_WATER
 
 #FIXME: move to variables section
