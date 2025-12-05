@@ -8,7 +8,16 @@ enum CONVAR_TYPE {
 	STRING,
 	INTEGER,
 	FLOAT,
-	BOOLEAN
+	BOOLEAN,
+}
+enum CONVAR_FLAGS {
+	CHEAT,
+	# OPERATOR, #TODO: add roles for players when multiplayer is settled
+	# SERVERSIDE,
+	# CLIENTSIDE,
+	SETTING,
+	REQUERES_RESTART,
+	REQUERES_MAP_RELOAD,
 }
 
 var output_node : RichTextLabel = null
@@ -154,13 +163,12 @@ func process_alias(id: StringName) -> bool:
 
 #region ConVar
 
-func add_convar(convar_name : StringName,type : CONVAR_TYPE,default_value: String,min_value : String = "",max_value: String = "",value : String = "", description: String = "") -> void:
-	if value == "":
-		value = default_value
-	
+func add_convar(convar_name : StringName,type : CONVAR_TYPE, flags: Array[CONVAR_FLAGS],default_value: String,min_value : String = "",max_value: String = "", description: String = "") -> void:
+	var value : String = default_value
 	var convar_data : Dictionary = {
 		"type" : type,
-		"description" : description
+		"description" : description,
+		"flags" : flags,
 	}
 	match type:
 		CONVAR_TYPE.STRING:
@@ -274,6 +282,9 @@ func process_convar(convar_name: StringName, arguments_array : Array = []) -> bo
 		send_output_message(get_convar_console_output(convar_name))
 		return true
 	else:
+		if convar_list[convar_name]["flags"].has(CONVAR_FLAGS.CHEAT) and convar_list["sv_cheats"]["value"] == false:
+			send_output_message("[color=red]Convar \"" + convar_name + "\" requires cheats enabled (\"sv_cheats 1\")[/color]")
+			return false
 		return set_convar_value(convar_name, arguments_array[0])
 
 func set_convar_value(convar_name: StringName, argument: String) -> bool:
@@ -319,5 +330,18 @@ func set_convar_value(convar_name: StringName, argument: String) -> bool:
 	emit_signal("convar_changed", convar_name)
 	return true
 
+func get_convar_text_value(convar_name: StringName) -> String:
+	var type : CONVAR_TYPE = convar_list[convar_name]["type"]
+	match type:
+		CONVAR_TYPE.STRING:
+			return convar_list[convar_name]["value"]
+		CONVAR_TYPE.BOOLEAN:
+			return str(int(convar_list[convar_name]["value"]))
+		CONVAR_TYPE.FLOAT:
+			return str(convar_list[convar_name]["value"])
+		CONVAR_TYPE.INTEGER:
+			return str(int(convar_list[convar_name]["value"]))
+		_:
+			return ""
 
 #endregion

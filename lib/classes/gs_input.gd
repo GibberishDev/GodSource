@@ -55,18 +55,17 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		handleKeyboardInput(event)
 
-func _process(delta: float) -> void:
+func handleMouseMotion(event: InputEventMouseMotion) -> void:
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		mouse_moved = true
+		var fps : float = Performance.get_monitor(Performance.TIME_FPS)
+		mouse_motion = event.screen_relative * (fps/144.0)
+
+func _physics_process(delta: float) -> void:
 	if current_input_context == INPUT_CONTEXT.CHARACTER and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if mouse_motion == last_mouse_motion: mouse_moved = false
 	last_mouse_motion = mouse_motion
-
-func handleMouseMotion(event: InputEventMouseMotion) -> void:
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		mouse_moved = true
-		mouse_motion = event.screen_relative
-
-func _physics_process(delta: float) -> void:
 	for i : int in keylist.keys():
 		if !bound_keys.keys().has(str(i)): return #Needed in case button was unbound while processing command input
 		if keylist[i]["state"]:
