@@ -84,11 +84,9 @@ func adjust_mounted_cameras() -> void:
 
 func rotate_with_mouse() -> void:
 	if !GSInput.mouse_moved: return
-	var motion : Vector2 = GSInput.mouse_motion
+	var motion : Vector2 = GSInput.mouse_motion_with_sens #TODO: change to check client authority
 	var motion_x : float = motion.x
 	var motion_y : float = motion.y
-	motion_x *= client_setting_mouse_sensetivity_x
-	motion_y *= client_setting_mouse_sensetivity_y
 	rotate_y(-motion_x)
 	$smoother/anchor.rotate_x(-motion_y)
 	$smoother/anchor.rotation.x = clampf($smoother/anchor.rotation.x, deg_to_rad(-89), deg_to_rad(89))
@@ -123,7 +121,8 @@ func save_start_smoothing_position() -> void:
 
 func smooth_camera(delta: float, player_owner: GSPlayer = null) -> void:
 	$smoother.global_position.y = start_smoothing_position.y
-	if start_smoothing_position.distance_to(global_position) > max_smoothing_distance:
+	print(start_smoothing_position.distance_to(global_position))
+	if start_smoothing_position.distance_to(global_position) > max_smoothing_distance or start_smoothing_position.distance_to(global_position) < 0.1:
 		reset_smoothing()
 		return
 	var movement_amount : float = 3.0 * delta

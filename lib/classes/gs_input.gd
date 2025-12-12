@@ -32,6 +32,7 @@ var mouse_buttons : Dictionary = {
 	&"9":&"mouse5"
 }
 var mouse_motion : Vector2 = Vector2.ZERO
+var mouse_motion_with_sens : Vector2 = Vector2.ZERO
 var last_mouse_motion : Vector2 = Vector2.ZERO
 var mouse_moved : bool = false
 
@@ -60,6 +61,7 @@ func handleMouseMotion(event: InputEventMouseMotion) -> void:
 		mouse_moved = true
 		var fps : float = Performance.get_monitor(Performance.TIME_FPS)
 		mouse_motion = event.screen_relative * (fps/144.0)
+		mouse_motion_with_sens = Vector2(mouse_motion.x * GSConsole.convar_list[&"cl_mousesensx"]["value"], mouse_motion.y * GSConsole.convar_list[&"cl_mousesensy"]["value"])
 
 func _physics_process(delta: float) -> void:
 	if current_input_context == INPUT_CONTEXT.CHARACTER and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:

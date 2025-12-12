@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cjcvs4n5ja40x"]
 
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
-[ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/camera_anchor.tscn" id="2_ga4fc"]
+[ext_resource type="PackedScene" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
 [ext_resource type="Script" uid="uid://c4llk0ks60g4j" path="res://lib/classes/test_hud.gd" id="3_s3wio"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
@@ -18,13 +18,10 @@ size = Vector3(0, 1.581, 0)
 
 [node name="gs_player" type="CharacterBody3D"]
 collision_layer = 2
-floor_stop_on_slope = false
-floor_constant_speed = true
-floor_block_on_wall = false
+collision_mask = 5
+wall_min_slide_angle = 3.1415927
+floor_max_angle = 0.7958701
 script = ExtResource("1_k5xr0")
-
-[node name="CameraAnchor" parent="." instance=ExtResource("2_ga4fc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [node name="collision_hull" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
@@ -108,6 +105,8 @@ unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.8
 one_shot = true
+
+[node name="CameraAnchor" parent="." instance=ExtResource("3_bd2rc")]
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
 [connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]

@@ -7,23 +7,23 @@ extends CharacterBody3D
 
 #region Exported variables
 @export
-var max_ground_speed : float = GSUtils.to_meters(240)
+var max_ground_speed : float = 240  * 1.905 / 100
 ## Multiplier of default server defined max walking speed.
 ## In TF2 100% is equal to 300 hu/s (4.527 m/s).[br]133% (400 hu/s) - Scout[br]107% (321 hu/s) - Spy, Medic[br]100% (300hu/s) - Pyro, Engineer, Sniper[br]93.(3)% (280 hu/s) - Demoman[br]80% (240 hu/s) - Soldier[br]76.(6)% (230hu/s) - Heavy
 @export
 var max_ground_speed_multiplier : float = 1.0
 ## Vertical velocity given to player upon jumping. See [method handle_jumping] for exceptions
 @export
-var jump_strength : float = GSUtils.to_meters(288)
+var jump_strength : float = 287 * 1.905 / 100
 ## Amount of mid air jumps player can perform without touching ground
 @export
 var maximum_mid_air_jumps : int = 0
 ## Size of player bounding box hull in normal state
 @export
-var standart_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(83), GSUtils.to_meters(49))
+var standart_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 83 * 1.905 / 100, 49 * 1.905 / 100)
 ## Size of player bounding box hull in crouched state
 @export
-var crouch_hull_size : Vector3 = Vector3(GSUtils.to_meters(49), GSUtils.to_meters(63), GSUtils.to_meters(49))
+var crouch_hull_size : Vector3 = Vector3(49 * 1.905 / 100, 63 * 1.905 / 100, 49 * 1.905 / 100)
 @export_subgroup("Known bugged behavior toggles")
 ## Causes player jump while crouching down to be 2 hammer units highier due to not substracting 1 tick of half gravity. [br][color=gold]For explanation in source engine check this [url=https://www.youtube.com/watch?v=7z_p_RqLhkA]video[/url] by Shounic[/color]
 @export
@@ -35,7 +35,7 @@ var is_ctap_bug_enabled : bool = true
 @export
 var jump_speed_cap: float = 1.2
 @export
-var max_air_speed : float = GSUtils.to_meters(30)
+var max_air_speed : float = 30 * 1.905 / 100
 @export
 var crouch_speed_multiplier : float = 1.0 / 3.0
 @export
@@ -57,6 +57,8 @@ var is_uncrouching_animation : bool = false
 var is_stuck : bool = false
 ## Surface friction is used in [method apply_friction] method to slow down player movement. This value is modified depending on surface player stand on on step 10 in [method process_movement] method.
 var surface_friction: float = 1.0
+## defines if player is on floor
+var is_floored : bool = false
 #endregion
 
 #region local variables
@@ -173,15 +175,15 @@ func process_movement(delta: float) -> void:
 			apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		if velocity.length() > max_ground_speed * max_ground_speed_multiplier and !is_airborne:
-			clip_velocity(get_floor_normal())
-		if is_on_wall() and is_airborne:
+		if is_on_wall():
 			clip_velocity(get_wall_normal())
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier and !is_airborne:
+			clip_velocity(get_floor_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		if !step_up_check(delta):
 			step_down_check()
-			
+			# try_player_move(delta)
 			move_and_slide()
 		#step 10: check if grounded and surface properties
 		if check_grounded():
@@ -525,8 +527,11 @@ func handle_jump(delta: float) -> void:
 	wish_jump_last_frame = GSInput.wish_sates["wish_jump"]
 	if get_water_level() > WATER_LEVEL.FEET: return
 	#check if airborne
-	if !is_on_floor(): pass #TODO: make mid air jumping
+	if !is_on_floor():
+		pass #TODO: make mid air jumping
 	elif wish_jump and !is_crouched:
+		#apply floor snapping to remove godot jank where polayer can jump technically before touching floor
+		apply_floor_snap()
 		#if player is crouching down perform a crouch jump.
 		if is_crouching_animation: crouch_jump()
 		#if player is uncrouching perform a ctap bug. 
@@ -1134,12 +1139,78 @@ func attack_one() -> void:
 var rocket_scene : PackedScene = preload("res://src/scenes/rocket.tscn")
 var explosion_particles_scene : PackedScene = preload("res://assets/particles/explosion_particles.tscn")
 var explosion_scene : PackedScene = preload("res://src/scenes/explosion.tscn")
+
 func spawn_rocket() -> void:
 	var rocket : Node3D = rocket_scene.instantiate()
+
 	rocket.explosion_particles = explosion_particles_scene
 	rocket.explosion = explosion_scene
 	rocket.position = get_node("Camera3D").position + global_position
 	rocket.rotation = get_node("Camera3D").global_rotation
+
 	get_tree().root.get_node("Node3D").add_child(rocket)
+
+## Amount of plane collision adjustments to perform. Default is 6. 
+var max_plane_slides : int = ProjectSettings.get_setting("physics/common/max_physics_steps_per_frame")
+var max_walking_angle : float = deg_to_rad(45.0)
+
+func try_player_move(delta: float) -> void:
+	var test_ground_vector : Vector3 = Vector3(0, -floor_snap_length, 0)
+	var motion_test : KinematicCollision3D = move_and_collide(test_ground_vector, true)
+	if motion_test != null and velocity.y <= 0:
+		var normal : Vector3 = motion_test.get_normal()
+		var angle_to_up : float = normal.angle_to(up_direction)
+		print(angle_to_up, " - ", max_walking_angle)
+		if angle_to_up < max_walking_angle:
+			is_floored = true
+			# velocity.y = 0.0
+			apply_floor_snap()
+		else:
+			is_floored = false
+	else:
+		is_floored = false
+	if velocity == Vector3.ZERO: return
+	var desired_motion : Vector3 = velocity * delta
+	motion_test = move_and_collide(desired_motion, true)
+	if motion_test == null:
+		global_position += desired_motion
+		return
+	else:
+		motion_test = move_and_collide(velocity*delta, true)
+		if motion_test != null:
+			velocity = clip_vector(velocity, motion_test.get_normal(), get_convar(&"sv_bounce"))
+		var travel : Vector3 = Vector3.ZERO
+		var velocity_remainder : Vector3 = velocity
+		var delta_remainder : float = delta
+		var fraction : float = 0.0
+
+		for i : int in range(max_plane_slides):
+			motion_test = move_and_collide(velocity_remainder * delta_remainder, true)
+			if motion_test == null:
+				global_position += velocity_remainder * delta_remainder
+				break
+			travel = motion_test.get_travel()
+			fraction += travel.length() / (velocity_remainder * delta_remainder).length()  #amount of movement we completed already
+			global_position += travel
+			velocity_remainder = velocity_remainder * (1.0 - fraction)
+			delta_remainder = delta_remainder * (1.0 - fraction)
+			velocity_remainder = clip_vector(velocity_remainder, motion_test.get_normal(), get_convar(&"sv_bounce"))
+			velocity = clip_vector(velocity, motion_test.get_normal(), get_convar(&"sv_bounce"))
+		return
+
+
+func clip_vector(vector: Vector3, surface_normal: Vector3, overbounce : float = 1.0) -> Vector3:
+	var backoff: float = vector.dot(surface_normal)
+	# if negative - cancell
+	if backoff >= 0: return vector
+	# get reflected velocity component
+	var change: Vector3 = surface_normal * backoff * overbounce
+	# modify and return velocity
+	vector -= change
+	# iterate once to make sure we aren't still moving through the plane - Valve said that, and I'd say they know a little more about Source than you do, pal, because they invented it, and then they spagetted it so that no living man could make sence of it in the ring of honor.
+	var adjust: float = vector.dot(surface_normal)
+	if adjust < 0.0:
+		vector -= surface_normal * adjust
+	return vector
 
 #endregion
