@@ -87,19 +87,19 @@ func process_commands(commands_array: Array[String]) -> bool:
 					return false
 				else:
 					var input_arguments: String = commands_array[i].right(command_name.length() * -1)
-					return process_convar(command_name, process_arguments(input_arguments))
+					if process_convar(command_name, process_arguments(input_arguments)) != true: return false
 			else:
-				return process_alias(command_name)
+				if process_alias(command_name) != true: return false
 		else:
 			if self.command_list[command_name].context == [] or self.command_list[command_name].context.has(GSInput.current_input_context):
 				var input_arguments: String = commands_array[i].right(command_name.length() * -1)
-				return self.command_list[command_name].callable.call(process_arguments(input_arguments))
+				if self.command_list[command_name].callable.call(process_arguments(input_arguments)) != true: return false
 			else:
 				var return_message : String = "[color=light_gray]DEBUG INFO: Command [b]" + StringName(command_name) + "[/b] cannot be executed in [b]" + str(GSInput.INPUT_CONTEXT.keys()[GSInput.current_input_context]) + "[/b] context! It requires following contexes: "
 				for idx : int in self.command_list[command_name].context:
 					return_message += str(GSInput.INPUT_CONTEXT.keys()[idx]) + " "
 				# print_rich(return_message)
-				return true
+				return false
 	if terminal_input_thread_semaphore != null: terminal_input_thread_semaphore.post()
 	return false
 
