@@ -13,7 +13,7 @@ func register_convars() -> void:
 	GSConsole.add_convar(&"sv_accelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "10")
 	GSConsole.add_convar(&"sv_airaccelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "10")
 	GSConsole.add_convar(&"sv_bounce", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
-	GSConsole.add_convar(&"sv_maxspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(300.0*1.905/100.0), "0.0")
+	GSConsole.add_convar(&"sv_maxspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(320.0*1.905/100.0), "0.0")
 	GSConsole.add_convar(&"sv_maxvelocity", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(3500.0*1.905/100.0), "0.0")
 	GSConsole.add_convar(&"sv_friction", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "4")
 	GSConsole.add_convar(&"sv_stopspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1.905")
@@ -21,7 +21,9 @@ func register_convars() -> void:
 	GSConsole.add_convar(&"sv_maxstepup", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(18.0*1.905/100.0))
 	GSConsole.add_convar(&"sv_upthreshold", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(250.0*1.905/100.0))
 	GSConsole.add_convar(&"host_timescale", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1", "0")
-	
+	GSConsole.add_convar(&"sv_noclipspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "5", "0")
+	GSConsole.add_convar(&"sv_noclipaccelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "5", "0")
+
 	GSConsole.add_convar(&"cl_nullmovement", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.SETTING], "1")
 	GSConsole.add_convar(&"cl_vsync", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.SETTING], "0")
 	GSConsole.add_convar(&"cl_mousesensx", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.SETTING], "0.003", "-1.0","1.0", "Horizontal mouse sensitivity")

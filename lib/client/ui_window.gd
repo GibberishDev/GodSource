@@ -108,3 +108,10 @@ func set_focused(state: bool) -> void:
 		$bg.theme_type_variation = "unfocused_window_panel"
 		modulate = Color(.75,.75,.75,.75)
 		
+
+func call_on_child(callable: StringName, arguments: Array = []) -> void:
+	var child : Control = %body.get_child(0)
+	if arguments == []:
+		child.call(callable)
+	else:
+		child.call(callable, arguments)

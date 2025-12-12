@@ -156,50 +156,49 @@ func _physics_process(delta: float) -> void:
 ## [br]This is very rudementary implementation of processing stack from source engine physics. In source it doesnt touch only entities but includes movemnts, calucations navigation and what not. PLEASE read through paper here for more information: https://www.dropbox.com/scl/fi/c0vxjztou9xj0of1zamer/Review.pdf?rlkey=rv9l35ze3uvhbk5llnwl1ld0k&e=1
 func process_movement(delta: float) -> void:
 	#step 1: check if stuck and try to unstuck and move to step 14
-	check_stuck()
-	if !is_stuck:
-		#step 2: check vertical velocity. Become airborne
-		check_upward_velocity()
-		#step 3: handle crouching
-		handle_crouch()
-		#step 4: apply half of gravity
-		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
-			apply_half_gravity()
-		#step 5: handle jumping
-		handle_jump(delta)	
-		#step 6: cap velocity
-		limit_velocity()
-		#step 7: if not airborne apply friction and 0 out vertical velocity
-		if !is_airborne:
-			velocity.y = 0.0
-			apply_friction(delta)
+	if current_movement_type != MOVEMENT_TYPE.NOCLIP:
+		check_stuck()
+	if !is_stuck or current_movement_type == MOVEMENT_TYPE.NOCLIP:
+		if current_movement_type != MOVEMENT_TYPE.NOCLIP:
+			#step 2: check vertical velocity. Become airborne
+			check_upward_velocity()
+			#step 3: handle crouching
+			handle_crouch()
+			#step 4: apply half of gravity
+			if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
+				apply_half_gravity()
+			#step 5: handle jumping
+			handle_jump(delta)	
+			#step 6: cap velocity
+			limit_velocity()
+			#step 7: if not airborne apply friction and 0 out vertical velocity
+			if !is_airborne:
+				velocity.y = 0.0
+				apply_friction(delta)
 		#step 8: accelerate
 		accelerate(delta)
-		if is_on_wall():
-			clip_velocity(get_wall_normal())
-		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier and !is_airborne:
-			clip_velocity(get_floor_normal())
 		#step 9: move and slide?. Question mark here is due to me(gibbdev) being not 100% sure if this is correct place to plug default godot implementation of move_and_slide
 		#It might be out of place due to Source 1 engine processing movement and physics kinda separate as Valve traces the player bounding box before editing the velocity
 		if !step_up_check(delta):
 			step_down_check()
 			# try_player_move(delta)
 			move_and_slide()
-		#step 10: check if grounded and surface properties
-		if check_grounded():
-			is_airborne = false
-			#TODO: get_surface_properties()
-		else:
-			is_airborne = true
-			#TODO: reset_surface_properies()
-		#step 11: apply second half of gravity
-		if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
-			apply_half_gravity()
-		#step 12: if not airborne, zero out vertical velocity
-		if !is_airborne:
-			velocity.y = 0.0
-		#step 13:
-		limit_velocity()
+		if current_movement_type != MOVEMENT_TYPE.NOCLIP:
+			#step 10: check if grounded and surface properties
+			if check_grounded():
+				is_airborne = false
+				#TODO: get_surface_properties()
+			else:
+				is_airborne = true
+				#TODO: reset_surface_properies()
+			#step 11: apply second half of gravity
+			if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
+				apply_half_gravity()
+			#step 12: if not airborne, zero out vertical velocity
+			if !is_airborne:
+				velocity.y = 0.0
+			#step 13:
+			limit_velocity()
 	#step 14: check triggers to activate
 	#step 15: adjust collision hull. Source engine adjusts position of world collision hul on this step. In godot it handled by physics server during move_and_slide of player parent node 
 	update_hull()
@@ -623,6 +622,12 @@ func accelerate(delta: float) -> void:
 	#upadte wish_direction
 	wish_direction = get_wish_direction()
 
+	#Noclip move
+	if current_movement_type == MOVEMENT_TYPE.NOCLIP:
+		stored_velocity = Vector3.ZERO
+		noclip_move(delta)
+		return
+
 	if stored_velocity != Vector3.ZERO:
 		velocity += stored_velocity
 		stored_velocity = Vector3.ZERO
@@ -638,6 +643,10 @@ func accelerate(delta: float) -> void:
 		return
 	if is_airborne: air_move(delta)
 	else: ground_move(delta)
+	if is_on_wall():
+		clip_velocity(get_wall_normal())
+	if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+		clip_velocity(get_floor_normal())
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Clips and aligns [member velocity] to surface 
@@ -658,6 +667,38 @@ func clip_velocity(surface_normal: Vector3, overbounce: float = 1.0) -> void:
 	if adjust < 0.0:
 		velocity -= surface_normal * adjust
 	return
+
+func noclip_move(delta: float) -> void:
+	var max_speed : float = GSConsole.convar_list[&"sv_noclipspeed"]["value"] * GSConsole.convar_list[&"sv_maxspeed"]["value"]
+	var wish_dir : Vector3 = get_view_angles()[0] * -wish_direction.y + get_view_angles()[2] * wish_direction.x
+	wish_dir = wish_dir.normalized()
+	var wish_velocity : Vector3 = wish_dir * max_speed
+	if GSConsole.convar_list[&"sv_noclipaccelerate"]["value"] > 0.0:
+		var current_speed : float = velocity.dot(wish_dir)
+		var add_speed : float = max_speed - current_speed
+
+		if add_speed < 0: return
+
+		var accel_speed : float = GSConsole.convar_list[&"sv_noclipaccelerate"]["value"] * delta * max_speed
+		accel_speed = min(accel_speed, add_speed)
+		velocity += accel_speed * wish_dir
+
+		var speed : float = velocity.length()
+		if speed < 0.01905:
+			velocity = Vector3.ZERO
+			return
+		var control : float = 0
+		if speed < max_speed / 4.0:
+			control = max_speed / 4.0
+		else:
+			control = speed
+		var friction : float = GSConsole.convar_list[&"sv_friction"]["value"]
+		var drop : float = control * friction * delta
+		var new_speed : float = max(speed - drop, .0)
+		new_speed /= speed
+		velocity *= new_speed
+	else:
+		velocity = wish_dir * max_speed
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered airborne (see [method check_grounded])
@@ -781,6 +822,12 @@ func apply_impulse(impulse: Vector3) -> void:
 ## [b][u]PARAMETERS[/u][/b]:
 ## [br][param new_size] - If provided sets dimensions of the collision hull to new_size. If not - set size to [member wish_hull_size]
 func update_hull(new_size : Vector3 = wish_hull_size) -> void:
+	if current_movement_type == MOVEMENT_TYPE.NOCLIP:
+		collision_hull.disabled = true
+		stuck_check_collider.enabled = false
+	else:
+		collision_hull.disabled = false
+		stuck_check_collider.enabled = true
 	if collision_hull.shape.size == new_size: return			#/if hull shape is already of new_size -> return.
 																#\might cause possible descrepancy between hull shape and stuck_check_collider. If this is the case Ill go back and fix it
 	collision_hull.position = Vector3(0.0, new_size.y/2.0, 0.0) # set new position of the hull
@@ -1148,7 +1195,7 @@ func spawn_rocket() -> void:
 	rocket.position = get_node("Camera3D").position + global_position
 	rocket.rotation = get_node("Camera3D").global_rotation
 
-	get_tree().root.get_node("Node3D").add_child(rocket)
+	get_tree().root.get_node("GameRoot/Node3D").add_child(rocket)
 
 ## Amount of plane collision adjustments to perform. Default is 6. 
 var max_plane_slides : int = ProjectSettings.get_setting("physics/common/max_physics_steps_per_frame")
@@ -1160,7 +1207,6 @@ func try_player_move(delta: float) -> void:
 	if motion_test != null and velocity.y <= 0:
 		var normal : Vector3 = motion_test.get_normal()
 		var angle_to_up : float = normal.angle_to(up_direction)
-		print(angle_to_up, " - ", max_walking_angle)
 		if angle_to_up < max_walking_angle:
 			is_floored = true
 			# velocity.y = 0.0

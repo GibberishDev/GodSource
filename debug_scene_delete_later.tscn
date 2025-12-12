@@ -76,7 +76,7 @@ size = Vector3(4.763, 4.953, 0.953)
 
 [node name="Node3D" type="Node3D"]
 
-[node name="gs_player" parent="." instance=ExtResource("1_0qie4")]
+[node name="player" parent="." instance=ExtResource("1_0qie4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.133297, 0.5101285, 0)
 wall_min_slide_angle = 0.0
 

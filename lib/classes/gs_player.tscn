@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cjcvs4n5ja40x"]
 
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
-[ext_resource type="PackedScene" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
+[ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
 [ext_resource type="Script" uid="uid://c4llk0ks60g4j" path="res://lib/classes/test_hud.gd" id="3_s3wio"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
@@ -91,7 +91,7 @@ layout_mode = 0
 offset_top = 33.0
 offset_right = 65.0
 offset_bottom = 56.0
-text = "Velocity "
+text = "jump_state"
 
 [node name="is_airborne" type="Label" parent="test_hud"]
 layout_mode = 0
@@ -100,6 +100,21 @@ offset_right = 65.0
 offset_bottom = 86.0
 text = "airborne"
 
+[node name="speed" type="Label" parent="test_hud"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -33.5
+offset_top = 200.0
+offset_right = 33.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "speed"
+
 [node name="attack_one_timer" type="Timer" parent="."]
 unique_name_in_owner = true
 process_callback = 0
@@ -107,6 +122,7 @@ wait_time = 0.8
 one_shot = true
 
 [node name="CameraAnchor" parent="." instance=ExtResource("3_bd2rc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
 [connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]

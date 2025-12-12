@@ -15,6 +15,7 @@ func _register_console_commands() -> void:
 	GSConsole.add_command("bind", bind_command_callable, "attach a command to a key\n   Syntax: bind [key](optional) \"[command](optional)\" \n	Is cheat: false - Is admin only: false", [])
 	GSConsole.add_command("unbind", unbind_command_callable, "attach a command to a key\n   Syntax: bind [key](optional) \"[command](optional)\" \n	Is cheat: false - Is admin only: false", [])
 	GSConsole.add_command("unbindall", unbind_all_command_callable, "Unbind all keys\n   Syntax: unbindall \n	Is cheat: false - Is admin only: false", [])
+	GSConsole.add_command("noclip", noclip_command_callable, "Toggles noclip movement\n   Syntax: noclip \n	Is cheat: true - Is admin only: false", [])
 	# GSConsole.add_command("connect", connect_command_callable, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	# GSConsole.add_command("start_server", connect_command_callable, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 	
@@ -107,17 +108,21 @@ func toggle_console_ui_callable(arguments_array: Array = []) -> bool:
 		var console_scene : PackedScene = load("res://lib/client/console.tscn")
 		GSUi.add_window(console_scene, Vector2(800,600), "GSConsole", "console")
 		GSUi.show_ui()
+		GSUi.opened_windows["console"].call_on_child(&"focus_input")
 	else:
 		if GSUi.get_node("ui_windows").visible:
 			if GSUi.focused_window != GSUi.opened_windows["console"] and GSUi.opened_windows["console"].visible:
 				GSUi.focus_window("console")
+				GSUi.opened_windows["console"].call_on_child(&"focus_input")
 			elif GSUi.focused_window == GSUi.opened_windows["console"]:
 				GSUi.hide_window("console")
 			else:
 				GSUi.show_window("console")
+				GSUi.opened_windows["console"].call_on_child(&"focus_input")
 		else:
 			GSUi.show_window("console")
 			GSUi.show_ui()
+			GSUi.opened_windows["console"].call_on_child(&"focus_input")
 	return true
 				
 func alias_command_callable(arguments_array: Array = [])-> bool:
@@ -211,6 +216,20 @@ func unbind_command_callable(arguments_array: Array = []) -> bool:
 func unbind_all_command_callable(arguments_array: Array = []) -> bool:
 	GSInput.bound_keys = {}
 	return true
+
+func noclip_command_callable(arguments_array: Array = []) -> bool:
+	if GSConsole.convar_list[&"sv_cheats"]["value"] == true:
+		#TODO: change to set noclip state of player owner or player from arguments
+		if get_tree().root.get_node("GameRoot/Node3D/player") != null:
+			var player : GSPlayer = get_tree().root.get_node("GameRoot/Node3D/player")
+			if player.current_movement_type == player.MOVEMENT_TYPE.NOCLIP:
+				player.current_movement_type = player.MOVEMENT_TYPE.AIRBORNE
+			else:
+				player.current_movement_type = player.MOVEMENT_TYPE.NOCLIP
+		return true
+	else:
+		GSConsole.send_output_message("[color=red]Noclip command requires cheats enabled (\"sv_cheats 1\")[/color]")
+		return false
 #endregion
 
 #region wish commands callables

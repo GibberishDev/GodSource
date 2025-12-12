@@ -43,4 +43,5 @@ func input_focused() -> void:
 
 func focus_input() -> void:
 	GSInput.current_input_context = GSInput.INPUT_CONTEXT.UI
+	input.grab_focus()
 	GSInput.release_mouse()

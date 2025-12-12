@@ -79,7 +79,8 @@ func _physics_process(delta: float) -> void:
 				}
 			else:
 				keylist.erase(i)
-			GSConsole.process_input(bound_keys[str(i)]["command"])
+			if current_input_context != INPUT_CONTEXT.TEXT_INPUT:
+				GSConsole.process_input(bound_keys[str(i)]["command"])
 		else:
 			GSConsole.process_input(construct_negative_command(bound_keys[str(i)]["command"]))
 			keylist.erase(i)

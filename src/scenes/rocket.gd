@@ -14,10 +14,10 @@ func _physics_process(delta: float) -> void:
 	if $rocket/RayCast3D.is_colliding():
 		var particles : Node3D = explosion_particles.instantiate()
 		particles.position = $rocket/RayCast3D.get_collision_point()
-		get_tree().root.get_node("Node3D").add_child(particles)
+		get_tree().root.get_node("GameRoot/Node3D").add_child(particles)
 		var explosion_node : Node3D = explosion.instantiate()
 		explosion_node.position = $rocket/RayCast3D.get_collision_point()
-		get_tree().root.get_node("Node3D").add_child(explosion_node)
+		get_tree().root.get_node("GameRoot/Node3D").add_child(explosion_node)
 		queue_free()
 
 

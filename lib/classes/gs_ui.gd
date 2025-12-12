@@ -104,3 +104,4 @@ func _ready() -> void:
 	var main_menu_scene : PackedScene = load("res://src/scenes/main_menu.tscn")
 	node = main_menu_scene.instantiate()
 	get_node("menu").add_child(node)
+	self.z_index = 541
