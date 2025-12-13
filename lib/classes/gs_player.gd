@@ -669,17 +669,17 @@ func clip_velocity(surface_normal: Vector3, overbounce: float = 1.0) -> void:
 	return
 
 func noclip_move(delta: float) -> void:
-	var max_speed : float = GSConsole.convar_list[&"sv_noclipspeed"]["value"] * GSConsole.convar_list[&"sv_maxspeed"]["value"]
+	var max_speed : float = get_convar(&"sv_noclipspeed") * get_convar(&"sv_maxspeed")
 	var wish_dir : Vector3 = get_view_angles()[0] * -wish_direction.y + get_view_angles()[2] * wish_direction.x
 	wish_dir = wish_dir.normalized()
 	var wish_velocity : Vector3 = wish_dir * max_speed
-	if GSConsole.convar_list[&"sv_noclipaccelerate"]["value"] > 0.0:
+	if get_convar(&"sv_noclipaccelerate") > 0.0:
 		var current_speed : float = velocity.dot(wish_dir)
 		var add_speed : float = max_speed - current_speed
 
 		if add_speed < 0: return
 
-		var accel_speed : float = GSConsole.convar_list[&"sv_noclipaccelerate"]["value"] * delta * max_speed
+		var accel_speed : float = get_convar(&"sv_noclipaccelerate") * delta * max_speed
 		accel_speed = min(accel_speed, add_speed)
 		velocity += accel_speed * wish_dir
 
@@ -692,7 +692,7 @@ func noclip_move(delta: float) -> void:
 			control = max_speed / 4.0
 		else:
 			control = speed
-		var friction : float = GSConsole.convar_list[&"sv_friction"]["value"]
+		var friction : float = get_convar(&"sv_friction")
 		var drop : float = control * friction * delta
 		var new_speed : float = max(speed - drop, .0)
 		new_speed /= speed
@@ -735,6 +735,10 @@ func ground_move(delta: float) -> void:
 	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
+	var velocity_y : float = velocity.y
+	velocity.y = 0
+	velocity = velocity.normalized() * min(max_ground_speed * max_ground_speed_multiplier, velocity.length())
+	velocity.y = velocity_y
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Returns [Vector2] of keyboard input. TODO: change to hook from input gatheirng class.[br]
@@ -912,6 +916,9 @@ func step_down_check() -> void:
 	# Update if player was snapped to ground with state of the method
 	snapped_to_stairs_last_frame = stepped_down
 
+var last_step_up_object_rid : RID = get_rid()
+var last_step_up_object_face_idx : int = 0
+
 ## [b][u]PURPOSE[/u][/b]:
 ## [br] Moves player up if ledge height less than [member max_step_up].
 ## [br][b][color=gold]!!IMPORTANT!! THIS METHOD MOVES PLAYER! EXECUTING [method CharacterBody3D.move_and_slide] WILL RESULT IN ERRONIOUS DOUBLING OF MOVEMENT![/color][br]
@@ -942,8 +949,12 @@ func step_up_check(delta: float) -> bool:
 		$step_up_ray_cast.force_raycast_update()
 		# Check if step up spot is valid
 		if not is_wall_too_steep($step_up_ray_cast.get_collision_normal()):
-			# Call camera smoothing method from CamearAnchor node
-			$CameraAnchor.save_start_smoothing_position()
+			# Call camera smoothing method from CamearAnchor node when new collision face is not the same we stepped off from
+			if last_step_up_object_face_idx != $step_up_ray_cast.get_collision_face_index():
+				$CameraAnchor.save_start_smoothing_position()
+			else:
+				$CameraAnchor.reset_smoothing()
+			last_step_up_object_face_idx = $step_up_ray_cast.get_collision_face_index()
 			# Move player up the ledge
 			global_position = step_pos_with_clearance.origin + down_check_result.get_travel()
 			# Align with the floor

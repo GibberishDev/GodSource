@@ -121,10 +121,10 @@ func save_start_smoothing_position() -> void:
 
 func smooth_camera(delta: float, player_owner: GSPlayer = null) -> void:
 	$smoother.global_position.y = start_smoothing_position.y
-	if start_smoothing_position.distance_to(global_position) > max_smoothing_distance or start_smoothing_position.distance_to(global_position) < 0.2:
+	if start_smoothing_position.distance_to(global_position) > max_smoothing_distance:
 		reset_smoothing()
 		return
-	var movement_amount : float = 3.0 * delta
+	var movement_amount : float = 3 * delta
 	if player_owner != null:
 		movement_amount = max((player_owner.velocity * Vector3(1,0,1)).length() * delta / 1.5, player_owner.max_ground_speed * delta / 1.5)
 	$smoother.global_position = $smoother.global_position.move_toward(global_position, movement_amount)
