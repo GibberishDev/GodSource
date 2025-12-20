@@ -43,7 +43,7 @@ var backwards_speed_multiplier : float = 0.9
 #endregion
 
 #region player state variables
-##	Indicates if player is grounded.[br][color=orange]IMPORTANT! NOT THE SAME AS [method CharacterBody3D.is_on_floor][/color].[br]main difference that player is considered airborne the frame their vertical velocity exceeds [member upward_velocity_threshhold]
+##	Indicates if player is grounded.[br][color=orange]IMPORTANT! NOT THE SAME AS [method CharacterBody3D.is_floored][/color].[br]main difference that player is considered airborne the frame their vertical velocity exceeds [member upward_velocity_threshhold]
 var is_airborne : bool = false
 ##	Indicates if player is fully crouched.
 var is_crouched : bool = false
@@ -735,10 +735,6 @@ func ground_move(delta: float) -> void:
 	var add_speed : float = clamp(get_convar("sv_accelerate") * max_ground_speed * delta, 0, max_ground_speed * max_ground_speed_multiplier - current_speed)
 	#update velocity
 	velocity += dir * add_speed
-	var velocity_y : float = velocity.y
-	velocity.y = 0
-	velocity = velocity.normalized() * min(max_ground_speed * max_ground_speed_multiplier, velocity.length())
-	velocity.y = velocity_y
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Returns [Vector2] of keyboard input. TODO: change to hook from input gatheirng class.[br]
@@ -1210,20 +1206,22 @@ func spawn_rocket() -> void:
 
 ## Amount of plane collision adjustments to perform. Default is 6. 
 var max_plane_slides : int = ProjectSettings.get_setting("physics/common/max_physics_steps_per_frame")
-var max_walking_angle : float = deg_to_rad(45.0)
+var max_walking_angle : float = deg_to_rad(45.6)
 
 func try_player_move(delta: float) -> void:
 	var test_ground_vector : Vector3 = Vector3(0, -floor_snap_length, 0)
 	var motion_test : KinematicCollision3D = move_and_collide(test_ground_vector, true)
 	if motion_test != null and velocity.y <= 0:
-		var normal : Vector3 = motion_test.get_normal()
-		var angle_to_up : float = normal.angle_to(up_direction)
-		if angle_to_up < max_walking_angle:
-			is_floored = true
-			# velocity.y = 0.0
-			apply_floor_snap()
-		else:
-			is_floored = false
+		if !is_floored:
+			var normal : Vector3 = motion_test.get_normal()
+			var angle_to_up : float = normal.angle_to(up_direction)
+			if angle_to_up <= max_walking_angle:
+				is_floored = true
+				# velocity.y = 0.0
+				motion_test = move_and_collide(test_ground_vector, true)
+				global_position += motion_test.get_travel()
+			else:
+				is_floored = false
 	else:
 		is_floored = false
 	if velocity == Vector3.ZERO: return
