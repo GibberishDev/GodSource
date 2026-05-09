@@ -11,9 +11,10 @@ func register_convars() -> void:
 	GSConsole.add_convar(&"sv_bhop", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
 	GSConsole.add_convar(&"sv_limitjumpspeed", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
 	GSConsole.add_convar(&"sv_accelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "10")
-	GSConsole.add_convar(&"sv_airaccelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "10")
+	GSConsole.add_convar(&"sv_airaccelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "5") #idk why but despite in tf this being mult of 10 this value is overtuned af.
 	GSConsole.add_convar(&"sv_bounce", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
 	GSConsole.add_convar(&"sv_maxspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(320.0*1.905/100.0), "0.0")
+	GSConsole.add_convar(&"sv_airmaxspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(30.0*1.905/100.0), "0.0")
 	GSConsole.add_convar(&"sv_maxvelocity", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], str(3500.0*1.905/100.0), "0.0")
 	GSConsole.add_convar(&"sv_friction", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "4")
 	GSConsole.add_convar(&"sv_stopspeed", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1.905")

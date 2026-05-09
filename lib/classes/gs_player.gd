@@ -5,6 +5,8 @@ extends CharacterBody3D
 
 #region variables
 
+var test : float
+
 #region Exported variables
 @export
 var max_ground_speed : float = 240  * 1.905 / 100
@@ -132,7 +134,7 @@ var wish_jump_last_frame : bool = false
 
 #endregion variables
 
-#region native godot methods																				╝
+#region native godot methods
 
 func _ready() -> void:
 	update_hull()
@@ -640,13 +642,25 @@ func accelerate(delta: float) -> void:
 	water_jump(delta)
 	if get_water_level() > WATER_LEVEL.FEET:
 		full_water_move(delta)
+		if is_on_wall():
+			clip_velocity(get_wall_normal())
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+			clip_velocity(get_floor_normal())
 		return
-	if is_airborne: air_move(delta)
-	else: ground_move(delta)
-	if is_on_wall():
-		clip_velocity(get_wall_normal())
-	if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
-		clip_velocity(get_floor_normal())
+	if is_airborne:
+		air_move(delta)
+		if is_on_wall():
+			clip_velocity(get_wall_normal())
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+			clip_velocity(get_floor_normal())
+		return
+	else:
+		ground_move(delta)
+		if is_on_wall():
+			clip_velocity(get_wall_normal())
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+			clip_velocity(get_floor_normal())
+		return
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Clips and aligns [member velocity] to surface 
@@ -705,20 +719,32 @@ func noclip_move(delta: float) -> void:
 ## [b][u]PARAMETERS[/u][/b]:
 ## [br] delta - delta time of last physics frame
 func air_move(delta: float) -> void:
-	#rotated wish_direction by view rotation and normalized
-	var dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, get_view_rotations().y).normalized()
-	#this is a wrong way to get current speed but... its where magic happens ( ͡° ͜ʖ ͡°)
-	var current_speed : float = velocity.dot(dir)
-	#determine how much speed we want to add
-	var add_speed : float = max_air_speed - current_speed
-	#if speed is negative do nothing
+	var wish_dir : Vector3 = Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, get_view_rotations().y).normalized()
+	var wish_speed : float = max_ground_speed
+
+	if wish_speed != 0 and wish_speed > get_convar("sv_maxspeed"):
+		wish_speed = get_convar("sv_maxspeed")
+	
+	# air accelerate
+	var wish_air_speed : float = wish_speed
+	if wish_air_speed > get_convar("sv_airmaxspeed"):
+		wish_air_speed = get_convar("sv_airmaxspeed")
+	var current_speed : float = velocity.dot(wish_dir)
+	var add_speed : float = wish_air_speed - current_speed
 	if add_speed <= 0: return
-	#apply acceleration
-	var accel_speed : float = delta * get_convar("sv_airaccelerate") * min(get_convar("sv_maxspeed"), max_ground_speed)
-	#cap accel_speed by add_speed
-	accel_speed = min(accel_speed, add_speed)
-	#update velocity
-	velocity += accel_speed * dir
+	var accel_speed : float = get_convar("sv_airaccelerate")
+	if is_on_wall_only() and get_wall_normal().y > 0:
+		accel_speed *= get_surf_mult() * 2
+	test = accel_speed
+	accel_speed *= wish_speed * delta
+	if accel_speed > add_speed:
+		accel_speed = add_speed
+	
+	velocity += Vector3(wish_direction.x, 0, wish_direction.y).rotated(Vector3.UP, get_view_rotations().y).normalized() * accel_speed
+
+func get_surf_mult() -> float:
+	var speed : float = (velocity * Vector3(1,0,1)).length()
+	return min(1 + speed/get_convar("sv_maxspeed"), 10) 
 
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Changes [member velocity] when [CharacterBody3D] is considered grounded (see [method check_grounded])

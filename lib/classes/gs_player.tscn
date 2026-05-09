@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cjcvs4n5ja40x"]
+[gd_scene format=3 uid="uid://cjcvs4n5ja40x"]
 
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
 [ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
@@ -16,61 +16,61 @@ size = Vector3(0.933, 0.15, 0.933)
 [sub_resource type="BoxShape3D" id="BoxShape3D_s3wio"]
 size = Vector3(0, 1.581, 0)
 
-[node name="gs_player" type="CharacterBody3D"]
+[node name="gs_player" type="CharacterBody3D" unique_id=1437464103]
 collision_layer = 2
 collision_mask = 5
 wall_min_slide_angle = 3.1415927
 floor_max_angle = 0.7958701
 script = ExtResource("1_k5xr0")
 
-[node name="collision_hull" type="CollisionShape3D" parent="."]
+[node name="collision_hull" type="CollisionShape3D" parent="." unique_id=1019926852]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79, 0)
 shape = SubResource("BoxShape3D_xdf4h")
 debug_color = Color(18.892157, 18.892157, 0, 1)
 
-[node name="stuck_check_collider" type="ShapeCast3D" parent="."]
+[node name="stuck_check_collider" type="ShapeCast3D" parent="." unique_id=312537753]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
 shape = SubResource("BoxShape3D_xdf4h")
 target_position = Vector3(0, 0, 0)
 
-[node name="uncrocuh_check_collider" type="ShapeCast3D" parent="."]
+[node name="uncrocuh_check_collider" type="ShapeCast3D" parent="." unique_id=2034446372]
 shape = SubResource("BoxShape3D_k5xr0")
 target_position = Vector3(0, 0, 0)
 
-[node name="step_down_shape_cast" type="ShapeCast3D" parent="."]
+[node name="step_down_shape_cast" type="ShapeCast3D" parent="." unique_id=942319391]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.343, 0)
 shape = SubResource("BoxShape3D_ga4fc")
 target_position = Vector3(0, 0, 0)
 debug_shape_custom_color = Color(0.6117647, 1, 0, 1)
 
-[node name="step_up_ray_cast" type="RayCast3D" parent="."]
+[node name="step_up_ray_cast" type="RayCast3D" parent="." unique_id=915445117]
 hit_from_inside = true
 collide_with_areas = true
 
-[node name="crouch_timer" type="Timer" parent="."]
+[node name="crouch_timer" type="Timer" parent="." unique_id=767182955]
 process_callback = 0
 wait_time = 0.15
 one_shot = true
 
-[node name="uncrouch_timer" type="Timer" parent="."]
+[node name="uncrouch_timer" type="Timer" parent="." unique_id=1789115152]
 process_callback = 0
 wait_time = 0.15
 one_shot = true
 
-[node name="water_trigger" type="Area3D" parent="."]
+[node name="water_trigger" type="Area3D" parent="." unique_id=1431518089]
 unique_name_in_owner = true
 collision_layer = 2
 collision_mask = 4
 
-[node name="coll" type="CollisionShape3D" parent="water_trigger"]
+[node name="coll" type="CollisionShape3D" parent="water_trigger" unique_id=1221032834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.791, 0)
 shape = SubResource("BoxShape3D_s3wio")
 
-[node name="water_jump_destination_check" type="RayCast3D" parent="."]
+[node name="water_jump_destination_check" type="RayCast3D" parent="." unique_id=147009837]
 unique_name_in_owner = true
 hit_back_faces = false
 
-[node name="test_hud" type="Control" parent="."]
+[node name="test_hud" type="Control" parent="." unique_id=1553193551]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -80,48 +80,21 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_s3wio")
 
-[node name="velocity_hu" type="Label" parent="test_hud"]
+[node name="wishess" type="RichTextLabel" parent="test_hud" unique_id=1996648307]
 layout_mode = 0
 offset_right = 40.0
-offset_bottom = 23.0
-text = "Velocity "
+offset_bottom = 40.0
+bbcode_enabled = true
+fit_content = true
+autowrap_mode = 0
 
-[node name="jump_state" type="Label" parent="test_hud"]
-layout_mode = 0
-offset_top = 33.0
-offset_right = 65.0
-offset_bottom = 56.0
-text = "jump_state"
-
-[node name="is_airborne" type="Label" parent="test_hud"]
-layout_mode = 0
-offset_top = 63.0
-offset_right = 65.0
-offset_bottom = 86.0
-text = "airborne"
-
-[node name="speed" type="Label" parent="test_hud"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -33.5
-offset_top = 200.0
-offset_right = 33.5
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "speed"
-
-[node name="attack_one_timer" type="Timer" parent="."]
+[node name="attack_one_timer" type="Timer" parent="." unique_id=1471956790]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.8
 one_shot = true
 
-[node name="CameraAnchor" parent="." instance=ExtResource("3_bd2rc")]
+[node name="CameraAnchor" parent="." unique_id=1373730564 instance=ExtResource("3_bd2rc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
