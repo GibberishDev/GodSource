@@ -1,5 +1,4 @@
-Godsource
+<center><img height="240px" src='pic.png'></center>
+<hr>
 
-PROJECT IS UNDER REBUILD. If you are interested in almost carbon copy of source engine player controller without any meaningful refactoring done and same spaget visit https://github.com/GibberishDev/GodSource-old/blob/main/game/components/player/GSMovementComponent.gd
-
-TODO: add readme
+<p align='center'>Godot 4 Project aimed at creating a game template closely resembling Source engine physics</p>
