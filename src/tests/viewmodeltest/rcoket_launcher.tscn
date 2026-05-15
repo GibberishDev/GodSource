@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dnrtjviaju3cg"]
+
+[ext_resource type="ArrayMesh" uid="uid://bxhujofnf3fka" path="res://src/tests/viewmodeltest/rocket_launcher.tres" id="1_pppfw"]
+
+[node name="mesh" type="MeshInstance3D" unique_id=1206677655]
+mesh = ExtResource("1_pppfw")

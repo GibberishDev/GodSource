@@ -50,17 +50,23 @@ window/vsync/vsync_mode=0
 
 enabled=PackedStringArray("res://addons/gd-blender-3d-shortcuts/plugin.cfg")
 
+[global_group]
+
+PhysicsProp="Group for props that will interact with physics"
+
 [layer_names]
 
 3d_physics/layer_1="WORLD"
 3d_physics/layer_2="PLAYER"
 3d_physics/layer_3="TRIGGER"
 3d_physics/layer_4="PROJECTILE"
+3d_physics/layer_5="PROP"
 
 [physics]
 
 3d/run_on_separate_thread=true
 common/physics_ticks_per_second=66
+3d/physics_engine="Jolt Physics"
 3d/default_gravity=15.24
 
 [rendering]

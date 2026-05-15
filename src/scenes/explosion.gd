@@ -1,5 +1,8 @@
 extends Node3D
 
+@export
+var debug_vis_shape_point : PackedScene
+
 var explosion_radius : float = GSUtils.to_meters(121.0)
 var explosion_base_damage : float = 90.0
 @onready
@@ -12,19 +15,25 @@ func _physics_process(delta: float) -> void:
 	queue_free()
 
 func explode() -> void:
-	var targets : Array[Node] = get_targets()
+	var targets : Array[Dictionary] = get_targets()
 	if targets == []: return
-	for i : Node in targets:
-		if i is GSPlayer:
-			calculate_player_explosion(i)
+	for i : Dictionary in targets:
+		if i["collider"] is GSPlayer:
+			calculate_player_explosion(i["collider"])
+		if i["collider"] is RigidBody3D:
+			calculate_prop_explosion(i)
 
-func get_targets() -> Array[Node]:
-	var targets : Array[Node] = []
+func get_targets() -> Array[Dictionary]:
+	var targets : Array[Dictionary] = []
 	trigger.force_shapecast_update()
 	var targets_num: int = trigger.get_collision_count()
 	if targets_num == 0: return []
 	for i : int in range(targets_num):
-		targets.append(trigger.get_collider(i))
+		var dict : Dictionary = {
+			"collider":trigger.get_collider(i),
+			"point":trigger.get_collision_point(i)
+		}
+		targets.append(dict)
 	return targets
 
 func calculate_player_explosion(player: GSPlayer) -> void:
@@ -46,3 +55,11 @@ func get_player_knockback(player: GSPlayer) -> float:
 	if player.is_airborne and !player.is_in_water:
 		knockback_damage_reduction = 0.6
 	return min(GSUtils.to_meters(1000.0), GSUtils.to_meters((knockback_damage * tf2_soldier_knockback_multiplier * knockback_damage_reduction) / player_mass))
+
+func calculate_prop_explosion(colliderData: Dictionary) -> void:
+	var body : RigidBody3D = colliderData["collider"]
+	if body.is_in_group("PhysicsProp"):
+		body.apply_impulse((self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5)
+		var vis_mesh : MeshInstance3D = debug_vis_shape_point.instantiate()
+		get_tree().root.get_node("./GameRoot/Node3D").add_child(vis_mesh)
+		vis_mesh.global_translate(colliderData["point"])

@@ -4,6 +4,7 @@
 [ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
 [ext_resource type="Texture2D" uid="uid://01fi7eml1t8" path="res://assets/textures/tf2-backgrounds-delete-later/sky_trainyard_01.png" id="2_x23qr"]
 [ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
+[ext_resource type="PackedScene" uid="uid://bkgfps1ucx7r3" path="res://src/tests/viewmodeltest/physics_prop.tscn" id="5_x23qr"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_biiar"]
 panorama = ExtResource("2_x23qr")
@@ -123,7 +124,7 @@ material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_e4n7c")
 
 [node name="box6" type="StaticBody3D" parent="." unique_id=1952216791]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.4514227, 0.92473376, -4.192)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.558385, -0.48684335, -13.262857)
 collision_mask = 3
 constant_linear_velocity = Vector3(50, 0, 0)
 metadata/_edit_group_ = true
@@ -227,3 +228,6 @@ mesh = SubResource("BoxMesh_x23qr")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=2039226410]
 shape = SubResource("BoxShape3D_biiar")
+
+[node name="PhysicsProp" parent="." unique_id=2077935459 instance=ExtResource("5_x23qr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1720185, 0.32185054, -4.4593363)

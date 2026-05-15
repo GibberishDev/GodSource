@@ -1,13 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://bogvhgkdbqvdp"]
+[gd_scene format=3 uid="uid://bogvhgkdbqvdp"]
 
 [ext_resource type="Script" uid="uid://c0f6dbf5imhxl" path="res://src/scenes/explosion.gd" id="1_p73rr"]
+[ext_resource type="PackedScene" uid="uid://be4rl2hbtjkup" path="res://src/tests/viewmodeltest/point.tscn" id="2_6guno"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_p73rr"]
 
-[node name="explosion" type="Node3D"]
+[node name="explosion" type="Node3D" unique_id=1797531539]
 script = ExtResource("1_p73rr")
+debug_vis_shape_point = ExtResource("2_6guno")
 
-[node name="trigger" type="ShapeCast3D" parent="."]
+[node name="trigger" type="ShapeCast3D" parent="." unique_id=390744781]
 shape = SubResource("SphereShape3D_p73rr")
 target_position = Vector3(0, 0, 0)
-collision_mask = 2
+collision_mask = 22
