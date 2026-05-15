@@ -2,8 +2,6 @@ extends Node
 
 ##Global class to load and maintain game configuration. Load .cfg files, provide configuration variables to the rest of the app
 
-var current_config : String = ""
-
 func load_cfg_file(cfg_name: String) -> void:
 	if !cfg_name.ends_with(".cfg"):
 		cfg_name += ".cfg"
@@ -49,13 +47,5 @@ func get_config_folder() -> String:
 func apply_saved_settings() -> void:
 	if OS.has_feature("editor"):
 		print("Game running in editor. Applying default settings...")
-		var output_string : String = ""
-
-		for i : StringName in GSConsole.convar_list.keys():
-			if GSConsole.convar_list[i]["flags"].has(GSConsole.CONVAR_FLAGS.SETTING):
-				output_string += i + " " + GSConsole.get_convar_text_value(i) + "\n"
-
-		current_config += output_string
 		load_cfg_file("default")
-		print(current_config)
 		return

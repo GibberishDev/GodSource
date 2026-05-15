@@ -77,7 +77,6 @@ func split_commands_input(input_string: String) -> PackedStringArray:
 func process_commands(commands_array: Array[String]) -> bool:
 	var regex_selector: RegEx = RegEx.new()
 	regex_selector.compile("^[a-zA-Z0-9_\\-\\+]*")
-
 	for i: int in range(commands_array.size()):
 		var command_name: StringName = regex_selector.search(commands_array[i]).get_string()
 		if !self.command_list.has(command_name):
@@ -101,11 +100,11 @@ func process_commands(commands_array: Array[String]) -> bool:
 				# print_rich(return_message)
 				return false
 	if terminal_input_thread_semaphore != null: terminal_input_thread_semaphore.post()
-	return false
+	return true
 
 func process_arguments(input_arguments: String) -> Array:
 	var regex_expression: RegEx =  RegEx.new()
-	regex_expression.compile("(?<=\").*(?=\")|([a-zA-Z0-9_\\-\\+\\[\\]\\/\\.]*)")
+	regex_expression.compile("(?<=\"|\').*(?=\"|\')|([a-zA-Z0-9_\\-\\+\\[\\]\\/\\.]*)")
 
 	var arguments_array: Array = []
 	var regex_matches: Array[RegExMatch] = regex_expression.search_all(input_arguments)
