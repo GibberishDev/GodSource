@@ -2,18 +2,23 @@
 
 [ext_resource type="PackedScene" uid="uid://dnrtjviaju3cg" path="res://src/tests/viewmodeltest/rcoket_launcher.tscn" id="1_5q8ot"]
 
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_4m18n"]
+bounce = 0.3
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_5q8ot"]
 size = Vector3(0.23686218, 1.6025391, 0.23657227)
 
 [node name="PhysicsProp" type="RigidBody3D" unique_id=2077935459 groups=["PhysicsProp"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
 collision_layer = 16
 collision_mask = 21
-linear_damp = 1.0
+mass = 1.5
+physics_material_override = SubResource("PhysicsMaterial_4m18n")
+inertia = Vector3(1, 1, 1)
 angular_damp = 1.0
 
 [node name="root" parent="." unique_id=286004386 instance=ExtResource("1_5q8ot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.103532195)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=786737611]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0.00025177002, -4.316713e-09, 0.09875488)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0.00025177002, -4.316713e-09, -0.0016399622)
 shape = SubResource("BoxShape3D_5q8ot")

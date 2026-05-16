@@ -74,7 +74,6 @@ size = Vector3(4.763, 4.953, 0.953)
 
 [node name="player" parent="." unique_id=999159049 instance=ExtResource("1_0qie4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0355167, 0.32577705, 0)
-wall_min_slide_angle = 0.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1715735813]
 environment = SubResource("Environment_gbv3d")
@@ -124,7 +123,7 @@ material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_e4n7c")
 
 [node name="box6" type="StaticBody3D" parent="." unique_id=1952216791]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.558385, -0.48684335, -13.262857)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0431414, -0.48684335, -13.262857)
 collision_mask = 3
 constant_linear_velocity = Vector3(50, 0, 0)
 metadata/_edit_group_ = true
@@ -159,7 +158,7 @@ material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_biiar")
 
 [node name="ramp" type="StaticBody3D" parent="." unique_id=1613567552]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 0, -15.748217)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, -0.013664186, -15.748217)
 metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ramp" unique_id=1050811873]
