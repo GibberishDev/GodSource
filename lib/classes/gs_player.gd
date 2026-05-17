@@ -170,7 +170,7 @@ func process_movement(delta: float) -> void:
 			if is_airborne and current_movement_type != MOVEMENT_TYPE.SWIM:
 				apply_half_gravity()
 			#step 5: handle jumping
-			handle_jump(delta)	
+			handle_jump(delta)
 			#step 6: cap velocity
 			limit_velocity()
 			#step 7: if not airborne apply friction and 0 out vertical velocity
@@ -325,6 +325,10 @@ func try_unstuck() -> void:
 ## [b][u]PURPOSE[/u][/b]:
 ## [br]Checks if player moving up way too fast to be grounded. Cus if body moving up faster than [member upward_velocity_threshhold] it will be considered airborne. This allows some actions to force player airborne if they exceed this threshold. good example is rampsliding. With enough horizontal speed moving into ramp, players velocity will be clipped to slope and this will result of them becoming airborne, sliding up the ramp and being launched off it. aka rampsliding. look up demoman trimping videos, they are awsome
 func check_upward_velocity() -> void:
+	if is_on_wall():
+		clip_velocity(get_wall_normal())
+	if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and is_on_floor() and get_floor_normal() != Vector3(0,1,0):
+		clip_velocity(get_floor_normal())
 	if velocity.y >= get_convar("sv_upthreshold"):
 		is_airborne = true
 
@@ -644,21 +648,23 @@ func accelerate(delta: float) -> void:
 		full_water_move(delta)
 		if is_on_wall():
 			clip_velocity(get_wall_normal())
-		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and is_on_floor() and get_floor_normal() != Vector3(0,1,0):
 			clip_velocity(get_floor_normal())
 		return
 	if is_airborne:
 		air_move(delta)
 		if is_on_wall():
 			clip_velocity(get_wall_normal())
-		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and is_on_floor() and get_floor_normal() != Vector3(0,1,0):
 			clip_velocity(get_floor_normal())
 		return
 	else:
 		ground_move(delta)
 		if is_on_wall():
 			clip_velocity(get_wall_normal())
-		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and !is_airborne:
+			return
+		if (velocity * Vector3(1,0,1)).length() > max_ground_speed * max_ground_speed_multiplier + 0.05 and is_on_floor() and get_floor_normal() != Vector3(0,1,0):
+			
 			clip_velocity(get_floor_normal())
 		return
 
@@ -950,7 +956,7 @@ var last_step_up_object_face_idx : int = 0
 ## [br] returns if step up was successful. Use this return to prevent double movent with [method CharacterBody3D.move_and_slide]
 func step_up_check(delta: float) -> bool:
 	# If player is not grounded and wasnt snapped to floor: return false
-	if !is_on_floor() and !snapped_to_stairs_last_frame: return false
+	if !is_on_floor() and !snapped_to_stairs_last_frame and is_airborne: return false
 	# If moving up or not moving horizontally: return false
 	if velocity.y > 0 or (velocity * Vector3(1, 0, 1)).length() == 0: return false
 	# Project next motion using delta and current velocity
@@ -984,6 +990,11 @@ func step_up_check(delta: float) -> bool:
 			# Update snapped_to_stairs_last_frame state to be considered grounded for next frame calculations
 			snapped_to_stairs_last_frame = true
 			# On success send true which will cancel out move_and_slide
+			# HACK updates the physics params such as floor_normal
+			var velocityTEMP : Vector3 = velocity
+			velocity = Vector3.ZERO
+			move_and_slide()
+			velocity = velocityTEMP
 			return true
 	# In case of fail just pass the method
 	return false
