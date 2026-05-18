@@ -31,7 +31,8 @@ func get_targets() -> Array[Dictionary]:
 	for i : int in range(targets_num):
 		var dict : Dictionary = {
 			"collider":trigger.get_collider(i),
-			"point":trigger.get_collision_point(i)
+			"point":trigger.get_collision_point(i),
+			"normal":trigger.get_collision_normal(i)
 		}
 		targets.append(dict)
 	return targets
@@ -59,7 +60,11 @@ func get_player_knockback(player: GSPlayer) -> float:
 func calculate_prop_explosion(colliderData: Dictionary) -> void:
 	var body : RigidBody3D = colliderData["collider"]
 	if body.is_in_group("PhysicsProp"):
-		body.apply_impulse((self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5, body.global_position - (colliderData["point"] - Vector3(0,GSUtils.to_meters(10.0),0)))
+		body.apply_impulse(
+			(self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5 * (1 - self.global_position.distance_to(colliderData["point"])/explosion_radius),
+			-(body.global_position - colliderData["point"])
+			)
 		var vis_mesh : MeshInstance3D = debug_vis_shape_point.instantiate()
 		get_tree().root.get_node("./GameRoot/Node3D").add_child(vis_mesh)
-		vis_mesh.global_translate(colliderData["point"] - Vector3(0,GSUtils.to_meters(10.0),0))
+		vis_mesh.set_up_dir((self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5 * (1 - self.global_position.distance_to(colliderData["point"])/explosion_radius))
+		vis_mesh.global_position = colliderData["point"]

@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://dnrtjviaju3cg" path="res://src/tests/viewmodeltest/rcoket_launcher.tscn" id="1_5q8ot"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_4m18n"]
-bounce = 0.3
+bounce = 0.1
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5q8ot"]
 size = Vector3(0.23686218, 1.6025391, 0.23657227)
@@ -13,7 +13,7 @@ collision_layer = 16
 collision_mask = 21
 mass = 1.5
 physics_material_override = SubResource("PhysicsMaterial_4m18n")
-inertia = Vector3(1, 1, 1)
+inertia = Vector3(0.5, 0.5, 1)
 angular_damp = 1.0
 
 [node name="root" parent="." unique_id=286004386 instance=ExtResource("1_5q8ot")]

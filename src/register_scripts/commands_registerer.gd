@@ -16,7 +16,8 @@ func _register_console_commands() -> void:
 	GSConsole.add_command("unbind", unbind_command_callable, "attach a command to a key\n   Syntax: bind [key](optional) \"[command](optional)\" \n	Is cheat: false - Is admin only: false", [])
 	GSConsole.add_command("unbindall", unbind_all_command_callable, "Unbind all keys\n   Syntax: unbindall \n	Is cheat: false - Is admin only: false", [])
 	GSConsole.add_command("noclip", noclip_command_callable, "Toggles noclip movement\n   Syntax: noclip \n	Is cheat: true - Is admin only: false", [])
-	GSConsole.add_command("apply_forward_impulse", apply_forward_inpulse_callable, "Immediatelly adds impulse to velocity in direction player is looking\n   Syntax: apply_forward_impulse <float m/s> \n	Is cheat: true - Is admin only: false", [])
+	GSConsole.add_command("apply_impulse", apply_impulse_callable, "Immediatelly adds impulse to velocity in specified direction\n   Syntax: apply_impulse <x:float> <y:float> <z:float> <amount:float m/s> \n	Is cheat: true - Is admin only: false", [])
+	GSConsole.add_command("apply_forward_impulse", apply_forward_impulse_callable, "Immediatelly adds impulse to velocity in direction player is looking\n   Syntax: apply_forward_impulse <amount:float m/s> \n	Is cheat: true - Is admin only: false", [])
 	# GSConsole.add_command("connect", connect_command_callable, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	# GSConsole.add_command("start_server", connect_command_callable, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 	
@@ -232,7 +233,24 @@ func noclip_command_callable(arguments_array: Array = []) -> bool:
 		GSConsole.send_output_message("[color=red]Noclip command requires cheats enabled (\"sv_cheats 1\")[/color]")
 		return false
 
-func apply_forward_inpulse_callable(arguments_array: Array = []) -> bool:
+func apply_impulse_callable(arguments_array: Array = []) -> bool:
+	if GSConsole.convar_list[&"sv_cheats"]["value"] == true:
+		if arguments_array.size() < 4:
+			GSConsole.send_output_message("[color=red]Too few arguments. Syntax: apply_impulse <x:float> <y:float> <z:float> <amount:float>[/color]")
+			return true
+		var vector : Vector3 = Vector3(float(arguments_array[0]),float(arguments_array[1]),float(arguments_array[2])).normalized()
+		var amount : float = float(arguments_array[3])
+		if get_tree().root.get_node("GameRoot/Node3D/player") != null:
+			var player : GSPlayer = get_tree().root.get_node("GameRoot/Node3D/player")
+			player.velocity += vector * amount
+	else:
+		GSConsole.send_output_message("[color=red]Noclip command requires cheats enabled (\"sv_cheats 1\")[/color]")
+		return false
+
+	return true
+
+
+func apply_forward_impulse_callable(arguments_array: Array = []) -> bool:
 	if GSConsole.convar_list[&"sv_cheats"]["value"] == true:
 		if arguments_array.size() == 0: return true
 		var amount : float = float(arguments_array[0])
@@ -240,7 +258,7 @@ func apply_forward_inpulse_callable(arguments_array: Array = []) -> bool:
 			var player : GSPlayer = get_tree().root.get_node("GameRoot/Node3D/player")
 			player.velocity += player.get_view_angles()[0] * amount
 	else:
-		GSConsole.send_output_message("[color=red]Noclip command requires cheats enabled (\"sv_cheats 1\")[/color]")
+		GSConsole.send_output_message("[color=red]apply_forward_inpulse command requires cheats enabled (\"sv_cheats 1\")[/color]")
 		return false
 
 	return true

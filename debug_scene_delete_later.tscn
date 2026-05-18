@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://01fi7eml1t8" path="res://assets/textures/tf2-backgrounds-delete-later/sky_trainyard_01.png" id="2_x23qr"]
 [ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
 [ext_resource type="PackedScene" uid="uid://bkgfps1ucx7r3" path="res://src/tests/viewmodeltest/physics_prop.tscn" id="5_x23qr"]
+[ext_resource type="PackedScene" uid="uid://dr5uq8lo8s20q" path="res://assets/models/crowbar_prop.tscn" id="6_x23qr"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_biiar"]
 panorama = ExtResource("2_x23qr")
@@ -57,18 +58,18 @@ points = PackedVector3Array(0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 0, 5, 10, 10, 5, 10
 left_to_right = 1.0
 size = Vector3(10, 10, 5)
 
+[sub_resource type="BoxMesh" id="BoxMesh_x23qr"]
+size = Vector3(4.763, 4.953, 0.953)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_biiar"]
+size = Vector3(4.763, 4.953, 0.953)
+
 [sub_resource type="Curve3D" id="Curve3D_0qie4"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.8060391, 1.2955282, 0, -8, 0, 0, 0, 0, 0, 24, 0, 0),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
-
-[sub_resource type="BoxMesh" id="BoxMesh_x23qr"]
-size = Vector3(4.763, 4.953, 0.953)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_biiar"]
-size = Vector3(4.763, 4.953, 0.953)
 
 [node name="Node3D" type="Node3D" unique_id=858278768]
 
@@ -122,19 +123,6 @@ shape = SubResource("BoxShape3D_c1pod")
 material_override = ExtResource("2_gbv3d")
 mesh = SubResource("BoxMesh_e4n7c")
 
-[node name="box6" type="StaticBody3D" parent="." unique_id=1952216791]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0431414, -0.48684335, -13.262857)
-collision_mask = 3
-constant_linear_velocity = Vector3(50, 0, 0)
-metadata/_edit_group_ = true
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="box6" unique_id=746103441]
-shape = SubResource("BoxShape3D_c1pod")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="box6" unique_id=1843319353]
-material_override = ExtResource("2_gbv3d")
-mesh = SubResource("BoxMesh_e4n7c")
-
 [node name="box4" type="StaticBody3D" parent="." unique_id=1092521915]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 5.334, -6.682)
 metadata/_edit_group_ = true
@@ -168,6 +156,17 @@ shape = SubResource("ConvexPolygonShape3D_x23qr")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 5, 2.5)
 material_override = ExtResource("2_gbv3d")
 mesh = SubResource("PrismMesh_biiar")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1239010212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 2.381, 14.288)
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=893956650]
+material_override = ExtResource("2_gbv3d")
+mesh = SubResource("BoxMesh_x23qr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=2039226410]
+shape = SubResource("BoxShape3D_biiar")
 
 [node name="Path3D" type="Path3D" parent="." unique_id=1455671425]
 curve = SubResource("Curve3D_0qie4")
@@ -217,16 +216,8 @@ size = Vector3(1.905, 1.029, 1.905)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 6.191)
 size = Vector3(1.905, 0.876, 1.905)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1239010212]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 2.381, 14.288)
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=893956650]
-material_override = ExtResource("2_gbv3d")
-mesh = SubResource("BoxMesh_x23qr")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=2039226410]
-shape = SubResource("BoxShape3D_biiar")
-
 [node name="PhysicsProp" parent="." unique_id=2077935459 instance=ExtResource("5_x23qr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1720185, 0.32185054, -4.4593363)
+
+[node name="CrowbarProp" parent="." unique_id=977717550 instance=ExtResource("6_x23qr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.862373, 3.0345707, -9.782344)
