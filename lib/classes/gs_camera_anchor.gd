@@ -16,6 +16,7 @@ class_name GodsourceCameraAnchor3D
 extends Node3D
 #TODO: ADAPT TO MULTIPLAYER
 
+
 var multiplayer_authority_id: int = 0
 var anchor_id : int = 0
 var can_be_controlled : bool = true

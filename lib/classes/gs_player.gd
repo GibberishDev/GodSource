@@ -740,7 +740,7 @@ func air_move(delta: float) -> void:
 	if add_speed <= 0: return
 	var accel_speed : float = get_convar("sv_airaccelerate")
 	if is_on_wall_only() and get_wall_normal().y > 0:
-		accel_speed *= get_surf_mult() * 2
+		accel_speed *= get_surf_mult()
 	test = accel_speed
 	accel_speed *= wish_speed * delta
 	if accel_speed > add_speed:

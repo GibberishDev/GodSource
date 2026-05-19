@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://01fi7eml1t8" path="res://assets/textures/tf2-backgrounds-delete-later/sky_trainyard_01.png" id="2_x23qr"]
 [ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
 [ext_resource type="PackedScene" uid="uid://bkgfps1ucx7r3" path="res://src/tests/viewmodeltest/physics_prop.tscn" id="5_x23qr"]
-[ext_resource type="PackedScene" uid="uid://dr5uq8lo8s20q" path="res://assets/models/crowbar_prop.tscn" id="6_x23qr"]
+[ext_resource type="PackedScene" uid="uid://dr5uq8lo8s20q" path="res://assets/models/weapons/crowbar/crowbar_prop.tscn" id="6_x23qr"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_biiar"]
 panorama = ExtResource("2_x23qr")
@@ -220,4 +220,4 @@ size = Vector3(1.905, 0.876, 1.905)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1720185, 0.32185054, -4.4593363)
 
 [node name="CrowbarProp" parent="." unique_id=977717550 instance=ExtResource("6_x23qr")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.862373, 3.0345707, -9.782344)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8985903, 1.281369, -3.4728503)

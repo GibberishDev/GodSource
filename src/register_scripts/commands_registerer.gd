@@ -18,6 +18,7 @@ func _register_console_commands() -> void:
 	GSConsole.add_command("noclip", noclip_command_callable, "Toggles noclip movement\n   Syntax: noclip \n	Is cheat: true - Is admin only: false", [])
 	GSConsole.add_command("apply_impulse", apply_impulse_callable, "Immediatelly adds impulse to velocity in specified direction\n   Syntax: apply_impulse <x:float> <y:float> <z:float> <amount:float m/s> \n	Is cheat: true - Is admin only: false", [])
 	GSConsole.add_command("apply_forward_impulse", apply_forward_impulse_callable, "Immediatelly adds impulse to velocity in direction player is looking\n   Syntax: apply_forward_impulse <amount:float m/s> \n	Is cheat: true - Is admin only: false", [])
+	GSConsole.add_command("toggle_outline", toggle_outline_callable, "Immediatelly adds impulse to velocity in direction player is looking\n   Syntax: apply_forward_impulse <amount:float m/s> \n	Is cheat: true - Is admin only: false", [])
 	# GSConsole.add_command("connect", connect_command_callable, "Connect to a server\n   Syntax: connect <ip:port> <password>\n	Is cheat: false - Is admin only: false")
 	# GSConsole.add_command("start_server", connect_command_callable, "Start erver at local ip with a port and number of avaliable connections\n   Syntax: create_server <port> <player limit>\n	Is cheat: false - Is admin only: false")
 	
@@ -262,6 +263,33 @@ func apply_forward_impulse_callable(arguments_array: Array = []) -> bool:
 		return false
 
 	return true
+
+
+var outline_settings : Dictionary = {
+	"color": Color(1.0, 1.0, 1.0, 1.0),
+	"thickness": 4,
+	"stencil_value": 1,
+	"stencil_mask": 1,
+	"callback_type": CompositorEffect.EffectCallbackType.EFFECT_CALLBACK_TYPE_POST_TRANSPARENT
+}
+var outline_enabled : bool = false
+@onready
+var outline_effect : CompositorEffect = preload("res://src/tests/compositor outline/new_compositor_effect.tres")
+func toggle_outline_callable(arguments_array: Array = []) -> bool:
+	outline_effect.effect_callback_type = outline_settings["callback_type"]
+	var player : GSPlayer = get_tree().root.get_node("GameRoot/Node3D/player")
+	var cam : Camera3D = player.camera
+	if cam.compositor == null: cam.compositor = Compositor.new()
+	var comp_effects : Array[CompositorEffect] = cam.compositor.get_compositor_effects()
+	if outline_enabled:
+		comp_effects.remove_at(comp_effects.find(outline_effect))
+		cam.compositor.set_compositor_effects(comp_effects)
+	else:
+		comp_effects.append(outline_effect)
+		cam.compositor.set_compositor_effects(comp_effects)
+	outline_enabled = !outline_enabled
+	return true
+
 
 #endregion
 

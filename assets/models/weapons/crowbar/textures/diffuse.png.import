@@ -2,20 +2,17 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dsefiuhiu0lar"
-path.s3tc="res://.godot/imported/crowbar_diffuse.png-6dd3e9e1c2ce25aa14dd75c5af293496.s3tc.ctex"
+uid="uid://62di31qcak0b"
+path.s3tc="res://.godot/imported/diffuse.png-8297b7c483f179c57186056f3ba7f11c.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
-generator_parameters={
-"md5": "1a86ceba6d8fd8fafc0e16dbc02a9aa4"
-}
 
 [deps]
 
-source_file="res://assets/models/crowbar_diffuse.png"
-dest_files=["res://.godot/imported/crowbar_diffuse.png-6dd3e9e1c2ce25aa14dd75c5af293496.s3tc.ctex"]
+source_file="res://assets/models/weapons/crowbar/textures/diffuse.png"
+dest_files=["res://.godot/imported/diffuse.png-8297b7c483f179c57186056f3ba7f11c.s3tc.ctex"]
 
 [params]
 
