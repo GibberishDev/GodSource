@@ -1,10 +1,9 @@
 [gd_resource type="ArrayMesh" format=4 uid="uid://bxhujofnf3fka"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dp6y2"]
-resource_name = "Material"
+transparency = 1
 cull_mode = 2
-albedo_color = Color(0.9063318, 0.9063318, 0.9063318, 1)
-roughness = 0.5
+depth_draw_mode = 1
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_kcc7s"]
 _surfaces = [{

@@ -114,6 +114,8 @@ var uncrouch_timer : Timer = get_node("uncrouch_timer")
 ## Reference to the camera node
 @onready
 var camera : Camera3D = Camera3D.new()
+@onready
+var viewmodel : GSViewmodel = preload("res://src/scenes/viewmodel_root.tscn").instantiate()
 
 #endregion
 
@@ -145,6 +147,8 @@ func _ready() -> void:
 	camera.fov = get_convar("fov_desired") # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
 	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
+	viewmodel.name = "GSViewmodel"
+	camera.add_child(viewmodel)
 	setup_casts_step_check()
 	GSConsole.connect("convar_changed", convar_changed)
 

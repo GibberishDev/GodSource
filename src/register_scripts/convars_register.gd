@@ -27,6 +27,7 @@ func register_convars() -> void:
 
 	GSConsole.add_convar(&"cl_nullmovement", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.SETTING], "1")
 	GSConsole.add_convar(&"cl_vsync", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.SETTING], "0")
+	GSConsole.add_convar(&"cl_viewmodelfov", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.SETTING], "75", "0.0","180.0", "Field of view for viewmodels")
 	GSConsole.add_convar(&"cl_mousesensx", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.SETTING], "0.003", "-1.0","1.0", "Horizontal mouse sensitivity")
 	GSConsole.add_convar(&"cl_mousesensy", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.SETTING], "0.0045", "-1.0","1.0", "Vertical mouse sensitivity")
 	GSConsole.add_convar(&"cl_windowmode", GSConsole.CONVAR_TYPE.INTEGER,[GSConsole.CONVAR_FLAGS.SETTING], "1","0","2", "Window mode: 0 - exclusive fullscreen, 1 - fullscreen, 2 - windowed.")

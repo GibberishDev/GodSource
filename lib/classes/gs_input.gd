@@ -35,6 +35,7 @@ var mouse_motion : Vector2 = Vector2.ZERO
 var mouse_motion_with_sens : Vector2 = Vector2.ZERO
 var last_mouse_motion : Vector2 = Vector2.ZERO
 var mouse_moved : bool = false
+var mouse_captured : bool = false
 
 enum KEYSTATE {
 	JUST_PRESSED,
@@ -57,7 +58,7 @@ func _input(event: InputEvent) -> void:
 		handleKeyboardInput(event)
 
 func handleMouseMotion(event: InputEventMouseMotion) -> void:
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and get_window().has_focus():
 		mouse_moved = true
 		var fps : float = Performance.get_monitor(Performance.TIME_FPS)
 		mouse_motion = event.screen_relative * (fps/144.0)
@@ -66,6 +67,7 @@ func handleMouseMotion(event: InputEventMouseMotion) -> void:
 func _physics_process(delta: float) -> void:
 	if current_input_context == INPUT_CONTEXT.CHARACTER and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		mouse_captured = true
 	if mouse_motion == last_mouse_motion: mouse_moved = false
 	last_mouse_motion = mouse_motion
 	for i : int in keylist.keys():
@@ -185,9 +187,11 @@ func construct_negative_command(bind_command: String) -> String:
 
 func release_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	mouse_captured = false
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	mouse_captured = true
 
 func get_mouse_key_names(id: StringName) -> StringName:
 	if !mouse_buttons.keys().has(id):
@@ -198,3 +202,4 @@ func get_mosue_button(button_name: StringName) -> StringName:
 	if mouse_buttons.find_key(button_name) == null:
 		return ""
 	return mouse_buttons.find_key(button_name)
+
