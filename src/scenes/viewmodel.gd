@@ -2,24 +2,19 @@ class_name GSViewmodel
 extends Node3D
 
 @onready
-var viewport : SubViewport = get_node("viewport_container/viewport")
-@onready
-var cam : Camera3D = viewport.get_node("viewmodel_camera")
-@onready
-var models : Node = viewport.get_node("models")
+var models : Node = get_node("models")
 
 func _ready() -> void:
-	get_viewport().get_window().size_changed.connect(change_viewport_size)
 	GSResourceManager.resource_loaded.connect(loaded_model)
-	await get_tree().create_timer(5).timeout
+	GSConsole.connect("convar_changed", convar_changed_notifier)
 	load_viemodel("a")
 
-func change_viewport_size() -> void:
-	viewport.size = get_viewport().get_window().size
+#func _process(delta: float) -> void:
+	#models.global_transform = get_parent().global_transform
 
-func _process(delta: float) -> void:
-	cam.global_transform = get_parent().global_transform
-	models.global_transform = get_parent().global_transform
+func convar_changed_notifier(convar_name: StringName) -> void:
+	if convar_name == &"cl_viewmodelfov":
+		change_model_fov_override(models)
 
 func load_viemodel(id: String) -> void:
 	GSResourceManager.threaded_load("res://assets/viewmodels/shotgun/shotgun.glb")
@@ -27,10 +22,33 @@ func load_viemodel(id: String) -> void:
 func loaded_model(path: String, res: Resource, timestamp: int) -> void:
 	var GLTFScene : Node = res.instantiate()
 	for i: Node in models.get_children(): i.queue_free()
+	
 	for node : Node in GLTFScene.get_children():
+		var dupe : Node = node.duplicate()
+		if dupe is AnimationPlayer:
+			dupe.current_animation = &"idle"
+			dupe.get_animation(&"idle").loop_mode = Animation.LOOP_LINEAR
+		models.add_child(dupe)
+		dupe.owner = get_tree().edited_scene_root
+	process_models(models)
+	change_model_fov_override(models)
+
+func process_models(parent_node: Node) -> void:
+	for node: Node in parent_node.get_children():
+		if node.get_child_count() > 0: process_models(node)
 		if node is MeshInstance3D:
-			var dupe : MeshInstance3D = node.duplicate()
-			models.add_child(dupe)
-			dupe.owner = get_tree().edited_scene_root
-			dupe.mesh.resource_local_to_scene = true
+			for i: int in node.mesh.get_surface_count():
+				if node.mesh.surface_get_material(i) is StandardMaterial3D:
+					var mat : StandardMaterial3D = node.mesh.surface_get_material(i)
+					mat.use_z_clip_scale = true
+					mat.z_clip_scale = 0.9
+
+func change_model_fov_override(parent_node: Node) -> void:
+	for node: Node in parent_node.get_children():
+		if node.get_child_count() > 0: change_model_fov_override(node)
+		if node is MeshInstance3D:
+			for i: int in node.mesh.get_surface_count():
+				if node.mesh.surface_get_material(i) is StandardMaterial3D:
+					var mat : StandardMaterial3D = node.mesh.surface_get_material(i)
+					mat.fov_override = GSConsole.convar_list["cl_viewmodelfov"]["value"]
 	

@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://5511uegnqcmc"]
-
-[ext_resource type="Script" uid="uid://doxxy6xajgisa" path="res://src/scenes/viewmodel_model.gd" id="1_tp2px"]
-
-[node name="viewmodel" type="Node3D" unique_id=1814769346]
-script = ExtResource("1_tp2px")

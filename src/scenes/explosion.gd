@@ -1,7 +1,5 @@
 extends Node3D
 
-@export
-var debug_vis_shape_point : PackedScene
 
 var explosion_radius : float = GSUtils.to_meters(121.0)
 var explosion_base_damage : float = 90.0
@@ -64,7 +62,4 @@ func calculate_prop_explosion(colliderData: Dictionary) -> void:
 			(self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5 * (1 - self.global_position.distance_to(colliderData["point"])/explosion_radius),
 			-(body.global_position - colliderData["point"])
 			)
-		var vis_mesh : MeshInstance3D = debug_vis_shape_point.instantiate()
-		get_tree().root.get_node("./GameRoot/Node3D").add_child(vis_mesh)
-		vis_mesh.set_up_dir((self.global_position - Vector3(0,GSUtils.to_meters(10.0),0)).direction_to(colliderData["point"]) * explosion_base_damage / 5 * (1 - self.global_position.distance_to(colliderData["point"])/explosion_radius))
-		vis_mesh.global_position = colliderData["point"]
+		body.sleeping = false

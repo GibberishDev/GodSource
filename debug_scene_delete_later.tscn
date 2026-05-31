@@ -4,7 +4,6 @@
 [ext_resource type="Material" uid="uid://baq6ydbvtsxfl" path="res://src/tests/black_checkerbaord_material.tres" id="2_gbv3d"]
 [ext_resource type="Texture2D" uid="uid://01fi7eml1t8" path="res://assets/textures/tf2-backgrounds-delete-later/sky_trainyard_01.png" id="2_x23qr"]
 [ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
-[ext_resource type="PackedScene" uid="uid://bkgfps1ucx7r3" path="res://src/tests/viewmodeltest/physics_prop.tscn" id="5_x23qr"]
 [ext_resource type="PackedScene" uid="uid://dr5uq8lo8s20q" path="res://assets/models/weapons/crowbar/crowbar_prop.tscn" id="6_x23qr"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_biiar"]
@@ -81,6 +80,7 @@ environment = SubResource("Environment_gbv3d")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=5571486]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+layers = 3
 shadow_enabled = true
 
 [node name="ground" type="StaticBody3D" parent="." unique_id=1680627495]
@@ -215,9 +215,6 @@ size = Vector3(1.905, 1.029, 1.905)
 [node name="GSTrigger3" parent="." unique_id=141752263 instance=ExtResource("5_e4n7c")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 6.191)
 size = Vector3(1.905, 0.876, 1.905)
-
-[node name="PhysicsProp" parent="." unique_id=2077935459 instance=ExtResource("5_x23qr")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1720185, 0.32185054, -4.4593363)
 
 [node name="CrowbarProp" parent="." unique_id=977717550 instance=ExtResource("6_x23qr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8985903, 1.281369, -3.4728503)
