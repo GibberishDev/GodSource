@@ -26,6 +26,7 @@ config/godsource_id=&"gs"
 
 GSUtils="*res://lib/classes/gs_utils.gd"
 GSConsole="*res://lib/classes/gs_console.gd"
+GSResourceManager="*uid://dngblgt70bpd6"
 GSConfig="*res://lib/classes/gs_config.gd"
 GSInput="*res://lib/classes/gs_input.gd"
 GSUi="*res://lib/classes/gs_ui.gd"
@@ -54,8 +55,41 @@ enabled=PackedStringArray("res://addons/anthonyec.camera_preview/plugin.cfg", "r
 
 PhysicsProp="Group for props that will interact with physics"
 
+[importer_defaults]
+
+scene={
+"_subresources": {},
+"animation/fps": 30,
+"animation/import": true,
+"animation/import_rest_as_RESET": false,
+"animation/remove_immutable_tracks": true,
+"animation/trimming": false,
+"gltf/embedded_image_handling": 3,
+"gltf/naming_version": 2,
+"import_script/path": "",
+"materials/extract": 0,
+"materials/extract_format": 0,
+"materials/extract_path": "",
+"meshes/create_shadow_meshes": true,
+"meshes/ensure_tangents": true,
+"meshes/force_disable_compression": false,
+"meshes/generate_lods": true,
+"meshes/light_baking": 1,
+"meshes/lightmap_texel_size": 0.2,
+"nodes/apply_root_scale": true,
+"nodes/import_as_skeleton_bones": false,
+"nodes/root_name": "",
+"nodes/root_scale": 1.0,
+"nodes/root_script": null,
+"nodes/root_type": "",
+"nodes/use_name_suffixes": true,
+"nodes/use_node_type_suffixes": true,
+"skins/use_named_skins": true
+}
+
 [layer_names]
 
+3d_render/layer_2="viewmodel"
 3d_physics/layer_1="WORLD"
 3d_physics/layer_2="PLAYER"
 3d_physics/layer_3="TRIGGER"

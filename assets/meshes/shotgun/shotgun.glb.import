@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bjd2sjvbsdyv0"
-path="res://.godot/imported/test.glb-61f3cf9ca931bc3e6165df6b6f421b66.scn"
+uid="uid://cwni3efjojw4j"
+path="res://.godot/imported/shotgun.glb-ab29da27bc9a094a22e0f37ee70d7315.scn"
 
 [deps]
 
-source_file="res://assets/viewmodels/test/test.glb"
-dest_files=["res://.godot/imported/test.glb-61f3cf9ca931bc3e6165df6b6f421b66.scn"]
+source_file="res://assets/meshes/shotgun/shotgun.glb"
+dest_files=["res://.godot/imported/shotgun.glb-ab29da27bc9a094a22e0f37ee70d7315.scn"]
 
 [params]
 
@@ -35,8 +35,8 @@ animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
 import_script/path=""
 materials/extract=0
-materials/extract_format=2
+materials/extract_format=0
 materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
-gltf/embedded_image_handling=2
+gltf/embedded_image_handling=3

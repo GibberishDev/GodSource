@@ -1,11 +1,27 @@
 [gd_scene format=3 uid="uid://cg5j2dymh5t5"]
 
 [ext_resource type="Script" uid="uid://bblial5ubvdr" path="res://src/scenes/viewmodel.gd" id="1_81hjq"]
-[ext_resource type="PackedScene" uid="uid://5511uegnqcmc" path="res://src/scenes/viewmodel_model.tscn" id="2_8k4k6"]
 
 [node name="viewmodel" type="Node3D" unique_id=2027452868]
 script = ExtResource("1_81hjq")
 
-[node name="meshes" type="Node3D" parent="." unique_id=805425095]
+[node name="viewport_container" type="SubViewportContainer" parent="." unique_id=601771041]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+focus_behavior_recursive = 1
+mouse_filter = 2
 
-[node name="viewmodel" parent="meshes" unique_id=1814769346 instance=ExtResource("2_8k4k6")]
+[node name="viewport" type="SubViewport" parent="viewport_container" unique_id=2111371947]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="viewmodel_camera" type="Camera3D" parent="viewport_container/viewport" unique_id=1275890560]
+cull_mask = 2
+
+[node name="models" type="Node3D" parent="viewport_container/viewport" unique_id=1849692987]

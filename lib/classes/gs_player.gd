@@ -143,6 +143,7 @@ func _ready() -> void:
 	unstuck_offsets_table = gen_unstuck_offsets_table()
 	#TODO: change to asigning specific camera with multiplayer authority
 	camera.name = "Camera3D"
+	camera.set_cull_mask_value(2, false)
 	camera.current = true
 	camera.fov = get_convar("fov_desired") # Yeah i have fkn prey side mounted eyes with 360 degrees of vision. How did you know?
 	self.add_child(camera)
