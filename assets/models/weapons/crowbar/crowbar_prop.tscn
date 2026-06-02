@@ -1,12 +1,21 @@
 [gd_scene format=3 uid="uid://dr5uq8lo8s20q"]
 
 [ext_resource type="ArrayMesh" uid="uid://cco3y44k7rjoi" path="res://assets/models/weapons/crowbar/crowbar.res" id="1_c7baa"]
+[ext_resource type="Material" uid="uid://cyw7pcp6fvn6f" path="res://assets/shaders/outline.tres" id="3_m6tjl"]
+[ext_resource type="Script" uid="uid://ckogewmgryfsj" path="res://lib/classes/gs_outline_component.gd" id="4_jq2ow"]
+[ext_resource type="ArrayMesh" uid="uid://ds1nhv12nwc1k" path="res://assets/models/weapons/crowbar/crowbar_outline.res" id="4_m6tjl"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_c7baa"]
 bounce = 0.1
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_pdhro"]
 size = Vector3(0.15454102, 1.8592529, 0.1517334)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jq2ow"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="PrismMesh" id="PrismMesh_m6tjl"]
+material = SubResource("StandardMaterial3D_jq2ow")
 
 [node name="CrowbarProp" type="RigidBody3D" unique_id=977717550 groups=["PhysicsProp"]]
 physics_interpolation_mode = 1
@@ -25,3 +34,17 @@ skeleton = NodePath("")
 [node name="col" type="CollisionShape3D" parent="." unique_id=326381579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.101623535, -0.012512207)
 shape = SubResource("BoxShape3D_pdhro")
+
+[node name="outline" type="MeshInstance3D" parent="." unique_id=1559076019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.49630404, 0)
+material_override = ExtResource("3_m6tjl")
+mesh = ExtResource("4_m6tjl")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=465769920]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1981852, 0.8741927, 0)
+mesh = SubResource("PrismMesh_m6tjl")
+
+[node name="GSOutlineComponent" type="Node" parent="." unique_id=974104629]
+script = ExtResource("4_jq2ow")
+meshes = [{}, {}]
+metadata/_custom_type_script = "uid://ckogewmgryfsj"

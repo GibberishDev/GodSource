@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bky88edoyexef"]
+
+[sub_resource type="Shader" id="Shader_5n0yn"]
+code = "shader_type spatial;render_mode unshaded;
+stencil_mode write_depth_fail, write, compare_always, 1;
+void fragment() {ALPHA=0.0;}"
+
+[resource]
+render_priority = 0
+shader = SubResource("Shader_5n0yn")

@@ -217,4 +217,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.350903, 0, 6.191)
 size = Vector3(1.905, 0.876, 1.905)
 
 [node name="CrowbarProp" parent="." unique_id=977717550 instance=ExtResource("6_x23qr")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8985903, 1.281369, -3.4728503)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7225373, -0.3331647, -3.8930748)

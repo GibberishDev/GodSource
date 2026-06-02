@@ -1,0 +1,24 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://07i8hrr2pa1u"]
+
+[sub_resource type="Shader" id="Shader_iv8eg"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.6.2.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, unshaded;
+
+uniform vec4 tint : source_color = vec4(1.0,1.0,0.0, 0.04);
+uniform sampler2D screen : hint_screen_texture;
+uniform float outline_width:hint_range(0.0, 128.0, 1.0) = 2.0;
+
+void fragment() {
+	vec4 tex = texture(screen, SCREEN_UV);
+	ALBEDO = tint.rgb;
+	ALPHA = 0.1;
+}
+"
+
+[resource]
+render_priority = 0
+shader = SubResource("Shader_iv8eg")
+shader_parameter/tint = Color(1, 1, 0, 0.04)
+shader_parameter/outline_width = 2.0

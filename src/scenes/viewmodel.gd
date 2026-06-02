@@ -42,6 +42,10 @@ func process_models(parent_node: Node) -> void:
 					var mat : StandardMaterial3D = node.mesh.surface_get_material(i)
 					mat.use_z_clip_scale = true
 					mat.z_clip_scale = 0.9
+					mat.render_priority = 10
+					mat.stencil_mode = BaseMaterial3D.STENCIL_MODE_CUSTOM
+					mat.stencil_reference = 1
+					mat.stencil_flags = 6
 
 func change_model_fov_override(parent_node: Node) -> void:
 	for node: Node in parent_node.get_children():
