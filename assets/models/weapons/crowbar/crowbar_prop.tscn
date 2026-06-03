@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://dr5uq8lo8s20q"]
 
 [ext_resource type="ArrayMesh" uid="uid://cco3y44k7rjoi" path="res://assets/models/weapons/crowbar/crowbar.res" id="1_c7baa"]
-[ext_resource type="Material" uid="uid://cyw7pcp6fvn6f" path="res://assets/shaders/outline.tres" id="3_m6tjl"]
 [ext_resource type="Script" uid="uid://ckogewmgryfsj" path="res://lib/classes/gs_outline_component.gd" id="4_jq2ow"]
 [ext_resource type="ArrayMesh" uid="uid://ds1nhv12nwc1k" path="res://assets/models/weapons/crowbar/crowbar_outline.res" id="4_m6tjl"]
 
@@ -11,11 +10,32 @@ bounce = 0.1
 [sub_resource type="BoxShape3D" id="BoxShape3D_pdhro"]
 size = Vector3(0.15454102, 1.8592529, 0.1517334)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jq2ow"]
-albedo_color = Color(0, 0, 0, 1)
+[sub_resource type="Shader" id="Shader_iv8eg"]
+code = "shader_type spatial;
+render_mode unshaded, depth_test_disabled;
+stencil_mode read, compare_greater, 1;
 
-[sub_resource type="PrismMesh" id="PrismMesh_m6tjl"]
-material = SubResource("StandardMaterial3D_jq2ow")
+uniform float outline_width: hint_range(0.0, 128.0, 1.0) = 2.0;
+uniform vec4 outline_color : source_color = vec4(1.0,1.0,0.0,1.0);
+
+void vertex() {
+	vec4 clip_position = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1.0));
+	vec3 clip_normal = mat3(PROJECTION_MATRIX) * (mat3(MODELVIEW_MATRIX) * NORMAL);
+	vec2 offset = normalize(clip_normal.xy) / VIEWPORT_SIZE * clip_position.w * outline_width * 2.0;
+	clip_position.xy += offset;
+	POSITION = clip_position;
+}
+
+void fragment() {
+	ALBEDO = outline_color.rgb;
+	ALPHA = outline_color.a;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_m6tjl"]
+render_priority = 1
+shader = SubResource("Shader_iv8eg")
+shader_parameter/outline_width = 4.0
+shader_parameter/outline_color = Color(1, 1, 0, 1)
 
 [node name="CrowbarProp" type="RigidBody3D" unique_id=977717550 groups=["PhysicsProp"]]
 physics_interpolation_mode = 1
@@ -37,14 +57,9 @@ shape = SubResource("BoxShape3D_pdhro")
 
 [node name="outline" type="MeshInstance3D" parent="." unique_id=1559076019]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.49630404, 0)
-material_override = ExtResource("3_m6tjl")
+material_override = SubResource("ShaderMaterial_m6tjl")
 mesh = ExtResource("4_m6tjl")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=465769920]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1981852, 0.8741927, 0)
-mesh = SubResource("PrismMesh_m6tjl")
 
 [node name="GSOutlineComponent" type="Node" parent="." unique_id=974104629]
 script = ExtResource("4_jq2ow")
-meshes = [{}, {}]
 metadata/_custom_type_script = "uid://ckogewmgryfsj"

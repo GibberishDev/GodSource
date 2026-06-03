@@ -18,7 +18,7 @@ size = Vector3(0, 1.581, 0)
 
 [node name="gs_player" type="CharacterBody3D" unique_id=1437464103]
 collision_layer = 2
-collision_mask = 5
+collision_mask = 45
 wall_min_slide_angle = 0.0
 floor_max_angle = 0.7958701
 script = ExtResource("1_k5xr0")
