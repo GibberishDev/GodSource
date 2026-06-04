@@ -48,7 +48,7 @@ window/size/mode=2
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/anthonyec.camera_preview/plugin.cfg", "res://addons/gd-blender-3d-shortcuts/plugin.cfg")
+enabled=PackedStringArray("res://addons/anthonyec.camera_preview/plugin.cfg", "res://addons/gd-blender-3d-shortcuts-0.4.0/addons/gd-blender-3d-shortcuts/plugin.cfg")
 
 [global_group]
 
