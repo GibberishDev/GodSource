@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://brlrm8rfoeti2"]
+
+[ext_resource type="Script" uid="uid://8qa27dy5lov4" path="res://addons/GodSource/gsspc/point.gd" id="1_ugfu4"]
+[ext_resource type="Texture2D" uid="uid://2l8k4y8kq63d" path="res://addons/GodSource/gsspc/assets/icons/point.svg" id="2_mjjpy"]
+[ext_resource type="Texture2D" uid="uid://c0v24nj3pldiv" path="res://addons/GodSource/gsspc/assets/icons/point_fixed.svg" id="3_xott0"]
+
+[node name="point" type="Control" unique_id=196504308]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("1_ugfu4")
+texture_normal = ExtResource("2_mjjpy")
+texture_fixed = ExtResource("3_xott0")
+
+[node name="image" type="TextureRect" parent="." unique_id=1881653399]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+pivot_offset_ratio = Vector2(0.5, 0.5)
+mouse_filter = 2
+texture = ExtResource("2_mjjpy")
+expand_mode = 1
+
+[node name="id" type="Label" parent="." unique_id=2102618577]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 4.0
+text = "0"
+
+[node name="hitbox" type="Control" parent="." unique_id=1813258029]
+z_index = 1
+anchors_preset = 0
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+rotation = 0.7853982
+pivot_offset_ratio = Vector2(0.5, 0.5)
+mouse_filter = 1
+mouse_behavior_recursive = 2
+mouse_default_cursor_shape = 2
+
+[connection signal="gui_input" from="hitbox" to="." method="_on_hitbox_gui_input"]

@@ -4,10 +4,15 @@
 [ext_resource type="Script" uid="uid://qsj3a3f23hb8" path="res://addons/GodSource/gsspc/ui.gd" id="1_lhewq"]
 [ext_resource type="Texture2D" uid="uid://pofe7yatf8wy" path="res://addons/GodSource/gsspc/assets/icons/add_points.svg" id="2_78ph8"]
 [ext_resource type="Texture2D" uid="uid://cpwwf8prkixpb" path="res://addons/GodSource/gsspc/assets/icons/remove_points.svg" id="3_gwa2v"]
+[ext_resource type="Texture2D" uid="uid://p0hd10ye8smo" path="res://addons/GodSource/gsspc/assets/icons/center_view_on_selection.svg" id="3_x558e"]
 [ext_resource type="Texture2D" uid="uid://b6we1gpqfv6vc" path="res://addons/GodSource/gsspc/assets/icons/clear_points.svg" id="4_lhewq"]
 [ext_resource type="Texture2D" uid="uid://cosslbo025y7r" path="res://addons/GodSource/gsspc/assets/icons/center_view.svg" id="5_gwa2v"]
 [ext_resource type="Texture2D" uid="uid://b18auqdpscbup" path="res://addons/GodSource/gsspc/assets/icons/snap_off.svg" id="6_lhewq"]
 [ext_resource type="Script" uid="uid://d2fpo04pvmaho" path="res://addons/GodSource/gsspc/draw.gd" id="6_uvt6s"]
+[ext_resource type="PackedScene" uid="uid://brlrm8rfoeti2" path="res://addons/GodSource/gsspc/point.tscn" id="7_p6hn8"]
+[ext_resource type="Texture2D" uid="uid://crlh4a7j3omkd" path="res://addons/GodSource/gsspc/assets/icons/length_display.svg" id="10_dmefa"]
+[ext_resource type="Texture2D" uid="uid://cfsdckmjp7qyn" path="res://addons/GodSource/gsspc/assets/icons/angle_display.svg" id="11_k8uha"]
+[ext_resource type="Texture2D" uid="uid://c8sm1181vhi2a" path="res://addons/GodSource/gsspc/assets/icons/random_display.svg" id="12_k8uha"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qb2ju"]
 bg_color = Color(0, 0, 0, 0.23529412)
@@ -224,6 +229,93 @@ bg_color = Color(0.30588236, 0.30588236, 0.30588236, 1)
 corner_radius_bottom_right = 3
 corner_detail = 5
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x558e"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k8uha"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1dtp8"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16078432, 0.16078432, 0.16078432, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hbxaq"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.10980392, 0.10980392, 0.10980392, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ls5to"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.30588236, 0.30588236, 0.30588236, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lvyg0"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16078432, 0.16078432, 0.16078432, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_elioq"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.10980392, 0.10980392, 0.10980392, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fq5gk"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.30588236, 0.30588236, 0.30588236, 1)
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_702ly"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16078432, 0.16078432, 0.16078432, 1)
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xrl21"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.10980392, 0.10980392, 0.10980392, 1)
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_72ocg"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.30588236, 0.30588236, 0.30588236, 1)
+corner_radius_bottom_left = 3
+corner_detail = 5
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cgndu"]
 content_margin_left = 4.0
 content_margin_top = 4.0
@@ -243,6 +335,7 @@ corner_detail = 5
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iom5g"]
 content_margin_left = 6.0
 content_margin_top = 4.0
+content_margin_right = 4.0
 content_margin_bottom = 4.0
 bg_color = Color(0.1, 0.1, 0.1, 0)
 corner_radius_bottom_right = 3
@@ -257,6 +350,16 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_870g6"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 1)
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
 [node name="SpreadPatternCreator" type="Control" unique_id=711943418]
 layout_mode = 3
 anchors_preset = 15
@@ -265,6 +368,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lhewq")
+center_texture = ExtResource("5_gwa2v")
+center_point_texture = ExtResource("3_x558e")
 
 [node name="vbox" type="VBoxContainer" parent="." unique_id=766511672]
 clip_contents = true
@@ -498,6 +603,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="user_input" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor" unique_id=1404511440]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_behavior_recursive = 2
+
 [node name="guides" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor" unique_id=1370471155]
 unique_name_in_owner = true
 layout_mode = 1
@@ -506,17 +620,32 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("6_uvt6s")
 
-[node name="user_input" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor" unique_id=1404511440]
+[node name="points_preview" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" unique_id=1451443382]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="point" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides/points_preview" unique_id=196504308 instance=ExtResource("7_p6hn8")]
+layout_mode = 1
+fixed = true
+
+[node name="point2" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides/points_preview" unique_id=427789839 instance=ExtResource("7_p6hn8")]
+layout_mode = 1
+offset_left = 95.0
+offset_right = 95.0
+id = 1
+
 [node name="center_button" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel" unique_id=2116665434]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 1
 anchors_preset = 0
@@ -536,7 +665,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_bdft4")
 theme_override_styles/hover = SubResource("StyleBoxFlat_tmwei")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_bdft4")
 
-[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/center_button" unique_id=1055740131]
+[node name="icon" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/center_button" unique_id=1055740131]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -590,7 +719,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="met_cords" type="Label" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/view_cords" unique_id=1072068331]
+[node name="met_cords" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/view_cords" unique_id=789532025]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
@@ -600,12 +729,16 @@ anchor_bottom = 1.0
 offset_top = -49.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_x558e")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_x558e")
+bbcode_enabled = true
 text = "x: 0.01m
 y: 0.01m"
 horizontal_alignment = 2
 vertical_alignment = 2
 
-[node name="deg_cords" type="Label" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/view_cords" unique_id=379358646]
+[node name="deg_cords" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/view_cords" unique_id=272922414]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -614,11 +747,118 @@ anchor_bottom = 1.0
 offset_top = -49.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "pitch: 0deg
+theme_override_styles/normal = SubResource("StyleBoxEmpty_k8uha")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k8uha")
+bbcode_enabled = true
+text = "[color=red]pitch: 0deg
 roll:    0deg"
+vertical_alignment = 2
+
+[node name="guide_toggles" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel" unique_id=1226628992]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -32.0
+offset_bottom = 96.0
+grow_horizontal = 0
+
+[node name="vbox" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles" unique_id=1939492000]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="length_button" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox" unique_id=45641268]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button" unique_id=1441627705]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_1dtp8")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hbxaq")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ls5to")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_hbxaq")
+
+[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button" unique_id=837723947]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("10_dmefa")
+expand_mode = 1
+
+[node name="angle" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox" unique_id=869370263]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle" unique_id=1191360029]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_lvyg0")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_elioq")
+theme_override_styles/hover = SubResource("StyleBoxFlat_fq5gk")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_elioq")
+
+[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle" unique_id=375817921]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("11_k8uha")
+expand_mode = 1
+
+[node name="angle2" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox" unique_id=1051966015]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2" unique_id=933290875]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_702ly")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xrl21")
+theme_override_styles/hover = SubResource("StyleBoxFlat_72ocg")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_xrl21")
+
+[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2" unique_id=1032927631]
+modulate = Color(1, 0.5, 1, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("12_k8uha")
+expand_mode = 1
 
 [node name="settings" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont" unique_id=920814651]
-custom_minimum_size = Vector2(300, 512)
+custom_minimum_size = Vector2(450, 512)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 0
@@ -633,23 +873,23 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_iom5g")
 title = "Pattern settings"
 title_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings" unique_id=119226762]
+[node name="vbox" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings" unique_id=119226762]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer" unique_id=2077804024]
+[node name="burst" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox" unique_id=2077804024]
 layout_mode = 2
 tooltip_text = "Defines the type of the pattern.
 Burst: all pellets are emmited at the same time (scatterguns, shotguns)
 Non burst: Sequential shots, acts as spray pattern for recoil control (automatic weapons, pistols)"
 theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer" unique_id=1690751006]
+[node name="burst_label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/burst" unique_id=1690751006]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
 text = "Is burst"
 
-[node name="CheckBox" type="CheckBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer" unique_id=332473310]
+[node name="burst_checkbox" type="CheckBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/burst" unique_id=332473310]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_247gu")
@@ -661,39 +901,18 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_247gu")
 button_pressed = true
 text = "Yes"
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer" unique_id=748817852]
-layout_mode = 2
-tooltip_text = "defines the distance over which deviation of 1deg will offset point of contact 1cm"
-theme_override_constants/separation = 0
-
-[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer2" unique_id=1539183282]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Over what distance spread will be equal to 1cm if angle of spread is 1 degree"
-mouse_filter = 1
-text = "1 degree spread to 1 cm distance"
-
-[node name="Range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer2" unique_id=43906582]
-layout_mode = 2
-size_flags_horizontal = 3
-step = 0.001
-value = 15.715
-allow_greater = true
-suffix = "m"
-select_all_on_focus = true
-
-[node name="HBoxContainer3" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer" unique_id=2119150277]
+[node name="rbs" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox" unique_id=2119150277]
 layout_mode = 2
 tooltip_text = "Difines maximum deviation for all non fixed points when random bullet spread is on"
 theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer3" unique_id=109733827]
+[node name="rbs_label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/rbs" unique_id=109733827]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
 text = "Random bullet spread range"
 
-[node name="Range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/VBoxContainer/HBoxContainer3" unique_id=1641626107]
+[node name="rbs_range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/rbs" unique_id=1641626107]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 180.0
@@ -703,12 +922,112 @@ allow_greater = true
 suffix = "deg"
 select_all_on_focus = true
 
-[node name="point_settings" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings" unique_id=104895715]
+[node name="preview_settings" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings" unique_id=918005357]
 layout_mode = 2
-size_flags_vertical = 3
+theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/title_collapsed_hover_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/panel = SubResource("StyleBoxFlat_iom5g")
+title = "Preview settings"
+title_alignment = 1
+
+[node name="vbox" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/preview_settings" unique_id=2013757804]
+layout_mode = 2
+
+[node name="pd" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox" unique_id=967287904]
+layout_mode = 2
+tooltip_text = "Defines distance to middle of the pattern to use in pitch angle projections.
+Its used for aproximate visualisation on the editor to draw rings, up to 90 degress of deviaton.
+Default value of 57.29 will result at 1cm spread at 1 degrees of deviaton"
+theme_override_constants/separation = 0
+
+[node name="pd_label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/pd" unique_id=1437761283]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Distance to pattern"
+
+[node name="pd_range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/pd" unique_id=596466395]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100000000000.0
+step = 0.001
+value = 57.29
+allow_greater = true
+suffix = "cm"
+select_all_on_focus = true
+
+[node name="subdiv" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox" unique_id=1705691689]
+layout_mode = 2
+tooltip_text = "Defines amount of subdivisions to display for 1 degree of pitch angle"
+theme_override_constants/separation = 0
+
+[node name="subdiv_label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv" unique_id=2122412550]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Pitch subdivisions"
+
+[node name="subdiv_range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv" unique_id=1137081522]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 10.0
+allow_greater = true
+custom_arrow_step = 1.0
+custom_arrow_round = true
+select_all_on_focus = true
+
+[node name="point_settings" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings" unique_id=1264882030]
+layout_mode = 2
+theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/title_collapsed_hover_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/panel = SubResource("StyleBoxFlat_iom5g")
 title = "Point settings"
 title_alignment = 1
 
+[node name="vbox" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings" unique_id=1263574825]
+layout_mode = 2
+
+[node name="FoldableContainer" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=428954595]
+layout_mode = 2
+theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
+theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/title_collapsed_hover_panel = SubResource("StyleBoxFlat_a5y1w")
+theme_override_styles/panel = SubResource("StyleBoxFlat_870g6")
+folded = true
+title = "Points"
+title_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer" unique_id=1427208650]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1247960321]
+layout_mode = 2
+bbcode_enabled = true
+text = "Selected point id: [b]0[/b]"
+fit_content = true
+autowrap_mode = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [connection signal="gui_input" from="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input" to="." method="_on_user_input"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/center_button/Button" to="." method="reset_view"]
-[connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/pattern_settings" to="." method="_on_pattern_settings_container_fold"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button/Button" to="." method="_on_length_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_length_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle/Button" to="." method="_on_degree_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_degree_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2/Button" to="." method="_on_lrandom_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_random_guides_pressed"]
+[connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/pattern_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/rbs/rbs_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_rbs_range_changed"]
+[connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/pd/pd_range" to="." method="_on_pd_range_value_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/pd/pd_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_distance_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv/subdiv_range" to="." method="_on_pitch_subdivisions_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv/subdiv_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_pitch_subdivisions_changed"]
+[connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/point_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
