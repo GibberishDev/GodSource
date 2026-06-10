@@ -16,7 +16,7 @@ func _ready() -> void:
 	get_window().focus_exited.connect(_on_window_focus_exited)
 
 func _process(delta: float) -> void:
-	if get_parent() == Control:
+	if get_parent() is Control:
 		self.scale = Vector2.ONE/get_parent().scale
 
 @export

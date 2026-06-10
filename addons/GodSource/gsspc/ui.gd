@@ -8,26 +8,47 @@ var pattern_distance : float = 57.29
 var length_guides : bool = true
 var degree_guides : bool = true
 var deg_preview_subdivisions : int = 0
+var roll_preview_subdivisions : float = 48.0
 var random_guides : bool = true
+var snap_on : bool = false
 
 @export
 var center_texture : DPITexture
 @export
 var center_point_texture : DPITexture
+@export
+var snap_on_texture : DPITexture
+@export
+var snap_off_texture : DPITexture
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	%guides.root = self
-	resized.connect(dock_resized)
+	
 
-func dock_resized() -> void:
+func _process(_delta:float) -> void:
 	if size.x < 800:
 		%content_cont.vertical = true
 		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.y = size.x - 14
+		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.x = 0
+		$vbox/ScrollContainer/content_cont/settings/point_settings/vbox.vertical = true
 	else:
 		%content_cont.vertical = false
 		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.y = 0
+		if size.x > (size.y + 450):
+			$vbox/ScrollContainer/content_cont/editor_container.size_flags_horizontal = SIZE_FILL
+			$vbox/ScrollContainer/content_cont/settings.size_flags_horizontal = SIZE_EXPAND_FILL
+			$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.x = %content_cont.size.y
+			if $vbox/ScrollContainer/content_cont/settings/point_settings.size.x > 600:
+				$vbox/ScrollContainer/content_cont/settings/point_settings/vbox.vertical = false
+			else:
+				$vbox/ScrollContainer/content_cont/settings/point_settings/vbox.vertical = true
+		else:
+			$vbox/ScrollContainer/content_cont/editor_container.size_flags_horizontal = SIZE_EXPAND_FILL
+			$vbox/ScrollContainer/content_cont/settings.size_flags_horizontal = SIZE_FILL
+			$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.x = 0
+
 	update_points_position()
 
 func update_points_position()->void:
@@ -103,11 +124,9 @@ func _on_pd_range_value_changed(value: float) -> void:
 
 func _on_length_guides_pressed() -> void:
 	length_guides = !length_guides
-	%met_cords.visible = length_guides
 
 func _on_degree_guides_pressed() -> void:
 	degree_guides = !degree_guides
-	%deg_cords.visible = degree_guides
 
 func _on_pitch_subdivisions_changed(value: float) -> void:
 	deg_preview_subdivisions = value
@@ -127,7 +146,6 @@ func _point_clicked(point: GDSPCPoint) -> void:
 	selected_point.selected = true
 	%center_button.get_node("icon").texture = center_point_texture
 
-var snap_on : bool = true
 
 func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
 	new_pos *= preview_scale
@@ -137,32 +155,40 @@ func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
 	var roll : float = get_roll_from_pos(new_pos)
 	if snap_on:
 		var pitch_snap : float = snappedf(pitch, 1.0/(deg_preview_subdivisions+1.0))
-		print(deg_preview_subdivisions)
-		var roll_snap : float = snappedf(roll,360.0/48.0)
-		if abs(abs(pitch) - abs(pitch_snap)) < 0.25:
+		var roll_snap : float = snappedf(roll,360.0/roll_preview_subdivisions)
+		if get_pos_from_point(pitch,roll).distance_to(get_pos_from_point(pitch_snap,roll)) <= 5.0:
 			pitch = pitch_snap
-		if abs(abs(roll) - abs(roll_snap)) < 1.0:
+		if get_pos_from_point(pitch,roll).distance_to(get_pos_from_point(pitch,roll_snap)) <= 5.0:
 			roll = roll_snap
 		new_pos = get_pos_from_point(pitch,roll)
 	if length_guides:
 		%met_cords.text = "[color=#ff0000]" + String.num(get_pos_from_point(pitch,roll).x / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m X[/color]\n[color=#00ff00]" + String.num(get_pos_from_point(pitch,roll).y / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m Y[/color]"
 	if degree_guides:
 		%deg_cords.text = "[color=#00ffff]Pitch: " + str(snapped(get_pitch_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]\n[color=#ffff00]Roll: " + str(snapped(get_roll_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]"
+	
+	new_pos *= 57.29/pattern_distance
 	return [new_pos,Vector2(pitch, roll)]
 #endregion
 
 func get_pitch_from_pos(pos: Vector2)->float:
-	var dist : float = pos.length() / %guides.grid_size
-	var hypotenuse : float = sqrt(dist*dist + pattern_distance*pattern_distance)
-	var pitch : float = rad_to_deg(acos((pow(hypotenuse,2) - pow(dist,2) + pow(pattern_distance,2))/(2 * hypotenuse * pattern_distance)))
+	var pitch : float = rad_to_deg(acos((pow(pos.length()/%guides.grid_size, 2)+pow(pattern_distance,2)-pow(pos.length()/%guides.grid_size,2) + pow(pattern_distance,2))/(2*sqrt(pow(pos.length() / %guides.grid_size, 2) + pow(pattern_distance,2)) * pattern_distance)))
 	return pitch
-func get_roll_from_pos(pos: Vector2)->float:
-	var roll : float = rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
-	return roll
-
+func get_roll_from_pos(pos: Vector2)->float: return rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
 func get_pos_from_point(pitch:float,roll:float) -> Vector2:
 	pitch = deg_to_rad(pitch)
 	roll = deg_to_rad(roll)
 	var dist : float = pattern_distance * (sin(pitch) / sin(deg_to_rad(90.0)-pitch)) * %guides.grid_size
 	return Vector2(0,-dist).rotated(-roll)
-	
+
+
+
+#endregion
+#region ui input signal handlers
+## ui input signal handler. Toggles point snap
+func _on_toggle_snap() -> void:
+	snap_on = !snap_on
+	if snap_on: %snap_button.get_node("TextureRect").texture = snap_on_texture
+	else: %snap_button.get_node("TextureRect").texture = snap_off_texture
+## ui input signal handler. Changes Roll subdivisions number. Used for point snap calculation
+func _on_roll_subdivisions_changed(value: float) -> void: roll_preview_subdivisions = value
+#endregion

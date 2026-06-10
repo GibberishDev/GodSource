@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://pofe7yatf8wy" path="res://addons/GodSource/gsspc/assets/icons/add_points.svg" id="2_78ph8"]
 [ext_resource type="Texture2D" uid="uid://cpwwf8prkixpb" path="res://addons/GodSource/gsspc/assets/icons/remove_points.svg" id="3_gwa2v"]
 [ext_resource type="Texture2D" uid="uid://p0hd10ye8smo" path="res://addons/GodSource/gsspc/assets/icons/center_view_on_selection.svg" id="3_x558e"]
+[ext_resource type="Texture2D" uid="uid://ckyauh8dlaopb" path="res://addons/GodSource/gsspc/assets/icons/snap_on.svg" id="4_fw3yb"]
 [ext_resource type="Texture2D" uid="uid://b6we1gpqfv6vc" path="res://addons/GodSource/gsspc/assets/icons/clear_points.svg" id="4_lhewq"]
 [ext_resource type="Texture2D" uid="uid://cosslbo025y7r" path="res://addons/GodSource/gsspc/assets/icons/center_view.svg" id="5_gwa2v"]
 [ext_resource type="Texture2D" uid="uid://b18auqdpscbup" path="res://addons/GodSource/gsspc/assets/icons/snap_off.svg" id="6_lhewq"]
@@ -361,6 +362,7 @@ corner_radius_bottom_left = 3
 corner_detail = 5
 
 [node name="SpreadPatternCreator" type="Control" unique_id=711943418]
+clip_contents = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -370,6 +372,8 @@ grow_vertical = 2
 script = ExtResource("1_lhewq")
 center_texture = ExtResource("5_gwa2v")
 center_point_texture = ExtResource("3_x558e")
+snap_on_texture = ExtResource("4_fw3yb")
+snap_off_texture = ExtResource("6_lhewq")
 
 [node name="vbox" type="VBoxContainer" parent="." unique_id=766511672]
 clip_contents = true
@@ -586,9 +590,10 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="editor_container" type="AspectRatioContainer" parent="vbox/ScrollContainer/content_cont" unique_id=1383325993]
+custom_minimum_size = Vector2(1044, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 3
+alignment_horizontal = 0
 
 [node name="Panel" type="Panel" parent="vbox/ScrollContainer/content_cont/editor_container" unique_id=397418578]
 layout_mode = 2
@@ -677,6 +682,7 @@ texture = ExtResource("5_gwa2v")
 expand_mode = 1
 
 [node name="snap_button" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel" unique_id=733163382]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 1
 anchors_preset = 0
@@ -712,11 +718,12 @@ expand_mode = 1
 
 [node name="view_cords" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel" unique_id=1145712463]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
 mouse_filter = 2
 
 [node name="met_cords" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/view_cords" unique_id=789532025]
@@ -828,11 +835,11 @@ mouse_filter = 2
 texture = ExtResource("11_k8uha")
 expand_mode = 1
 
-[node name="angle2" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox" unique_id=1051966015]
+[node name="random_spread" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox" unique_id=1051966015]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 
-[node name="Button" type="Button" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2" unique_id=933290875]
+[node name="Button" type="Button" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/random_spread" unique_id=933290875]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 1
 anchors_preset = 15
@@ -845,7 +852,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_xrl21")
 theme_override_styles/hover = SubResource("StyleBoxFlat_72ocg")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_xrl21")
 
-[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2" unique_id=1032927631]
+[node name="TextureRect" type="TextureRect" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/random_spread" unique_id=1032927631]
 modulate = Color(1, 0.5, 1, 1)
 layout_mode = 1
 anchors_preset = 15
@@ -860,6 +867,7 @@ expand_mode = 1
 [node name="settings" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont" unique_id=920814651]
 custom_minimum_size = Vector2(450, 512)
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 0
 
@@ -978,8 +986,29 @@ custom_arrow_step = 1.0
 custom_arrow_round = true
 select_all_on_focus = true
 
+[node name="subdiv2" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox" unique_id=1428706599]
+layout_mode = 2
+tooltip_text = "Defines amount of subdivisions to display for 1 degree of pitch angle"
+theme_override_constants/separation = 0
+
+[node name="subdiv_label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2" unique_id=244228418]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Roll subdivisions"
+
+[node name="subdiv_range" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2" unique_id=1952370455]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 360.0
+value = 48.0
+custom_arrow_step = 1.0
+custom_arrow_round = true
+select_all_on_focus = true
+
 [node name="point_settings" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings" unique_id=1264882030]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
@@ -988,25 +1017,32 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_iom5g")
 title = "Point settings"
 title_alignment = 1
 
-[node name="vbox" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings" unique_id=1263574825]
+[node name="vbox" type="BoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings" unique_id=1627527983]
 layout_mode = 2
 
 [node name="FoldableContainer" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=428954595]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
 theme_override_styles/title_collapsed_hover_panel = SubResource("StyleBoxFlat_a5y1w")
 theme_override_styles/panel = SubResource("StyleBoxFlat_870g6")
-folded = true
 title = "Points"
 title_alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer" unique_id=1427208650]
-visible = false
 layout_mode = 2
 
-[node name="Label" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1247960321]
+[node name="HBoxContainer" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/VBoxContainer" unique_id=2019224867]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/VBoxContainer" unique_id=1247960321]
 layout_mode = 2
 bbcode_enabled = true
 text = "Selected point id: [b]0[/b]"
@@ -1017,12 +1053,13 @@ vertical_alignment = 1
 
 [connection signal="gui_input" from="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input" to="." method="_on_user_input"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/center_button/Button" to="." method="reset_view"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/snap_button/Button" to="." method="_on_toggle_snap"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button/Button" to="." method="_on_length_guides_pressed"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/length_button/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_length_guides_pressed"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle/Button" to="." method="_on_degree_guides_pressed"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_degree_guides_pressed"]
-[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2/Button" to="." method="_on_lrandom_guides_pressed"]
-[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/angle2/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_random_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/random_spread/Button" to="." method="_on_lrandom_guides_pressed"]
+[connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/guide_toggles/vbox/random_spread/Button" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_random_guides_pressed"]
 [connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/pattern_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/rbs/rbs_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_rbs_range_changed"]
 [connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
@@ -1030,4 +1067,6 @@ vertical_alignment = 1
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/pd/pd_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_distance_changed"]
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv/subdiv_range" to="." method="_on_pitch_subdivisions_changed"]
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv/subdiv_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_pitch_subdivisions_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2/subdiv_range" to="." method="_on_roll_subdivisions_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2/subdiv_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_subdiv_roll_changed"]
 [connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/point_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
