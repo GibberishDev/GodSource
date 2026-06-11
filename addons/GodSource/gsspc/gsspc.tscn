@@ -10,10 +10,10 @@
 [ext_resource type="Texture2D" uid="uid://cosslbo025y7r" path="res://addons/GodSource/gsspc/assets/icons/center_view.svg" id="5_gwa2v"]
 [ext_resource type="Texture2D" uid="uid://b18auqdpscbup" path="res://addons/GodSource/gsspc/assets/icons/snap_off.svg" id="6_lhewq"]
 [ext_resource type="Script" uid="uid://d2fpo04pvmaho" path="res://addons/GodSource/gsspc/draw.gd" id="6_uvt6s"]
-[ext_resource type="PackedScene" uid="uid://brlrm8rfoeti2" path="res://addons/GodSource/gsspc/point.tscn" id="7_p6hn8"]
 [ext_resource type="Texture2D" uid="uid://crlh4a7j3omkd" path="res://addons/GodSource/gsspc/assets/icons/length_display.svg" id="10_dmefa"]
 [ext_resource type="Texture2D" uid="uid://cfsdckmjp7qyn" path="res://addons/GodSource/gsspc/assets/icons/angle_display.svg" id="11_k8uha"]
 [ext_resource type="Texture2D" uid="uid://c8sm1181vhi2a" path="res://addons/GodSource/gsspc/assets/icons/random_display.svg" id="12_k8uha"]
+[ext_resource type="PackedScene" uid="uid://bfa3i8fsm51b8" path="res://addons/GodSource/gsspc/point_menu_item.tscn" id="14_fw3yb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qb2ju"]
 bg_color = Color(0, 0, 0, 0.23529412)
@@ -352,7 +352,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_870g6"]
-content_margin_left = 6.0
+content_margin_left = 4.0
 content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
@@ -638,16 +638,6 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="point" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides/points_preview" unique_id=196504308 instance=ExtResource("7_p6hn8")]
-layout_mode = 1
-fixed = true
-
-[node name="point2" parent="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides/points_preview" unique_id=427789839 instance=ExtResource("7_p6hn8")]
-layout_mode = 1
-offset_left = 95.0
-offset_right = 95.0
-id = 1
 
 [node name="center_button" type="Control" parent="vbox/ScrollContainer/content_cont/editor_container/Panel" unique_id=2116665434]
 unique_name_in_owner = true
@@ -1031,10 +1021,19 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_870g6")
 title = "Points"
 title_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer" unique_id=1427208650]
+[node name="ScrollContainer" type="ScrollContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer" unique_id=347383060]
+custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
+theme_override_constants/scrollbar_h_separation = 4
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/VBoxContainer" unique_id=2019224867]
+[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer" unique_id=1427208650]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="point_menu_item" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer/VBoxContainer" unique_id=2100404673 instance=ExtResource("14_fw3yb")]
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
@@ -1051,6 +1050,10 @@ autowrap_mode = 0
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[connection signal="pressed" from="vbox/controls/point_controls/HBoxContainer/select_points_mode" to="." method="_on_select_points"]
+[connection signal="pressed" from="vbox/controls/point_controls/HBoxContainer/add_point_mode" to="." method="_on_add_point"]
+[connection signal="pressed" from="vbox/controls/point_controls/HBoxContainer/remove_point_mode" to="." method="_on_remove_point"]
+[connection signal="pressed" from="vbox/controls/point_controls/HBoxContainer/clear_points" to="." method="_on_clear_points"]
 [connection signal="gui_input" from="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input" to="." method="_on_user_input"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/center_button/Button" to="." method="reset_view"]
 [connection signal="pressed" from="vbox/ScrollContainer/content_cont/editor_container/Panel/snap_button/Button" to="." method="_on_toggle_snap"]

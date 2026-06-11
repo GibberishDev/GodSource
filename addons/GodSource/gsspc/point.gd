@@ -43,7 +43,7 @@ var id : int = 0 :
 		$id.text = str(val)
 
 func _enter_tree() -> void:
-	if (get_parent().get_parent().root != null):
+	if (get_parent().get_parent().root):
 		for connection:Dictionary in gdspc_signal_point_clicked.get_connections():
 			if connection.callable != get_parent().get_parent().root._point_clicked:
 				gdspc_signal_point_clicked.disconnect(connection.callable)

@@ -1,31 +1,36 @@
 @tool
 class_name GDSPC extends Control
 
+enum EDIT_MODE {
+	EDIT,
+	ADD,
+	REMOVE
+}
+@onready var point_scene : PackedScene = preload("./point.tscn")
+@onready var input_node : Control = $vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input
+
 var is_burst : bool = true
-@onready
-var input_node : Control = $vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input
-var pattern_distance : float = 57.29
 var length_guides : bool = true
 var degree_guides : bool = true
-var deg_preview_subdivisions : int = 0
-var roll_preview_subdivisions : float = 48.0
 var random_guides : bool = true
 var snap_on : bool = false
+var deg_preview_subdivisions : int = 0
+var pattern_distance : float = 57.29
+var roll_preview_subdivisions : float = 48.0
+var mouse_hide_pos : Vector2
+var preview_offset : Vector2 = Vector2.ZERO
+var points : Array[GDSPCPoint] = []
+var selected_point : GDSPCPoint = null
+var current_mode : EDIT_MODE = EDIT_MODE.EDIT
 
-@export
-var center_texture : DPITexture
-@export
-var center_point_texture : DPITexture
-@export
-var snap_on_texture : DPITexture
-@export
-var snap_off_texture : DPITexture
+@export var center_texture : DPITexture
+@export var center_point_texture : DPITexture
+@export var snap_on_texture : DPITexture
+@export var snap_off_texture : DPITexture
 
-
-# Called when the node enters the scene tree for the first time.
+#region ui draw and updates
 func _ready() -> void:
 	%guides.root = self
-	
 
 func _process(_delta:float) -> void:
 	if size.x < 800:
@@ -48,25 +53,11 @@ func _process(_delta:float) -> void:
 			$vbox/ScrollContainer/content_cont/editor_container.size_flags_horizontal = SIZE_EXPAND_FILL
 			$vbox/ScrollContainer/content_cont/settings.size_flags_horizontal = SIZE_FILL
 			$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.x = 0
-
 	update_points_position()
 
 func update_points_position()->void:
 	%points_preview.position = %guides.size/2 + preview_offset
 	
-
-
-func _on_pattern_settings_container_fold(is_folded: bool, source: FoldableContainer) -> void:
-	if is_folded:
-		source.size_flags_vertical = SIZE_SHRINK_BEGIN
-	else:
-		source.size_flags_vertical = SIZE_FILL
-
-
-var preview_offset : Vector2 = Vector2.ZERO
-var preview_scale : float = 1.0
-var mouse_hide_pos : Vector2
-
 func _on_user_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MouseButton.MOUSE_BUTTON_MIDDLE:
@@ -75,20 +66,19 @@ func _on_user_input(event: InputEvent) -> void:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-				if mouse_hide_pos:
-					Input.warp_mouse(mouse_hide_pos)
+				if mouse_hide_pos: Input.warp_mouse(mouse_hide_pos)
 		elif event.button_index == MouseButton.MOUSE_BUTTON_LEFT:
-			if (not event.pressed) and selected_point!=null:
+			if (not event.pressed) and selected_point!=null and current_mode != EDIT_MODE.ADD:
 				selected_point.selected = false
 				selected_point = null
 				%center_button.get_node("icon").texture = center_texture
+			elif current_mode == EDIT_MODE.ADD and event.pressed:
+				add_point(event.position)
 	if event is InputEventMouseMotion:
 		var mouse_pos : Vector2 = Vector2(
 			event.position.x - input_node.size.x / 2.0,
 			event.position.y - input_node.size.y / 2.0
 			)
-		var mouse_move : Vector2 = event.screen_relative * preview_scale
-		mouse_pos *= preview_scale
 		mouse_pos -= preview_offset
 		if length_guides:
 			%met_cords.text = "[color=#ff0000]" + String.num(mouse_pos.x / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m X[/color]\n[color=#00ff00]" + String.num(mouse_pos.y / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m Y[/color]"
@@ -99,7 +89,7 @@ func _on_user_input(event: InputEvent) -> void:
 			var roll : float = rad_to_deg(mouse_pos.angle_to(Vector2.DOWN)) + 180
 			%deg_cords.text = "[color=#00ffff]Pitch: " + str(snapped(pitch,0.1)).pad_decimals(1) + "[/color]\n[color=#ffff00]Roll: " + str(snapped(roll,0.1)).pad_decimals(1) + "[/color]"
 		if Input.is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_MIDDLE):
-			preview_offset += mouse_move
+			preview_offset += event.screen_relative
 			update_points_position()
 			%guides.queue_redraw()
 
@@ -107,52 +97,72 @@ func reset_view() -> void:
 	if selected_point:
 		var pos : Vector2 = selected_point.position
 		preview_offset = -pos * %points_preview.scale
-		preview_scale = 1.0
 		update_points_position()
 		%guides.queue_redraw()
 	else:
 		preview_offset = Vector2.ZERO
-		preview_scale = 1.0
 		update_points_position()
 		%guides.queue_redraw()
 
-
-func _on_pd_range_value_changed(value: float) -> void:
-	pattern_distance = value
-	var val : float = pattern_distance/57.29
-	%points_preview.scale = Vector2(val, val)
-
-func _on_length_guides_pressed() -> void:
-	length_guides = !length_guides
-
-func _on_degree_guides_pressed() -> void:
-	degree_guides = !degree_guides
-
-func _on_pitch_subdivisions_changed(value: float) -> void:
-	deg_preview_subdivisions = value
-
-func _on_lrandom_guides_pressed() -> void:
-	random_guides = !random_guides
-
 #region points
 
-var points : Array[GDSPCPoint] = []
-var selected_point : GDSPCPoint = null
-
 func _point_clicked(point: GDSPCPoint) -> void:
-	if selected_point != null:
-		selected_point.selected = false
-	selected_point = point
-	selected_point.selected = true
-	%center_button.get_node("icon").texture = center_point_texture
+	if current_mode == EDIT_MODE.EDIT:
+		if selected_point != null: selected_point.selected = false
+		selected_point = point
+		selected_point.selected = true
+		%center_button.get_node("icon").texture = center_point_texture
+	elif  current_mode == EDIT_MODE.REMOVE:
+		remove_point(point)
+
+
+func add_point(pos: Vector2) -> void:
+	var new_point = point_scene.instantiate()
+	%points_preview.add_child(new_point)
+	var point_data : Array[Vector2] = get_new_point_pos(Vector2(
+		pos.x - input_node.size.x / 2.0,
+		pos.y - input_node.size.y / 2.0
+	))
+	new_point.position = point_data[0]
+	new_point.pitch = point_data[1].x
+	new_point.roll = point_data[1].y
+	if selected_point: selected_point.selected = false
+	selected_point = new_point
+	new_point.selected = true
+	points.push_back(new_point)
+	new_point.id = points.find(new_point)
+	recalculate_points()
+
+
+func remove_point(point) -> void:
+	if points.has(point): points.remove_at(points.find(point))
+	if selected_point == point:
+		selected_point = null
+		%center_button.get_node("icon").texture = center_texture
+	point.queue_free()
+	recalculate_points()
+
+
+func recalculate_points() -> void:
+	for point: GDSPCPoint in points:
+		point.id = points.find(point)
 
 
 func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
-	new_pos *= preview_scale
 	new_pos -= preview_offset
-
 	var pitch : float = get_pitch_from_pos(new_pos)
 	var roll : float = get_roll_from_pos(new_pos)
+	new_pos = get_point_snap(new_pos)
+	if length_guides:
+		%met_cords.text = "[color=#ff0000]" + String.num(get_pos_from_point(pitch,roll).x / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m X[/color]\n[color=#00ff00]" + String.num(get_pos_from_point(pitch,roll).y / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m Y[/color]"
+	if degree_guides:
+		%deg_cords.text = "[color=#00ffff]Pitch: " + str(snapped(get_pitch_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]\n[color=#ffff00]Roll: " + str(snapped(get_roll_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]"
+	new_pos *= 57.29/pattern_distance
+	return [new_pos,Vector2(pitch, roll)]
+
+func get_point_snap(pos:Vector2) -> Vector2:
+	var pitch : float = get_pitch_from_pos(pos)
+	var roll : float = get_roll_from_pos(pos)
 	if snap_on:
 		var pitch_snap : float = snappedf(pitch, 1.0/(deg_preview_subdivisions+1.0))
 		var roll_snap : float = snappedf(roll,360.0/roll_preview_subdivisions)
@@ -160,35 +170,94 @@ func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
 			pitch = pitch_snap
 		if get_pos_from_point(pitch,roll).distance_to(get_pos_from_point(pitch,roll_snap)) <= 5.0:
 			roll = roll_snap
-		new_pos = get_pos_from_point(pitch,roll)
-	if length_guides:
-		%met_cords.text = "[color=#ff0000]" + String.num(get_pos_from_point(pitch,roll).x / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m X[/color]\n[color=#00ff00]" + String.num(get_pos_from_point(pitch,roll).y / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m Y[/color]"
-	if degree_guides:
-		%deg_cords.text = "[color=#00ffff]Pitch: " + str(snapped(get_pitch_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]\n[color=#ffff00]Roll: " + str(snapped(get_roll_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]"
-	
-	new_pos *= 57.29/pattern_distance
-	return [new_pos,Vector2(pitch, roll)]
+	return get_pos_from_point(pitch,roll)
+
+
 #endregion
 
+#region utils
+
+## Converts position on grid into pitch value in degrees
 func get_pitch_from_pos(pos: Vector2)->float:
-	var pitch : float = rad_to_deg(acos((pow(pos.length()/%guides.grid_size, 2)+pow(pattern_distance,2)-pow(pos.length()/%guides.grid_size,2) + pow(pattern_distance,2))/(2*sqrt(pow(pos.length() / %guides.grid_size, 2) + pow(pattern_distance,2)) * pattern_distance)))
-	return pitch
-func get_roll_from_pos(pos: Vector2)->float: return rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
+	return rad_to_deg(acos((pow(pos.length()/%guides.grid_size, 2)+pow(pattern_distance,2)-pow(pos.length()/%guides.grid_size,2) + pow(pattern_distance,2))/(2*sqrt(pow(pos.length() / %guides.grid_size, 2) + pow(pattern_distance,2)) * pattern_distance)))
+
+
+## Converts position on grid into pitch value in degrees
+func get_roll_from_pos(pos: Vector2)->float:
+	return rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
+
+
+## Converts angle into position on the grid
 func get_pos_from_point(pitch:float,roll:float) -> Vector2:
-	pitch = deg_to_rad(pitch)
-	roll = deg_to_rad(roll)
-	var dist : float = pattern_distance * (sin(pitch) / sin(deg_to_rad(90.0)-pitch)) * %guides.grid_size
-	return Vector2(0,-dist).rotated(-roll)
+	return Vector2(0,-pattern_distance * (sin(deg_to_rad(pitch)) / sin(deg_to_rad(90.0)-deg_to_rad(pitch))) * %guides.grid_size).rotated(-deg_to_rad(roll))
 
 
 
 #endregion
+
 #region ui input signal handlers
+
+
+## ui input signal handler. Changes folded 
+func _on_pattern_settings_container_fold(is_folded: bool, source: FoldableContainer) -> void:
+	if is_folded: source.size_flags_vertical = SIZE_SHRINK_BEGIN
+	else: source.size_flags_vertical = SIZE_FILL
+
+
 ## ui input signal handler. Toggles point snap
 func _on_toggle_snap() -> void:
 	snap_on = !snap_on
 	if snap_on: %snap_button.get_node("TextureRect").texture = snap_on_texture
 	else: %snap_button.get_node("TextureRect").texture = snap_off_texture
+
+
+## ui input signal handler. Changes pattern distance for degrees to distance to degrees conversion
+func _on_pd_range_value_changed(value: float) -> void:
+	%points_preview.scale = Vector2(value/57.29, value/57.29)
+
+
+## ui input signal handler. Toggles distance guides display
+func _on_length_guides_pressed() -> void:
+	length_guides = !length_guides
+
+
+## ui input signal handler. Toggles angle guides display
+func _on_degree_guides_pressed() -> void:
+	degree_guides = !degree_guides
+
+
+## ui input signal handler. Changes Pitch offset subdivisions. Used for point snap calculation
+func _on_pitch_subdivisions_changed(value: float) -> void:
+	deg_preview_subdivisions = value
+
+
 ## ui input signal handler. Changes Roll subdivisions number. Used for point snap calculation
 func _on_roll_subdivisions_changed(value: float) -> void: roll_preview_subdivisions = value
+
+
+## ui input signal handler.
+func _on_lrandom_guides_pressed() -> void:
+	random_guides = !random_guides
+
+## ui input signal handler. Switches to basic point select and edit mode
+func _on_select_points() -> void:
+	current_mode = EDIT_MODE.EDIT
+
+
+## ui input signal handler. Switches to adding points mode
+func _on_add_point() -> void:
+	current_mode = EDIT_MODE.ADD
+
+
+## ui input signal handler. Switches to removing points mode
+func _on_remove_point() -> void:
+	current_mode = EDIT_MODE.REMOVE
+
+
+## ui input signal handler. Removes all points
+func _on_clear_points() -> void:
+	for point: GDSPCPoint in points: point.queue_free()
+	if selected_point: selected_point = null
+	recalculate_points()
+
 #endregion
