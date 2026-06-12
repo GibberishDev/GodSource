@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://c2f8vnf2wllem"]
+
+[ext_resource type="FontFile" uid="uid://dov1gw0vyggp2" path="res://assets/fonts/TF2.ttf" id="1_cqrk1"]
+[ext_resource type="Texture2D" uid="uid://0iskn6tb7oeg" path="res://assets/textures/icons/explosion_icon.svg" id="2_gu3q3"]
+
+[sub_resource type="GDScript" id="GDScript_i3fp5"]
+script/source = "extends RigidBody3D
+
+var source : Variant
+var damage : float = 0
+
+func spawn(val : float, pos: Vector3, icon:Resource = null) -> void:
+	if icon != null:
+		var mat : StandardMaterial3D = $icon.mesh.material
+		mat.albedo_texture = icon
+	else:
+		$icon.queue_free()
+	accumulate(val, pos)
+
+func accumulate(val : float, pos:Vector3) -> void:
+	$Timer.stop()
+	damage += val
+	$text.text = str(int(damage))
+	self.global_position = pos
+	linear_velocity = Vector3.ZERO
+	var impulse : Vector3 = Vector3.UP.rotated(Vector3.FORWARD, deg_to_rad(randf()*15.0)).rotated(Vector3.UP,deg_to_rad(randf()*360.0)).normalized() * 3
+	apply_central_impulse(impulse)
+	$Timer.start()
+
+
+func _on_timer_timeout() -> void:
+	get_tree().root.get_node(\"/root/GameRoot/Node3D/damage_number_manager\").erase(source)
+	queue_free()
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lq4k7"]
+transparency = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(1, 0.28235295, 0, 1)
+albedo_texture = ExtResource("2_gu3q3")
+billboard_mode = 1
+billboard_keep_scale = true
+fixed_size = true
+stencil_flags = 2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_v8adn"]
+material = SubResource("StandardMaterial3D_lq4k7")
+size = Vector2(0.2, 0.2)
+orientation = 2
+
+[node name="Node" type="RigidBody3D" unique_id=1029452494]
+collision_layer = 0
+collision_mask = 0
+script = SubResource("GDScript_i3fp5")
+
+[node name="text" type="Label3D" parent="." unique_id=699800896]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+offset = Vector2(24, -4)
+billboard = 1
+double_sided = false
+no_depth_test = true
+fixed_size = true
+modulate = Color(1, 0.28235295, 0, 1)
+text = "30"
+font = ExtResource("1_cqrk1")
+horizontal_alignment = 0
+
+[node name="icon" type="MeshInstance3D" parent="." unique_id=696195359]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+mesh = SubResource("PlaneMesh_v8adn")
+skeleton = NodePath("../text")
+
+[node name="Timer" type="Timer" parent="." unique_id=1771503155]
+wait_time = 1.2
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

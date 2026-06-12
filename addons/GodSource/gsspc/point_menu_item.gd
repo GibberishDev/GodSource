@@ -23,7 +23,7 @@ signal reorder_points_up
 signal reorder_points_down
 
 func update_cords() -> void:
-	$GridContainer/cords.text = "[color=#ffffff70]Pitch: [/color][b][color=#00ffff]%s[/color][/b][color=#ffffff70]  - Roll: [/color][b][color=#ffff00]%s[/color][/b]" % [point_pitch, point_roll]
+	$GridContainer/cords.text = "[color=#ffffff70]Pitch: [/color][b][color=#00ffff]"+str(point_pitch)+"[/color][/b][color=#ffffff70]  - Roll: [/color][b][color=#ffff00]"+str(point_roll)+"[/color][/b]"
 
 func connect_signals(reciever: GDSPC) -> void:
 	pass

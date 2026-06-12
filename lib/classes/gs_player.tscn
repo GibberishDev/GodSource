@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dg16pbcyfkmd0" path="res://lib/classes/gs_player.gd" id="1_k5xr0"]
 [ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
 [ext_resource type="Script" uid="uid://c4llk0ks60g4j" path="res://lib/classes/test_hud.gd" id="3_s3wio"]
+[ext_resource type="Script" uid="uid://b7tiohli5i601" path="res://lib/classes/gs_equipment_component.gd" id="4_bd2rc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
 size = Vector3(0.933, 1.581, 0.933)
@@ -91,11 +92,25 @@ autowrap_mode = 0
 [node name="attack_one_timer" type="Timer" parent="." unique_id=1471956790]
 unique_name_in_owner = true
 process_callback = 0
-wait_time = 0.8
+wait_time = 0.3
 one_shot = true
 
 [node name="CameraAnchor" parent="." unique_id=1373730564 instance=ExtResource("3_bd2rc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
+
+[node name="GSEquipmentComponent" type="Node" parent="." unique_id=2013565495]
+script = ExtResource("4_bd2rc")
+consumables = Array[Dictionary]([{
+"id": "consumable_id5",
+"max": 300.0
+}, {
+"id": "consumable_id",
+"max": null
+}, {
+"id": "consumable_id",
+"max": 300.0
+}])
+metadata/_custom_type_script = "uid://b7tiohli5i601"
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
 [connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]

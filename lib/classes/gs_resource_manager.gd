@@ -36,6 +36,7 @@ func threaded_load(path: String, track_progress:bool=false,force_refresh:bool=fa
 		"track_progress":track_progress,
 		"timestamp":Time.get_ticks_msec()
 	})
+	print(loading_stack)
 
 func _process(delta: float) -> void:
 	check_load()
@@ -51,9 +52,10 @@ func verify_path(path: String) -> String:
 func check_load() -> void:
 	for dict:Dictionary in loading_stack:
 		var progress : float = ResourceLoader.load_threaded_get_status(dict["path"])
+		print(progress)
 		if progress != dict["progress"] and dict["track_progress"]:
 			resource_load_progress_changed.emit(dict["path"],dict["progress"])
-		if progress == 1.0:
+		if progress >= 1.0:
 			var res : Variant = ResourceLoader.load_threaded_get(dict["path"])
 			resource_loaded.emit(dict["path"],res,dict["timestamp"])
 			cached_resources[dict["path"]] = {

@@ -13,7 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://crlh4a7j3omkd" path="res://addons/GodSource/gsspc/assets/icons/length_display.svg" id="10_dmefa"]
 [ext_resource type="Texture2D" uid="uid://cfsdckmjp7qyn" path="res://addons/GodSource/gsspc/assets/icons/angle_display.svg" id="11_k8uha"]
 [ext_resource type="Texture2D" uid="uid://c8sm1181vhi2a" path="res://addons/GodSource/gsspc/assets/icons/random_display.svg" id="12_k8uha"]
-[ext_resource type="PackedScene" uid="uid://bfa3i8fsm51b8" path="res://addons/GodSource/gsspc/point_menu_item.tscn" id="14_fw3yb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qb2ju"]
 bg_color = Color(0, 0, 0, 0.23529412)
@@ -726,6 +725,7 @@ anchor_bottom = 1.0
 offset_top = -49.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_x558e")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_x558e")
 bbcode_enabled = true
@@ -744,6 +744,7 @@ anchor_bottom = 1.0
 offset_top = -49.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_k8uha")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_k8uha")
 bbcode_enabled = true
@@ -1028,13 +1029,11 @@ theme_override_constants/scrollbar_h_separation = 4
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer" unique_id=1427208650]
+[node name="points_menu_container" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer" unique_id=1427208650]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="point_menu_item" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer/VBoxContainer" unique_id=2100404673 instance=ExtResource("14_fw3yb")]
-layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
 layout_mode = 2

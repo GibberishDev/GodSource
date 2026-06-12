@@ -7,7 +7,6 @@ var models : Node = get_node("models")
 func _ready() -> void:
 	GSResourceManager.resource_loaded.connect(loaded_model)
 	GSConsole.connect("convar_changed", convar_changed_notifier)
-	load_viemodel("a")
 
 #func _process(delta: float) -> void:
 	#models.global_transform = get_parent().global_transform
@@ -20,6 +19,7 @@ func load_viemodel(id: String) -> void:
 	GSResourceManager.threaded_load("res://assets/viewmodels/shotgun/shotgun.glb")
 	
 func loaded_model(path: String, res: Resource, timestamp: int) -> void:
+	if path.find(".glb",-1) == -1: return
 	var GLTFScene : Node = res.instantiate()
 	for i: Node in models.get_children(): i.queue_free()
 	

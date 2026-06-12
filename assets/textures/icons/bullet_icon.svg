@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="32" height="32" version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+ <g fill="#fff" fill-rule="evenodd">
+  <g transform="matrix(.43733 .75748 -.75748 .43733 21.983 -3.6811)">
+   <rect x="4" y="8" width="7" height="12" style="paint-order:fill markers stroke"/>
+   <path d="m4 7a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.5 3.5" style="paint-order:fill markers stroke"/>
+   <rect x="4" y="21" width="7" height="3" style="paint-order:fill markers stroke"/>
+   <path d="m5.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+   <path d="m8 31-1-6h1z" style="paint-order:fill markers stroke"/>
+   <path d="m8.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+  </g>
+  <g transform="matrix(.43733 .75748 -.75748 .43733 22.889 4.8855)">
+   <rect x="4" y="8" width="7" height="12" style="paint-order:fill markers stroke"/>
+   <path d="m4 7a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.5 3.5" style="paint-order:fill markers stroke"/>
+   <rect x="4" y="21" width="7" height="3" style="paint-order:fill markers stroke"/>
+   <path d="m5.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+   <path d="m8 31-1-6h1z" style="paint-order:fill markers stroke"/>
+   <path d="m8.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+  </g>
+  <g transform="matrix(.43733 .75748 -.75748 .43733 29.098 10.391)">
+   <rect x="4" y="8" width="7" height="12" style="paint-order:fill markers stroke"/>
+   <path d="m4 7a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.5 3.5" style="paint-order:fill markers stroke"/>
+   <rect x="4" y="21" width="7" height="3" style="paint-order:fill markers stroke"/>
+   <path d="m5.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+   <path d="m8 31-1-6h1z" style="paint-order:fill markers stroke"/>
+   <path d="m8.5 26 1 4v-4z" style="paint-order:fill markers stroke"/>
+  </g>
+ </g>
+</svg>

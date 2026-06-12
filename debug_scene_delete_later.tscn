@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://t7cox8sm1v3j" path="res://lib/classes/gs_trigger.tscn" id="5_e4n7c"]
 [ext_resource type="PackedScene" uid="uid://bo5cts1wlwyec" path="res://assets/models/props/target_dummy/target_dummy.tscn" id="6_biiar"]
 [ext_resource type="PackedScene" uid="uid://dr5uq8lo8s20q" path="res://assets/models/weapons/crowbar/crowbar_prop.tscn" id="6_x23qr"]
+[ext_resource type="PackedScene" uid="uid://rmodbam43wba" path="res://src/scenes/bullet_tracer.tscn" id="7_biiar"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_biiar"]
 panorama = ExtResource("2_x23qr")
@@ -70,6 +71,60 @@ _data = {
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
+
+[sub_resource type="GDScript" id="GDScript_biiar"]
+script/source = "extends Node
+
+enum DAMAGE_TYPE {
+	BULLET,
+	EXPLOSION
+}
+var damage_numbers : Dictionary = {}
+var icon_bullet: Resource = null
+var icon_explosion: Resource = null
+var number_scene : PackedScene = null
+
+
+func _ready() -> void:
+	GSResourceManager.threaded_load(\"res://src/scenes/damage_number.tscn\")
+	GSResourceManager.threaded_load(\"res://assets/textures/icons/bullet_icon.svg\")
+	GSResourceManager.threaded_load(\"res://assets/textures/icons/explosion_icon.svg\")
+	GSResourceManager.resource_loaded.connect(resource_loaded)
+
+func spawn(source:Variant, val:float,pos:Vector3,damage_type:DAMAGE_TYPE=DAMAGE_TYPE.BULLET) -> void:
+	if damage_numbers.has(source):
+		damage_numbers[source].accumulate(val,pos)
+	else:
+		var number : RigidBody3D = number_scene.instantiate()
+		damage_numbers[source] = number
+		print(damage_numbers)
+		get_tree().root.get_node(\"/root/GameRoot/Node3D\").add_child(number)
+		number.global_position = pos
+		number.source = source
+		var icon : Resource = null
+		match damage_type:
+			DAMAGE_TYPE.BULLET:
+				icon = icon_bullet
+			DAMAGE_TYPE.EXPLOSION:
+				icon = icon_explosion
+			_:
+				icon = null
+		number.spawn(val, pos, icon)
+
+func erase(source:Variant) -> void:
+	if damage_numbers.has(source):
+		damage_numbers.erase(source)
+	else:
+		pass
+
+func resource_loaded(path:String, resource:Variant, timestamp: int) -> void:
+	if path == \"res://src/scenes/damage_number.tscn\":
+		number_scene = resource
+	elif path == \"res://assets/textures/icons/bullet_icon.svg\":
+		icon_bullet = resource
+	elif path == \"res://assets/textures/icons/explosion_icon.svg\":
+		icon_explosion = resource
+"
 
 [node name="Node3D" type="Node3D" unique_id=858278768]
 
@@ -222,3 +277,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2674901, 1.3479205, -3.893
 
 [node name="target_dummy" parent="." unique_id=505624234 instance=ExtResource("6_biiar")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.160397, 0, -8.386299)
+
+[node name="damage_number_manager" type="Node" parent="." unique_id=1327057829]
+script = SubResource("GDScript_biiar")
+
+[node name="tracer" parent="." unique_id=889387245 instance=ExtResource("7_biiar")]

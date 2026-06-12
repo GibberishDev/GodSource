@@ -7,6 +7,7 @@ enum EDIT_MODE {
 	REMOVE
 }
 @onready var point_scene : PackedScene = preload("./point.tscn")
+@onready var point_menu_item_scene : PackedScene = preload("./point_menu_item.tscn")
 @onready var input_node : Control = $vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/user_input
 
 var is_burst : bool = true
@@ -143,24 +144,39 @@ func remove_point(point) -> void:
 	recalculate_points()
 
 
+func insert_point_into_id(point: GDSPCPoint, id:int) -> void:
+	points.pop_at(points.find(point))
+	points.insert(id,point)
+	recalculate_points()
+
+
 func recalculate_points() -> void:
+	for i in %points_menu_container.get_children():
+		%points_menu_container.remove_child(i)
 	for point: GDSPCPoint in points:
 		point.id = points.find(point)
+		var pmi : Control = point_menu_item_scene.instantiate()
+		%points_menu_container.add_child(pmi)
+		pmi.point_id = point.id
+		pmi.point_pitch = point.pitch
+		pmi.point_roll = point.roll
+	%points_menu_container.get_parent().custom_minimum_size.y = max(68,points.size()*36 - 4)
 
 
 func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
 	new_pos -= preview_offset
 	var pitch : float = get_pitch_from_pos(new_pos)
 	var roll : float = get_roll_from_pos(new_pos)
-	new_pos = get_point_snap(new_pos)
+	var point_data : Array[Vector2] =get_point_snap(new_pos)
+	new_pos = point_data[0]
 	if length_guides:
 		%met_cords.text = "[color=#ff0000]" + String.num(get_pos_from_point(pitch,roll).x / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m X[/color]\n[color=#00ff00]" + String.num(get_pos_from_point(pitch,roll).y / %guides.grid_size * 0.01, 3).pad_decimals(3) + "m Y[/color]"
 	if degree_guides:
 		%deg_cords.text = "[color=#00ffff]Pitch: " + str(snapped(get_pitch_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]\n[color=#ffff00]Roll: " + str(snapped(get_roll_from_pos(new_pos),0.1)).pad_decimals(1) + "[/color]"
 	new_pos *= 57.29/pattern_distance
-	return [new_pos,Vector2(pitch, roll)]
+	return [new_pos,Vector2(point_data[1].x, point_data[1].y)]
 
-func get_point_snap(pos:Vector2) -> Vector2:
+func get_point_snap(pos:Vector2) -> Array[Vector2]:
 	var pitch : float = get_pitch_from_pos(pos)
 	var roll : float = get_roll_from_pos(pos)
 	if snap_on:
@@ -170,7 +186,8 @@ func get_point_snap(pos:Vector2) -> Vector2:
 			pitch = pitch_snap
 		if get_pos_from_point(pitch,roll).distance_to(get_pos_from_point(pitch,roll_snap)) <= 5.0:
 			roll = roll_snap
-	return get_pos_from_point(pitch,roll)
+	if pitch == 0.0: roll = 0.0
+	return [get_pos_from_point(pitch,roll), Vector2(pitch,roll)]
 
 
 #endregion
@@ -257,6 +274,7 @@ func _on_remove_point() -> void:
 ## ui input signal handler. Removes all points
 func _on_clear_points() -> void:
 	for point: GDSPCPoint in points: point.queue_free()
+	points = []
 	if selected_point: selected_point = null
 	recalculate_points()
 

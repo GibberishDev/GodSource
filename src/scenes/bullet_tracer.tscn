@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://rmodbam43wba"]
+
+[sub_resource type="GDScript" id="GDScript_gi8yk"]
+script/source = "@tool
+extends Node3D
+
+@export_tool_button(\"test tracer\",\"Camera\")var test_btn : Callable = test_tracer
+@export_custom(PROPERTY_HINT_NONE,\"suffix:m/s\")
+var speed : float = 75.0  ## Speed of the bullet tracer in m/s
+
+@export_custom(PROPERTY_HINT_NONE,\"suffix:s\")
+var lifetime : float = 20.0 ## lifetime of tracer in seconds
+@export
+var tracer_length_multiplier : float = 1.0 : ## Multiplies tracer length.
+	set(val):
+		if val == null:
+			val = 1.0
+		tracer_length_multiplier = val
+		if $mesh_root:
+			$mesh_root.scale = Vector3(val,val,val)
+@export
+var scale_over_time : bool = true ## Defines if tracer will scale over time
+@export_custom(PROPERTY_HINT_NONE, \"suffix:frames\")
+var scale_up_period : int = 10.0 ##Defines period of physics frames where bulet tracer will increase in size.[br]For example if period is set to 4 on frame 4 tracer will have length 2.0 times more as it started, on frame 8 it will be 3.0 times bigger and so on.
+@export
+var color_gradient : Gradient: ## Defines color and emmision gradient of the tracer. Left of the gradient is tip of the tracer 
+	set(val):
+		color_gradient = val
+		if $mesh_root/mesh:
+			var mat : StandardMaterial3D = $mesh_root/mesh.mesh.surface_get_material(0)
+			mat.albedo_texture.gradient = val
+			mat.emission_texture.gradient = val
+
+var frames_alive : int = 0
+var destination : Vector3 = Vector3.ZERO
+var delete_next_frame : bool = false
+
+func launch(_destination: Vector3, _start: Vector3 = global_position, _lifetime: float = lifetime, gradient : Gradient = null) -> void:
+	destination = _destination
+	global_position = _start
+	lifetime = _lifetime
+	if gradient:
+		var mat : StandardMaterial3D = $mesh_root/mesh.mesh.surface_get_material(0)
+		mat.albedo_texture.gradient = gradient
+		mat.emission_texture.gradient = gradient
+	$lifetime.wait_time = lifetime
+	$lifetime.start()
+
+func _physics_process(delta: float) -> void:
+	#TODO: make tracer start at length 0 to stop it from clipping behind starting position
+	if global_position != destination:
+		$mesh_root.scale.z = (1.0 + ((frames_alive / float(scale_up_period) * int(scale_over_time)))) * tracer_length_multiplier
+		frames_alive += 1
+		var frame_destination : Vector3 = global_position + global_position.direction_to(destination) * delta * speed
+		$mesh_root.rotation.x = atan2(-frame_destination.y, sqrt(frame_destination.x*frame_destination.x + frame_destination.z*frame_destination.z))
+		$mesh_root.rotation.y = atan2(frame_destination.x, frame_destination.z)
+		if global_position.distance_to(destination) < frame_destination.distance_to(global_position):
+			global_position = destination
+			delete_next_frame = true
+			return;
+		global_position = frame_destination
+	if delete_next_frame:
+		_on_lifetime_timeout()
+
+func test_tracer() -> void:
+	_on_lifetime_timeout()
+	destination = Vector3(75,5,75)
+	$lifetime.stop()
+	$lifetime.wait_time = lifetime
+	$lifetime.start()
+
+func _on_lifetime_timeout() -> void:
+	if Engine.is_editor_hint():
+		delete_next_frame = false
+		frames_alive = 0
+		$mesh_root.rotation = Vector3.ZERO
+		$mesh_root.scale = Vector3.ONE * tracer_length_multiplier
+		rotation = Vector3.ZERO
+		destination = Vector3.ZERO
+		global_position = Vector3.ZERO
+	else:
+		queue_free()
+"
+
+[sub_resource type="Gradient" id="Gradient_gi8yk"]
+offsets = PackedFloat32Array(0, 0.03914591, 0.081850536, 0.26334518, 0.430605, 0.74733096, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0.34509805, 1, 0.8893282, 0.3573259, 0.045191705, 1, 0.87265164, 0.26048467, 3.85046e-07, 1, 0.1, 0.1, 0.1, 1, 0.096204735, 0.09620475, 0.096204735, 0)
+
+[sub_resource type="Curve" id="Curve_xu30j"]
+_data = [Vector2(0, 0), 0.0, 2.3427079, 0, 0, Vector2(0.30434784, 0.31997287), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_4t5xl"]
+gradient = SubResource("Gradient_gi8yk")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_avqpf"]
+transparency = 1
+cull_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+vertex_color_use_as_albedo = true
+albedo_texture = SubResource("GradientTexture2D_4t5xl")
+emission_enabled = true
+emission_texture = SubResource("GradientTexture2D_4t5xl")
+disable_receive_shadows = true
+
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_h4wx3"]
+material = SubResource("StandardMaterial3D_avqpf")
+size = 0.05
+curve = SubResource("Curve_xu30j")
+
+[node name="tracer" type="Node3D" unique_id=889387245]
+transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 1, 0, 0, 0)
+script = SubResource("GDScript_gi8yk")
+tracer_length_multiplier = 2.0
+color_gradient = SubResource("Gradient_gi8yk")
+
+[node name="lifetime" type="Timer" parent="." unique_id=414057973]
+process_callback = 0
+wait_time = 20.0
+one_shot = true
+
+[node name="mesh_root" type="Node3D" parent="." unique_id=1268223033]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="mesh" type="MeshInstance3D" parent="mesh_root" unique_id=807714304]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, -0.5)
+transparency = 0.25
+cast_shadow = 0
+gi_mode = 0
+mesh = SubResource("RibbonTrailMesh_h4wx3")
+skeleton = NodePath("../..")
+
+[connection signal="timeout" from="lifetime" to="." method="_on_lifetime_timeout"]

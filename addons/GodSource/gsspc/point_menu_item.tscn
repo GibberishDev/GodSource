@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://p0hd10ye8smo" path="res://addons/GodSource/gsspc/assets/icons/center_view_on_selection.svg" id="1_vhj08"]
 [ext_resource type="Texture2D" uid="uid://cpwwf8prkixpb" path="res://addons/GodSource/gsspc/assets/icons/remove_points.svg" id="2_20q7d"]
 [ext_resource type="Texture2D" uid="uid://wul7opuno2kb" path="res://addons/GodSource/gsspc/assets/icons/move_up.svg" id="3_jqw8g"]
-[ext_resource type="Texture2D" uid="uid://pjmbspcqxg0a" path="res://addons/GodSource/gsspc/assets/icons/move_grabber.svg" id="4_g127k"]
 [ext_resource type="Texture2D" uid="uid://dc4loptmpbi7s" path="res://addons/GodSource/gsspc/assets/icons/move_down.svg" id="5_sdmy2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6cpn3"]
@@ -78,6 +77,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 bbcode_enabled = true
 text = "[color=#ffffff70]Pitch: [/color][b][color=#00ffff]1.0[/color][/b][color=#ffffff70]  - Roll: [/color][b][color=#ffff00]36.0[/color][/b]"
+autowrap_mode = 0
 vertical_alignment = 1
 
 [node name="center_on_point" type="Button" parent="GridContainer" unique_id=1886973925]
@@ -139,12 +139,6 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_jqw8g")
 expand_mode = 1
-
-[node name="grabber" type="TextureRect" parent="GridContainer/move_controls" unique_id=826785853]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-texture = ExtResource("4_g127k")
-expand_mode = 3
 
 [node name="move_down" type="Button" parent="GridContainer/move_controls" unique_id=83801666]
 layout_mode = 2
