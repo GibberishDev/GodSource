@@ -14,6 +14,12 @@ content_margin_bottom = 0.0
 bg_color = Color(0.1, 0.1, 0.1, 0)
 corner_detail = 5
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vhj08"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2ggo5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r54c2"]
@@ -75,6 +81,8 @@ clip_text = true
 [node name="cords" type="RichTextLabel" parent="GridContainer" unique_id=2070791521]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_vhj08")
 bbcode_enabled = true
 text = "[color=#ffffff70]Pitch: [/color][b][color=#00ffff]1.0[/color][/b][color=#ffffff70]  - Roll: [/color][b][color=#ffff00]36.0[/color][/b]"
 autowrap_mode = 0
@@ -154,3 +162,5 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_sdmy2")
 expand_mode = 1
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]

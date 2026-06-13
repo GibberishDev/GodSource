@@ -109,12 +109,23 @@ func reset_view() -> void:
 
 func _point_clicked(point: GDSPCPoint) -> void:
 	if current_mode == EDIT_MODE.EDIT:
-		if selected_point != null: selected_point.selected = false
-		selected_point = point
-		selected_point.selected = true
-		%center_button.get_node("icon").texture = center_point_texture
-	elif  current_mode == EDIT_MODE.REMOVE:
+		select_point(point)
+	elif current_mode == EDIT_MODE.REMOVE:
 		remove_point(point)
+
+func select_point(point: GDSPCPoint) -> void:
+	if selected_point != null: selected_point.selected = false
+	selected_point = point
+	selected_point.selected = true
+	%center_button.get_node("icon").texture = center_point_texture
+	recalculate_points()
+
+
+func reset_view_on_point(point: GDSPCPoint) -> void:
+	var pos : Vector2 = point.position
+	preview_offset = -pos * %points_preview.scale
+	update_points_position()
+	%guides.queue_redraw()
 
 
 func add_point(pos: Vector2) -> void:
@@ -145,6 +156,7 @@ func remove_point(point) -> void:
 
 
 func insert_point_into_id(point: GDSPCPoint, id:int) -> void:
+	id = clamp(id,0,points.size())
 	points.pop_at(points.find(point))
 	points.insert(id,point)
 	recalculate_points()
@@ -152,14 +164,15 @@ func insert_point_into_id(point: GDSPCPoint, id:int) -> void:
 
 func recalculate_points() -> void:
 	for i in %points_menu_container.get_children():
-		%points_menu_container.remove_child(i)
+		i.queue_free()
 	for point: GDSPCPoint in points:
 		point.id = points.find(point)
 		var pmi : Control = point_menu_item_scene.instantiate()
 		%points_menu_container.add_child(pmi)
-		pmi.point_id = point.id
-		pmi.point_pitch = point.pitch
-		pmi.point_roll = point.roll
+		pmi.point = point
+		pmi.connect_signals(self)
+		pmi.update()
+		point.item_rect_changed.connect(pmi.update)
 	%points_menu_container.get_parent().custom_minimum_size.y = max(68,points.size()*36 - 4)
 
 

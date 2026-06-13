@@ -86,6 +86,7 @@ func _on_hitbox_gui_input(event: InputEvent) -> void:
 				roll = point_data[1].y
 				mouse_default_cursor_shape = CursorShape.CURSOR_DRAG
 				gdspc_signal_point_moved.emit(self)
+				item_rect_changed.emit()
 
 func _on_window_focus_exited() -> void:
 	dragging = false
