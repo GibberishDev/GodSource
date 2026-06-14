@@ -1,7 +1,7 @@
 @tool
 class_name GSSPCPointMenuItem extends Panel
 
-var point : GDSPCPoint
+var point : GSSPCPoint
 
 signal selected_point
 

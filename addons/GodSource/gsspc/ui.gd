@@ -14,15 +14,19 @@ var is_burst : bool = true
 var length_guides : bool = true
 var degree_guides : bool = true
 var random_guides : bool = true
-var snap_on : bool = false
+var snap_on : bool = true
+var unsaved : bool = true
 var deg_preview_subdivisions : int = 0
+var rbs_range : float = 2.0
 var pattern_distance : float = 57.29
 var roll_preview_subdivisions : float = 48.0
 var mouse_hide_pos : Vector2
 var preview_offset : Vector2 = Vector2.ZERO
-var points : Array[GDSPCPoint] = []
-var selected_point : GDSPCPoint = null
+var points : Array[GSSPCPoint] = []
+var selected_point : GSSPCPoint = null
 var current_mode : EDIT_MODE = EDIT_MODE.EDIT
+var pattern_data : Dictionary = {}
+var filepath : String = ""
 
 @export var center_texture : DPITexture
 @export var center_point_texture : DPITexture
@@ -107,13 +111,13 @@ func reset_view() -> void:
 
 #region points
 
-func _point_clicked(point: GDSPCPoint) -> void:
+func _point_clicked(point: GSSPCPoint) -> void:
 	if current_mode == EDIT_MODE.EDIT:
 		select_point(point)
 	elif current_mode == EDIT_MODE.REMOVE:
 		remove_point(point)
 
-func select_point(point: GDSPCPoint) -> void:
+func select_point(point: GSSPCPoint) -> void:
 	if selected_point != null: selected_point.selected = false
 	selected_point = point
 	selected_point.selected = true
@@ -121,20 +125,22 @@ func select_point(point: GDSPCPoint) -> void:
 	recalculate_points()
 
 
-func reset_view_on_point(point: GDSPCPoint) -> void:
+func reset_view_on_point(point: GSSPCPoint) -> void:
 	var pos : Vector2 = point.position
 	preview_offset = -pos * %points_preview.scale
 	update_points_position()
 	%guides.queue_redraw()
 
 
-func add_point(pos: Vector2) -> void:
+func add_point(pos: Vector2, global : bool = false) -> GSSPCPoint:
 	var new_point = point_scene.instantiate()
 	%points_preview.add_child(new_point)
 	var point_data : Array[Vector2] = get_new_point_pos(Vector2(
 		pos.x - input_node.size.x / 2.0,
 		pos.y - input_node.size.y / 2.0
 	))
+	if global:
+		point_data = get_new_point_pos(pos)
 	new_point.position = point_data[0]
 	new_point.pitch = point_data[1].x
 	new_point.roll = point_data[1].y
@@ -144,6 +150,8 @@ func add_point(pos: Vector2) -> void:
 	points.push_back(new_point)
 	new_point.id = points.find(new_point)
 	recalculate_points()
+	new_point.connect("gsspc_signal_point_drag_end",recalculate_points)
+	return new_point
 
 
 func remove_point(point) -> void:
@@ -155,7 +163,7 @@ func remove_point(point) -> void:
 	recalculate_points()
 
 
-func insert_point_into_id(point: GDSPCPoint, id:int) -> void:
+func insert_point_into_id(point: GSSPCPoint, id:int) -> void:
 	id = clamp(id,0,points.size())
 	points.pop_at(points.find(point))
 	points.insert(id,point)
@@ -165,7 +173,7 @@ func insert_point_into_id(point: GDSPCPoint, id:int) -> void:
 func recalculate_points() -> void:
 	for i in %points_menu_container.get_children():
 		i.queue_free()
-	for point: GDSPCPoint in points:
+	for point: GSSPCPoint in points:
 		point.id = points.find(point)
 		var pmi : Control = point_menu_item_scene.instantiate()
 		%points_menu_container.add_child(pmi)
@@ -174,6 +182,7 @@ func recalculate_points() -> void:
 		pmi.update()
 		point.item_rect_changed.connect(pmi.update)
 	%points_menu_container.get_parent().custom_minimum_size.y = max(68,points.size()*36 - 4)
+	update_pattern_data()
 
 
 func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
@@ -199,9 +208,101 @@ func get_point_snap(pos:Vector2) -> Array[Vector2]:
 			pitch = pitch_snap
 		if get_pos_from_point(pitch,roll).distance_to(get_pos_from_point(pitch,roll_snap)) <= 5.0:
 			roll = roll_snap
-	if pitch == 0.0: roll = 0.0
+	if pitch == 0.0 or roll == 360.0: roll = 0.0
 	return [get_pos_from_point(pitch,roll), Vector2(pitch,roll)]
 
+
+func update_pattern_data() -> void:
+	pattern_data["is_burst"] = is_burst
+	pattern_data["rbs_range"] = rbs_range
+	var points_arr : Array[Dictionary]
+	for point : GSSPCPoint in points:
+		var obj : Dictionary = {
+			"pitch":point.pitch,
+			"roll":point.roll,
+			"fixed":point.fixed
+		}
+		points_arr.push_back(obj)
+	pattern_data["points"] = points_arr
+	update_unsaved()
+		
+
+func deep_equal(a, b):
+	if typeof(a) == TYPE_DICTIONARY:
+		if not typeof(b) == TYPE_DICTIONARY:
+			return false
+		for key in a:
+			if not b.has(key):
+				return false
+			var val_a = a[key]
+			var val_b = b[key]
+			var entry_equal
+			if typeof(val_a) == TYPE_DICTIONARY or typeof(val_a) == TYPE_ARRAY:
+				entry_equal = deep_equal(val_a, val_b)
+			else:
+				entry_equal = val_a == val_b
+			if not entry_equal:
+				return false
+	elif typeof(a) == TYPE_ARRAY:
+		if not typeof(b) == TYPE_ARRAY:
+			return false
+		if a.size() != b.size():
+			return false
+		for i in range(a.size()):
+			var val_a = a[i]
+			var val_b = b[i]
+			var entry_equal
+			if typeof(val_a) == TYPE_DICTIONARY or typeof(val_a) == TYPE_ARRAY:
+				entry_equal = deep_equal(val_a, val_b)
+			else:
+				entry_equal = val_a == val_b
+			if not entry_equal:
+				return false
+	else:
+		return a == b
+	return true
+
+func update_unsaved() -> void:
+	if filepath != "":
+		var points_arr : Array[Dictionary]
+		for point : GSSPCPoint in points:
+			var obj : Dictionary = {
+				"pitch":point.pitch,
+				"roll":point.roll,
+				"fixed":point.fixed
+			}
+			points_arr.push_back(obj)
+		var data = JSON.parse_string(FileAccess.open(filepath, FileAccess.READ).get_as_text())
+		if !data.has("points") or data["points"] != points_arr or \
+		!data.has("is_burst") or data["is_burst"] != is_burst or \
+		!data.has("rbs_range") or data["rbs_range"] != rbs_range:
+			unsaved = true
+		else: unsaved = false
+	$vbox/controls/filepath/filename/unsaved.visible = unsaved
+
+
+func load_data(data: Dictionary) -> void:
+	if !data.has("points") or !(data["points"] is Array):
+		push_error("Pattern file is ivalid: no 'points' key or it's not an array")
+		return
+	filepath = data["filepath"]
+	$vbox/controls/filepath/filename.text = filepath
+	if !data.has("is_burst"):
+		push_warning("no 'is_burst' key in json file. assuming default 'TRUE'")
+		data["is_burst"] = true
+	is_burst = data["is_burst"]
+	if !data.has("rbs_range"):
+		push_warning("no 'rbs_range' key in json file. assuming default '2.0'")
+		data["rbs_range"] = 2.0
+	rbs_range = data["rbs_range"]
+	var points_array : Array[GSSPCPoint] = []
+	for point: GSSPCPoint in points: point.queue_free()
+	points = []
+	for point: GSSPCPoint in points: point.queue_free()
+	for point_data:Dictionary in data["points"]:
+		var point : GSSPCPoint = add_point(get_pos_from_point(point_data["pitch"],point_data["roll"]) + preview_offset, true)
+		point.fixed = point_data["fixed"]
+		
 
 #endregion
 
@@ -214,7 +315,9 @@ func get_pitch_from_pos(pos: Vector2)->float:
 
 ## Converts position on grid into pitch value in degrees
 func get_roll_from_pos(pos: Vector2)->float:
-	return rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
+	var val : float = rad_to_deg(pos.angle_to(Vector2.DOWN)) + 180
+	if val == 360.0: val * 0
+	return val
 
 
 ## Converts angle into position on the grid
@@ -244,6 +347,7 @@ func _on_toggle_snap() -> void:
 ## ui input signal handler. Changes pattern distance for degrees to distance to degrees conversion
 func _on_pd_range_value_changed(value: float) -> void:
 	%points_preview.scale = Vector2(value/57.29, value/57.29)
+	pattern_distance = value
 
 
 ## ui input signal handler. Toggles distance guides display
@@ -286,9 +390,69 @@ func _on_remove_point() -> void:
 
 ## ui input signal handler. Removes all points
 func _on_clear_points() -> void:
-	for point: GDSPCPoint in points: point.queue_free()
+	for point: GSSPCPoint in points: point.queue_free()
 	points = []
 	if selected_point: selected_point = null
 	recalculate_points()
 
+
+func _on_file_dialog_pressed() -> void:
+	open_load_file_dialog()
+
+
+func _on_rbs_range_changed(value: float) -> void:
+	rbs_range = value
+	update_pattern_data()
+
 #endregion
+
+func open_save_file_dialog() -> void:
+	$pop_up_remover.visible = false
+	var dlg : FileDialog = FileDialog.new()
+	add_child(dlg)
+	dlg.title = "Save pattern"
+	dlg.file_mode = FileDialog.FileMode.FILE_MODE_SAVE_FILE
+	dlg.filters = ["*.json"]
+	dlg.popup_file_dialog()
+	dlg.file_selected.connect(save_file)
+
+func open_load_file_dialog() -> void:
+	$pop_up_remover.visible = false
+	var dlg : FileDialog = FileDialog.new()
+	add_child(dlg)
+	dlg.title = "Load pattern"
+	dlg.file_mode = FileDialog.FileMode.FILE_MODE_OPEN_FILE
+	dlg.filters = ["*.json"]
+	dlg.popup_file_dialog()
+	dlg.file_selected.connect(open_file)
+
+func save_file(path: String) -> void:
+	var file : FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(pattern_data,"	",true))
+	file.close()
+	filepath = path
+	$vbox/controls/filepath/filename.text = filepath
+	update_unsaved()
+	EditorInterface.get_resource_filesystem().scan()
+
+func open_file(path: String) -> void:
+	if path.get_extension() != "json":
+		push_error("Invalid pattern file extension. Wanted: 'json' - Got: " + path.get_extension())
+		return
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_error("Could not open file: ",file.get_open_error())
+		file.close()
+		return
+	var data : Dictionary = JSON.parse_string(file.get_as_text())
+	data["filepath"] = path
+	load_data(data)
+
+
+func _on_pop_up_remover_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		$pop_up_remover.visible = false
+
+
+func _on_file_button_pressed() -> void:
+	$pop_up_remover.visible = true

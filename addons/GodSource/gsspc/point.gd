@@ -1,5 +1,5 @@
 @tool
-class_name GDSPCPoint extends Control
+class_name GSSPCPoint extends Control
 
 @export
 var texture_normal: DPITexture
@@ -9,8 +9,8 @@ var pitch : float = 0.0
 var roll : float = 0.0
 var input_node : Control
 
-signal gdspc_signal_point_clicked
-signal gdspc_signal_point_moved
+signal gsspc_signal_point_clicked
+signal gsspc_signal_point_drag_end
 
 func _ready() -> void:
 	get_window().focus_exited.connect(_on_window_focus_exited)
@@ -44,11 +44,11 @@ var id : int = 0 :
 
 func _enter_tree() -> void:
 	if (get_parent().get_parent().root):
-		for connection:Dictionary in gdspc_signal_point_clicked.get_connections():
+		for connection:Dictionary in gsspc_signal_point_clicked.get_connections():
 			if connection.callable != get_parent().get_parent().root._point_clicked:
-				gdspc_signal_point_clicked.disconnect(connection.callable)
-		if not gdspc_signal_point_clicked.is_connected(get_parent().get_parent().root._point_clicked):
-			gdspc_signal_point_clicked.connect(get_parent().get_parent().root._point_clicked)
+				gsspc_signal_point_clicked.disconnect(connection.callable)
+		if not gsspc_signal_point_clicked.is_connected(get_parent().get_parent().root._point_clicked):
+			gsspc_signal_point_clicked.connect(get_parent().get_parent().root._point_clicked)
 		input_node = get_parent().get_parent().root.input_node
 
 var click_pos : Vector2 = Vector2.ZERO
@@ -60,11 +60,13 @@ var drag_start_pos : Vector2 = Vector2.ZERO
 func _on_hitbox_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MouseButton.MOUSE_BUTTON_LEFT and event.pressed:
-			gdspc_signal_point_clicked.emit(self)
+			gsspc_signal_point_clicked.emit(self)
 			click_pos = event.position
 			drag_start_pos = position
 			drag_pos = position
 		if event.button_index == MouseButton.MOUSE_BUTTON_LEFT and !event.pressed:
+			if dragging:
+				gsspc_signal_point_drag_end.emit()
 			dragging = false
 			not_dragging = true
 			mouse_default_cursor_shape = CursorShape.CURSOR_POINTING_HAND
@@ -85,7 +87,6 @@ func _on_hitbox_gui_input(event: InputEvent) -> void:
 				pitch = point_data[1].x
 				roll = point_data[1].y
 				mouse_default_cursor_shape = CursorShape.CURSOR_DRAG
-				gdspc_signal_point_moved.emit(self)
 				item_rect_changed.emit()
 
 func _on_window_focus_exited() -> void:
