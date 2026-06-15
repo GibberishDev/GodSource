@@ -74,9 +74,7 @@ func _on_user_input(event: InputEvent) -> void:
 				if mouse_hide_pos: Input.warp_mouse(mouse_hide_pos)
 		elif event.button_index == MouseButton.MOUSE_BUTTON_LEFT:
 			if (not event.pressed) and selected_point!=null and current_mode != EDIT_MODE.ADD:
-				selected_point.selected = false
-				selected_point = null
-				%center_button.get_node("icon").texture = center_texture
+				deselect_everything()
 			elif current_mode == EDIT_MODE.ADD and event.pressed:
 				add_point(event.position)
 	if event is InputEventMouseMotion:
@@ -125,6 +123,12 @@ func select_point(point: GSSPCPoint) -> void:
 	recalculate_points()
 
 
+func deselect_everything() -> void:
+	if selected_point != null: selected_point.selected = false
+	selected_point = null
+	recalculate_points()
+
+
 func reset_view_on_point(point: GSSPCPoint) -> void:
 	var pos : Vector2 = point.position
 	preview_offset = -pos * %points_preview.scale
@@ -144,9 +148,7 @@ func add_point(pos: Vector2, global : bool = false) -> GSSPCPoint:
 	new_point.position = point_data[0]
 	new_point.pitch = point_data[1].x
 	new_point.roll = point_data[1].y
-	if selected_point: selected_point.selected = false
-	selected_point = new_point
-	new_point.selected = true
+	select_point(new_point)
 	points.push_back(new_point)
 	new_point.id = points.find(new_point)
 	recalculate_points()
@@ -183,6 +185,24 @@ func recalculate_points() -> void:
 		point.item_rect_changed.connect(pmi.update)
 	%points_menu_container.get_parent().custom_minimum_size.y = max(68,points.size()*36 - 4)
 	update_pattern_data()
+	if selected_point:
+		%point_settings_ui.get_node("Label").text = "Selected point id: [b]" + str(selected_point.id) + "[/b]"
+		%point_settings_ui.get_node("point_fixed/Checkbox").disabled = false
+		%point_settings_ui.get_node("point_pitch/SpinBox").editable = true
+		%point_settings_ui.get_node("point_roll/SpinBox").editable = true
+		%point_settings_ui.get_node("point_fixed/Checkbox").button_pressed = selected_point.fixed
+		%point_settings_ui.get_node("point_pitch/SpinBox").value = selected_point.pitch
+		%point_settings_ui.get_node("point_roll/SpinBox").value = selected_point.roll
+	else:
+		%center_button.get_node("icon").texture = center_texture
+		%point_settings_ui.get_node("Label").text = "Selected point id: [b]-[/b]"
+		%point_settings_ui.get_node("point_fixed/Checkbox").disabled = true
+		%point_settings_ui.get_node("point_pitch/SpinBox").editable = false
+		%point_settings_ui.get_node("point_roll/SpinBox").editable = false
+		%point_settings_ui.get_node("point_fixed/Checkbox").button_pressed = false
+		%point_settings_ui.get_node("point_pitch/SpinBox").value = 0.0
+		%point_settings_ui.get_node("point_roll/SpinBox").value = 0.0
+
 
 
 func get_new_point_pos(new_pos: Vector2) -> Array[Vector2]:
@@ -456,3 +476,27 @@ func _on_pop_up_remover_gui_input(event: InputEvent) -> void:
 
 func _on_file_button_pressed() -> void:
 	$pop_up_remover.visible = true
+
+
+func _on_point_roll_changed(value: float) -> void:
+	if selected_point == null: return
+	value = clamp(value, 0.0,360.0)
+	if value == 360.0: value = 0.0
+	selected_point.roll = value
+	selected_point.position = get_new_point_pos(get_pos_from_point(selected_point.pitch, selected_point.roll) + preview_offset)[0]
+	recalculate_points()
+
+
+func _on_point_pitch_changed(value: float) -> void:
+	if selected_point == null: return
+	if value == 0.0: selected_point.roll = 0.0
+	selected_point.pitch = value
+	selected_point.position = get_new_point_pos(get_pos_from_point(value, selected_point.roll) + preview_offset)[0]
+	recalculate_points()
+
+
+
+func _on_point_fixed_changed(toggled_on: bool) -> void:
+	if selected_point == null: return
+	selected_point.fixed = toggled_on
+	recalculate_points()

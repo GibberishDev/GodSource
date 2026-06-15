@@ -890,6 +890,7 @@ mouse_filter = 1
 text = "Is burst"
 
 [node name="burst_checkbox" type="CheckBox" parent="vbox/ScrollContainer/content_cont/settings/pattern_settings/vbox/burst" unique_id=332473310]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_247gu")
@@ -917,7 +918,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 max_value = 180.0
 step = 0.01
-value = 1.9100000000000001
+value = 2.0
 allow_greater = true
 suffix = "deg"
 select_all_on_focus = true
@@ -1012,6 +1013,75 @@ title_alignment = 1
 [node name="vbox" type="BoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings" unique_id=1627527983]
 layout_mode = 2
 
+[node name="point_settings_ui" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui" unique_id=1247960321]
+layout_mode = 2
+bbcode_enabled = true
+text = "Selected point id: [b]-[/b]"
+fit_content = true
+autowrap_mode = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="point_fixed" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui" unique_id=1313432909]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_fixed" unique_id=1393111159]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fixed"
+
+[node name="Checkbox" type="CheckBox" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_fixed" unique_id=905655745]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxFlat_247gu")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_247gu")
+theme_override_styles/hover = SubResource("StyleBoxFlat_247gu")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_247gu")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_247gu")
+theme_override_styles/focus = SubResource("StyleBoxFlat_247gu")
+text = "Yes"
+
+[node name="point_pitch" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui" unique_id=955349034]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_pitch" unique_id=2138169052]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Pitch"
+
+[node name="SpinBox" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_pitch" unique_id=639740011]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 90.0
+step = 0.001
+allow_greater = true
+suffix = "deg"
+custom_arrow_step = 0.1
+
+[node name="point_roll" type="HBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui" unique_id=1501947415]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_roll" unique_id=415002163]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Roll"
+
+[node name="SpinBox" type="SpinBox" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_roll" unique_id=173531242]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 360.0
+step = 0.01
+suffix = "deg"
+custom_arrow_step = 0.1
+
 [node name="FoldableContainer" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=428954595]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1035,20 +1105,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="Label" type="RichTextLabel" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/VBoxContainer" unique_id=1247960321]
-layout_mode = 2
-bbcode_enabled = true
-text = "Selected point id: [b]0[/b]"
-fit_content = true
-autowrap_mode = 0
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="pop_up_remover" type="Control" parent="." unique_id=166882798]
 visible = false
@@ -1117,6 +1173,9 @@ text = "Load pattern file"
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2/subdiv_range" to="." method="_on_roll_subdivisions_changed"]
 [connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/preview_settings/vbox/subdiv2/subdiv_range" to="vbox/ScrollContainer/content_cont/editor_container/Panel/point_editor/guides" method="_on_subdiv_roll_changed"]
 [connection signal="folding_changed" from="vbox/ScrollContainer/content_cont/settings/point_settings" to="." method="_on_pattern_settings_container_fold" flags=18]
+[connection signal="toggled" from="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_fixed/Checkbox" to="." method="_on_point_fixed_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_pitch/SpinBox" to="." method="_on_point_pitch_changed"]
+[connection signal="value_changed" from="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/point_settings_ui/point_roll/SpinBox" to="." method="_on_point_roll_changed"]
 [connection signal="gui_input" from="pop_up_remover" to="." method="_on_pop_up_remover_gui_input"]
 [connection signal="pressed" from="pop_up_remover/saveload_popup/VBoxContainer/save_file" to="." method="open_save_file_dialog"]
 [connection signal="pressed" from="pop_up_remover/saveload_popup/VBoxContainer/load_file" to="." method="open_load_file_dialog"]
