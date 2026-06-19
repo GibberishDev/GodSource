@@ -34,10 +34,12 @@ var color_gradient : Gradient: ## Defines color and emmision gradient of the tra
 var frames_alive : int = 0
 var destination : Vector3 = Vector3.ZERO
 var delete_next_frame : bool = false
+var start_position : Vector3 = Vector3.ZERO
 
 func launch(_destination: Vector3, _start: Vector3 = global_position, _lifetime: float = lifetime, gradient : Gradient = null) -> void:
 	destination = _destination
-	global_position = _start
+	self.global_position = _start
+	start_position = _start
 	lifetime = _lifetime
 	if gradient:
 		var mat : StandardMaterial3D = $mesh_root/mesh.mesh.surface_get_material(0)
@@ -49,16 +51,23 @@ func launch(_destination: Vector3, _start: Vector3 = global_position, _lifetime:
 func _physics_process(delta: float) -> void:
 	#TODO: make tracer start at length 0 to stop it from clipping behind starting position
 	if global_position != destination:
-		$mesh_root.scale.z = (1.0 + ((frames_alive / float(scale_up_period) * int(scale_over_time)))) * tracer_length_multiplier
-		frames_alive += 1
 		var frame_destination : Vector3 = global_position + global_position.direction_to(destination) * delta * speed
-		$mesh_root.rotation.x = atan2(-frame_destination.y, sqrt(frame_destination.x*frame_destination.x + frame_destination.z*frame_destination.z))
-		$mesh_root.rotation.y = atan2(frame_destination.x, frame_destination.z)
+		$mesh_root.rotation.x = atan2(-global_position.direction_to(destination).y, sqrt(global_position.direction_to(destination).x*global_position.direction_to(destination).x + global_position.direction_to(destination).z*global_position.direction_to(destination).z))
+		$mesh_root.rotation.y = atan2(global_position.direction_to(destination).x, global_position.direction_to(destination).z)
 		if global_position.distance_to(destination) < frame_destination.distance_to(global_position):
 			global_position = destination
 			delete_next_frame = true
 			return;
 		global_position = frame_destination
+		if scale_up_period != 0:
+			$mesh_root.scale.z = (1.0 + ((frames_alive / float(scale_up_period) * int(scale_over_time)))) * tracer_length_multiplier
+		else:
+			$mesh_root.scale.z = 1.0
+		if frames_alive > 0: $mesh_root.visible = true
+		var tracer_length : float = 1.0 * $mesh_root.scale.z
+		if start_position.distance_to(global_position) < tracer_length:
+			$mesh_root.scale.z = start_position.distance_to(global_position)
+		frames_alive += 1
 	if delete_next_frame:
 		_on_lifetime_timeout()
 
@@ -123,6 +132,7 @@ one_shot = true
 
 [node name="mesh_root" type="Node3D" parent="." unique_id=1268223033]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+visible = false
 
 [node name="mesh" type="MeshInstance3D" parent="mesh_root" unique_id=807714304]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, -0.5)

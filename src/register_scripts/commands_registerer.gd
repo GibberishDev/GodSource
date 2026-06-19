@@ -176,7 +176,7 @@ func bind_command_callable(arguments_array: Array = []) -> bool:
 	elif arguments_array.size() > 0:
 		var keyname : String = arguments_array[0]
 		var keycode : int = OS.find_keycode_from_string(keyname)
-		var mouse_key : StringName = GSInput.get_mosue_button(keyname)
+		var mouse_key : StringName = GSInput.get_mouse_button(keyname)
 		if keycode == 0:
 			if mouse_key == "":
 				GSConsole.send_output_message("[color=red]ERROR: invalid keycode - \"" + keyname + "\"[/color]")

@@ -15,7 +15,7 @@ func convar_changed_notifier(convar_name: StringName) -> void:
 	if convar_name == &"cl_viewmodelfov":
 		change_model_fov_override(models)
 
-func load_viemodel(id: String) -> void:
+func load_viemodel(id: String = "") -> void:
 	GSResourceManager.threaded_load("res://assets/viewmodels/shotgun/shotgun.glb")
 	
 func loaded_model(path: String, res: Resource, timestamp: int) -> void:

@@ -21,15 +21,15 @@ var wish_sates : Dictionary = {
 }
 
 var mouse_buttons : Dictionary = {
-	&"1":&"mouse1",
-	&"2":&"mouse2",
-	&"3":&"mouse3",
-	&"4":&"wheelup",
-	&"5":&"wheeldown",
-	&"6":&"wheelleft",
-	&"7":&"wheelright",
-	&"8":&"mouse4",
-	&"9":&"mouse5"
+	&"1":&"mouse1", ## Left mouse button
+	&"2":&"mouse2", ## Right mouse button
+	&"3":&"mouse3", ## Wheel button
+	&"4":&"wheelup", ## Scroll up
+	&"5":&"wheeldown", ## Scroll down
+	&"6":&"wheelleft", ## Wheel side button left <- not recommend for default binds
+	&"7":&"wheelright", ## Wheel side button right <- not recommend for default binds
+	&"8":&"mouse4", ## Mouse side button 4 (usually is back button) <- not recommend for default binds
+	&"9":&"mouse5" ## Mouse side button 5 (usually is forward button) <- not recommend for default binds
 }
 var mouse_motion : Vector2 = Vector2.ZERO
 var mouse_motion_with_sens : Vector2 = Vector2.ZERO
@@ -198,7 +198,7 @@ func get_mouse_key_names(id: StringName) -> StringName:
 		return ""
 	return mouse_buttons[id]
 
-func get_mosue_button(button_name: StringName) -> StringName:
+func get_mouse_button(button_name: StringName) -> StringName:
 	if mouse_buttons.find_key(button_name) == null:
 		return ""
 	return mouse_buttons.find_key(button_name)
