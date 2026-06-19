@@ -1,5 +1,5 @@
 @tool
-class_name GDSPC extends Control
+class_name GSSPC extends Control
 
 enum EDIT_MODE {
 	EDIT,
@@ -43,8 +43,10 @@ func _process(_delta:float) -> void:
 		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.y = size.x - 14
 		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.x = 0
 		$vbox/ScrollContainer/content_cont/settings/point_settings/vbox.vertical = true
+		%content_cont.get_parent().vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	else:
 		%content_cont.vertical = false
+		%content_cont.get_parent().vertical_scroll_mode = ScrollContainer.SCROLL_HINT_MODE_DISABLED
 		$vbox/ScrollContainer/content_cont/editor_container.custom_minimum_size.y = 0
 		if size.x > (size.y + 450):
 			$vbox/ScrollContainer/content_cont/editor_container.size_flags_horizontal = SIZE_FILL
@@ -183,7 +185,7 @@ func recalculate_points() -> void:
 		pmi.connect_signals(self)
 		pmi.update()
 		point.item_rect_changed.connect(pmi.update)
-	%points_menu_container.get_parent().custom_minimum_size.y = max(68,points.size()*36 - 4)
+	#%points_menu_container.get_parent().custom_minimum_size.y = clamp(points.size()*36 - 4,68,)
 	update_pattern_data()
 	if selected_point:
 		%point_settings_ui.get_node("Label").text = "Selected point id: [b]" + str(selected_point.id) + "[/b]"
@@ -320,6 +322,7 @@ func load_data(data: Dictionary) -> void:
 	points = []
 	for point: GSSPCPoint in points: point.queue_free()
 	for point_data:Dictionary in data["points"]:
+		if point_data["pitch"] > 89.9: continue
 		var point : GSSPCPoint = add_point(get_pos_from_point(point_data["pitch"],point_data["roll"]) + preview_offset, true)
 		point.fixed = point_data["fixed"]
 		
@@ -354,6 +357,7 @@ func get_pos_from_point(pitch:float,roll:float) -> Vector2:
 ## ui input signal handler. Changes folded 
 func _on_pattern_settings_container_fold(is_folded: bool, source: FoldableContainer) -> void:
 	if is_folded: source.size_flags_vertical = SIZE_SHRINK_BEGIN
+	elif source.name == "point_settings": source.size_flags_vertical = SIZE_EXPAND_FILL
 	else: source.size_flags_vertical = SIZE_FILL
 
 

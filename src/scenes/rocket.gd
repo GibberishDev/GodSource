@@ -12,7 +12,7 @@ func _physics_process(delta: float) -> void:
 	#TODO: replace with global call to process projectiles
 	$rocket.position.z -= speed * delta
 	if $rocket/RayCast3D.is_colliding():
-		var collider : CollisionObject3D = $rocket/RayCast3D.get_collider()
+		var collider : Variant = $rocket/RayCast3D.get_collider()
 		if collider is Area3D:
 			collider.get_parent()._on_hit(collider)
 		var particles : Node3D = explosion_particles.instantiate()

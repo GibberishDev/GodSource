@@ -373,6 +373,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -317.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lhewq")
@@ -582,9 +583,11 @@ layout_mode = 2
 size_flags_vertical = 3
 follow_focus = true
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 0
 
 [node name="content_cont" type="BoxContainer" parent="vbox/ScrollContainer" unique_id=1801854174]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -857,6 +860,7 @@ texture = ExtResource("12_k8uha")
 expand_mode = 1
 
 [node name="settings" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont" unique_id=920814651]
+clip_contents = true
 custom_minimum_size = Vector2(450, 512)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1000,6 +1004,7 @@ custom_arrow_round = true
 select_all_on_focus = true
 
 [node name="point_settings" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings" unique_id=1264882030]
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
@@ -1012,6 +1017,7 @@ title_alignment = 1
 
 [node name="vbox" type="BoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings" unique_id=1627527983]
 layout_mode = 2
+vertical = true
 
 [node name="point_settings_ui" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=1277257835]
 unique_name_in_owner = true
@@ -1083,8 +1089,10 @@ suffix = "deg"
 custom_arrow_step = 0.1
 
 [node name="FoldableContainer" type="FoldableContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox" unique_id=428954595]
+clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_styles/title_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_hover_panel = SubResource("StyleBoxFlat_cgndu")
 theme_override_styles/title_collapsed_panel = SubResource("StyleBoxFlat_a5y1w")
@@ -1098,10 +1106,11 @@ custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 theme_override_constants/scrollbar_h_separation = 4
 horizontal_scroll_mode = 0
-vertical_scroll_mode = 2
+vertical_scroll_mode = 4
 
 [node name="points_menu_container" type="VBoxContainer" parent="vbox/ScrollContainer/content_cont/settings/point_settings/vbox/FoldableContainer/ScrollContainer" unique_id=1427208650]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

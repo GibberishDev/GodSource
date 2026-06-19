@@ -16,17 +16,17 @@ var tracer_length_multiplier : float = 1.0 : ## Multiplies tracer length.
 		if val == null:
 			val = 1.0
 		tracer_length_multiplier = val
-		if $mesh_root:
+		if has_node(\"mesh_root\"):
 			$mesh_root.scale = Vector3(val,val,val)
 @export
 var scale_over_time : bool = true ## Defines if tracer will scale over time
 @export_custom(PROPERTY_HINT_NONE, \"suffix:frames\")
-var scale_up_period : int = 10.0 ##Defines period of physics frames where bulet tracer will increase in size.[br]For example if period is set to 4 on frame 4 tracer will have length 2.0 times more as it started, on frame 8 it will be 3.0 times bigger and so on.
+var scale_up_period : int = 10 ##Defines period of physics frames where bulet tracer will increase in size.[br]For example if period is set to 4 on frame 4 tracer will have length 2.0 times more as it started, on frame 8 it will be 3.0 times bigger and so on.
 @export
 var color_gradient : Gradient: ## Defines color and emmision gradient of the tracer. Left of the gradient is tip of the tracer 
 	set(val):
 		color_gradient = val
-		if $mesh_root/mesh:
+		if has_node(\"mesh_root/mesh\"):
 			var mat : StandardMaterial3D = $mesh_root/mesh.mesh.surface_get_material(0)
 			mat.albedo_texture.gradient = val
 			mat.emission_texture.gradient = val
@@ -84,7 +84,7 @@ func _on_lifetime_timeout() -> void:
 
 [sub_resource type="Gradient" id="Gradient_gi8yk"]
 offsets = PackedFloat32Array(0, 0.03914591, 0.081850536, 0.26334518, 0.430605, 0.74733096, 1)
-colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0.34509805, 1, 0.8893282, 0.3573259, 0.045191705, 1, 0.87265164, 0.26048467, 3.85046e-07, 1, 0.1, 0.1, 0.1, 1, 0.096204735, 0.09620475, 0.096204735, 0)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0.34509805, 1, 0.8074435, 0.4385817, 0, 1, 1, 0.4521436, 0.29053566, 1, 0.1, 0.1, 0.1, 1, 0.096204735, 0.09620475, 0.096204735, 0)
 
 [sub_resource type="Curve" id="Curve_xu30j"]
 _data = [Vector2(0, 0), 0.0, 2.3427079, 0, 0, Vector2(0.30434784, 0.31997287), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]

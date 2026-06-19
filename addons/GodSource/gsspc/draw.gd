@@ -47,14 +47,19 @@ func draw_degrees() -> void:
 	for i:float in range(roll_preview_subdivisions):
 		i *= 360.0/roll_preview_subdivisions
 		draw_line((root.preview_offset + size/2) + Vector2(0,10).rotated(deg_to_rad(i)), (root.preview_offset + size/2) + Vector2(0,size.y + root.preview_offset.length()).rotated(deg_to_rad(i)),Color(1,1,0,0.15),1,true)
-	for i:int in range(90):
-		i += 1
-		draw_circle((root.preview_offset + size/2),pattern_distance * (sin(deg_to_rad(i))/(sin(deg_to_rad(90-i)))) * grid_size,Color(0,1,1,0.2),false,1,true)
+
+	for i:float in range(90):
+		i += 1.0
+		var pos : Vector2 = (root.preview_offset + size/2.0)
+		var radius : float = pattern_distance * float( sin(deg_to_rad(i)) / sin(deg_to_rad(90.0-i)) ) * float(grid_size)
+		if radius == INF: return
+		draw_circle(pos, radius ,Color(0,1,1,0.2),false,1,true)
 		if deg_preview_subdivisions !=0:
 			var step:float = 1.0/(deg_preview_subdivisions + 1)
-			for k : int in range(deg_preview_subdivisions):
-				k+=1
-				draw_circle((root.preview_offset + size/2),pattern_distance * (sin(deg_to_rad(i-(k*step)))/(sin(deg_to_rad(90-(i-(k*step)))))) * grid_size,Color(0,1,1,0.1),false,1,true)
+			for k : float in range(deg_preview_subdivisions):
+				k += 1.0
+				radius = pattern_distance * float(sin(deg_to_rad(i-(k*step)))/sin(deg_to_rad(90.0-(i-(k-step))))) * float(grid_size)
+				draw_circle(pos, radius, Color(0,1,1,0.1), false, 1, true)
 	
 
 func _on_distance_changed(value: float) -> void:

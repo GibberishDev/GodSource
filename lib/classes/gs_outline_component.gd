@@ -33,7 +33,7 @@ var outline : bool = false:
 		notify_property_list_changed();
 @export_subgroup("Outline settings","outline_")
 @export
-var outline_automatic_toggle : OUTLINE_SHOW_CASE = 0:
+var outline_automatic_toggle : OUTLINE_SHOW_CASE = OUTLINE_SHOW_CASE.NEVER:
 	set(val):
 		outline_automatic_toggle = val;
 		notify_property_list_changed();

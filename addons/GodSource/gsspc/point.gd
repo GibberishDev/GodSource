@@ -80,7 +80,7 @@ func _on_hitbox_gui_input(event: InputEvent) -> void:
 			dragging = true
 			not_dragging = false
 		if Input.is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT) and dragging:
-			if get_parent().get_parent().root is GDSPC:
+			if get_parent().get_parent().root is GSSPC:
 				drag_pos += event.screen_relative
 				var point_data : Array[Vector2] = get_parent().get_parent().root.get_new_point_pos(canvas_pos)
 				position = point_data[0]

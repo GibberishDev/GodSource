@@ -16,7 +16,7 @@ func update() -> void:
 	self.add_theme_stylebox_override(&"panel",stylebox)
 
 
-func connect_signals(reciever: GDSPC) -> void:
+func connect_signals(reciever: GSSPC) -> void:
 	$GridContainer/remove_point.pressed.connect(reciever.remove_point.bind(point))
 	$GridContainer/center_on_point.pressed.connect(reciever.reset_view_on_point.bind(point))
 	selected_point.connect(reciever.select_point.bind(point))
