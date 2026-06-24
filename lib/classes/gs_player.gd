@@ -150,6 +150,7 @@ func _ready() -> void:
 	get_node("CameraAnchor").mount_camera(camera) #each player entity has CameraAnchor by default. Might be bad to include here without checking if anchor is present (ex. player is a ghost/spectator)
 	viewmodel.name = "GSViewmodel"
 	camera.add_child(viewmodel)
+	%GSHitscanSpawner.reparent(camera,false)
 	viewmodel.load_viemodel()
 	setup_casts_step_check()
 	GSConsole.connect("convar_changed", convar_changed)
@@ -1230,15 +1231,9 @@ func convar_changed(convar_name: StringName) -> void:
 
 func attack_one() -> void:
 	if %attack_one_timer.time_left == 0 and GSInput.wish_sates["wish_attack"]:
-		for i:int in range(4):
-			var tracer : Node3D = tracer_scene.instantiate()
-			get_tree().root.get_node("GameRoot/Node3D").add_child(tracer)
-			tracer.speed = 75.0
-			tracer.scale_up_period = 10
-			var destination : Vector3 = get_view_angles()[0]
-			if i != 0: destination = destination.rotated(get_view_angles()[2],deg_to_rad((randf()*2.0))).rotated(get_view_angles()[0],deg_to_rad((randf()*360.0)))
-			tracer.launch(destination * 75.0,viewmodel.get_node("tracer_spawner").global_position)
+		
 		%attack_one_timer.start()
+		%GSHitscanSpawner.shoot()
 
 @onready
 var rocket_scene : PackedScene = preload("res://src/scenes/rocket.tscn")
@@ -1246,8 +1241,6 @@ var rocket_scene : PackedScene = preload("res://src/scenes/rocket.tscn")
 var explosion_particles_scene : PackedScene = preload("res://assets/particles/explosion_particles.tscn")
 @onready
 var explosion_scene : PackedScene = preload("res://src/scenes/explosion.tscn")
-@onready
-var tracer_scene : PackedScene = preload("res://src/scenes/bullet_tracer.tscn")
 
 func spawn_rocket() -> void:
 	var rocket : Node3D = rocket_scene.instantiate()

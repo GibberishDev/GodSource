@@ -92,8 +92,8 @@ func _on_lifetime_timeout() -> void:
 "
 
 [sub_resource type="Gradient" id="Gradient_gi8yk"]
-offsets = PackedFloat32Array(0, 0.03914591, 0.081850536, 0.26334518, 0.430605, 0.74733096, 1)
-colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0.34509805, 1, 0.8074435, 0.4385817, 0, 1, 1, 0.4521436, 0.29053566, 1, 0.1, 0.1, 0.1, 1, 0.096204735, 0.09620475, 0.096204735, 0)
+offsets = PackedFloat32Array(0, 0.03914591, 0.23076923, 0.32051283, 0.37179488, 0.61538464, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0.34509805, 1, 0.77552617, 0.4203153, 0, 1, 0.9912692, 0.30086735, 0.00015036047, 1, 0.1, 0.1, 0.1, 1, 0.096204735, 0.09620475, 0.096204735, 0)
 
 [sub_resource type="Curve" id="Curve_xu30j"]
 _data = [Vector2(0, 0), 0.0, 2.3427079, 0, 0, Vector2(0.30434784, 0.31997287), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -111,6 +111,9 @@ specular_mode = 1
 vertex_color_use_as_albedo = true
 albedo_texture = SubResource("GradientTexture2D_4t5xl")
 emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 10.0
+emission_operator = 1
 emission_texture = SubResource("GradientTexture2D_4t5xl")
 disable_receive_shadows = true
 

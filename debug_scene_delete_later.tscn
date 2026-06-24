@@ -19,6 +19,8 @@ sky_material = SubResource("PanoramaSkyMaterial_biiar")
 background_mode = 2
 background_camera_feed_id = 2
 sky = SubResource("Sky_nwtsw")
+sdfgi_enabled = true
+glow_enabled = true
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_0qie4"]
 
@@ -97,7 +99,6 @@ func spawn(source:Variant, val:float,pos:Vector3,damage_type:DAMAGE_TYPE=DAMAGE_
 	else:
 		var number : RigidBody3D = number_scene.instantiate()
 		damage_numbers[source] = number
-		print(damage_numbers)
 		get_tree().root.get_node(\"/root/GameRoot/Node3D\").add_child(number)
 		number.global_position = pos
 		number.source = source
@@ -135,7 +136,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0355167, 0.32577705, 0)
 environment = SubResource("Environment_gbv3d")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=5571486]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+transform = Transform3D(-0.34202012, -0.8137977, 0.46984628, 0, 0.49999997, 0.86602545, -0.9396926, 0.29619813, -0.17101005, 0, 0, 0)
 layers = 3
 shadow_enabled = true
 

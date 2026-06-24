@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://caixndxsg42tl" path="res://lib/classes/gs_camera_anchor.tscn" id="3_bd2rc"]
 [ext_resource type="Script" uid="uid://c4llk0ks60g4j" path="res://lib/classes/test_hud.gd" id="3_s3wio"]
 [ext_resource type="Script" uid="uid://b7tiohli5i601" path="res://lib/classes/gs_equipment_component.gd" id="4_bd2rc"]
+[ext_resource type="Script" uid="uid://2vina88o5nc5" path="res://lib/classes/gs_hitscan_spawner.gd" id="5_vou08"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdf4h"]
 size = Vector3(0.933, 1.581, 0.933)
@@ -16,6 +17,10 @@ size = Vector3(0.933, 0.15, 0.933)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_s3wio"]
 size = Vector3(0, 1.581, 0)
+
+[sub_resource type="SphereMesh" id="SphereMesh_jtpdx"]
+radius = 0.05
+height = 0.1
 
 [node name="gs_player" type="CharacterBody3D" unique_id=1437464103]
 collision_layer = 2
@@ -100,17 +105,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.295, 0)
 
 [node name="GSEquipmentComponent" type="Node" parent="." unique_id=2013565495]
 script = ExtResource("4_bd2rc")
-consumables = Array[Dictionary]([{
-"id": "consumable_id5",
-"max": 300.0
-}, {
-"id": "consumable_id",
-"max": null
-}, {
-"id": "consumable_id",
-"max": 300.0
-}])
 metadata/_custom_type_script = "uid://b7tiohli5i601"
+
+[node name="GSHitscanSpawner" type="Node3D" parent="." unique_id=1023601058]
+unique_name_in_owner = true
+script = ExtResource("5_vou08")
+metadata/_custom_type_script = "uid://2vina88o5nc5"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2135149065]
+mesh = SubResource("SphereMesh_jtpdx")
 
 [connection signal="timeout" from="crouch_timer" to="." method="crouch"]
 [connection signal="timeout" from="uncrouch_timer" to="." method="uncrouch"]

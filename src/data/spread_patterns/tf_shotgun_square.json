@@ -1,0 +1,56 @@
+{
+	"is_burst": true,
+	"points": [
+		{
+			"fixed": true,
+			"pitch": 0.0,
+			"roll": 0.0
+		},
+		{
+			"fixed": false,
+			"pitch": 0.0,
+			"roll": 0.0
+		},
+		{
+			"fixed": false,
+			"pitch": 1.7,
+			"roll": 270.0
+		},
+		{
+			"fixed": false,
+			"pitch": 1.7,
+			"roll": 180.0
+		},
+		{
+			"fixed": false,
+			"pitch": 1.7,
+			"roll": 90.0
+		},
+		{
+			"fixed": false,
+			"pitch": 1.7,
+			"roll": 0.0
+		},
+		{
+			"fixed": false,
+			"pitch": 2.0,
+			"roll": 225.0
+		},
+		{
+			"fixed": false,
+			"pitch": 2.0,
+			"roll": 315.0
+		},
+		{
+			"fixed": false,
+			"pitch": 2.0,
+			"roll": 45.0
+		},
+		{
+			"fixed": false,
+			"pitch": 2.0,
+			"roll": 135.0
+		}
+	],
+	"rbs_range": 1.91
+}

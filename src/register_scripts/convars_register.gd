@@ -10,6 +10,8 @@ func register_convars() -> void:
 	GSConsole.add_convar(&"sv_autojump", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "0")
 	GSConsole.add_convar(&"sv_bhop", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
 	GSConsole.add_convar(&"sv_limitjumpspeed", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
+	GSConsole.add_convar(&"gs_use_fixed_bullet_spread", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "0")
+	GSConsole.add_convar(&"debug_drawhitscan", GSConsole.CONVAR_TYPE.BOOLEAN,[GSConsole.CONVAR_FLAGS.CHEAT], "0","0","1","Display hitscan collision debug shapes")
 	GSConsole.add_convar(&"sv_accelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "10")
 	GSConsole.add_convar(&"sv_airaccelerate", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "5") #idk why but despite in tf this being mult of 10 this value is overtuned af.
 	GSConsole.add_convar(&"sv_bounce", GSConsole.CONVAR_TYPE.FLOAT,[GSConsole.CONVAR_FLAGS.CHEAT], "1")
