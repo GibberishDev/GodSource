@@ -35,6 +35,8 @@ var input_history_amount : int = 10
 var input_history : Array[String] = []
 var input_history_last_id : int = 0
 
+var current_recursion_depth : int = 0
+
 #endregion
 
 #region Command
@@ -55,7 +57,10 @@ func add_command(command_name: StringName, callable: Callable, description: Stri
 	self.command_list[command_name] = new_command
 	send_output_message("Registered command \"" + command_name + "\"")
 
-func process_input(input_string: String) -> bool:
+func process_input(input_string: String, from_alias: bool = false) -> bool:
+	if !from_alias:
+		current_recursion_depth = 0
+	current_recursion_depth += 1
 	var commands_array: PackedStringArray = split_commands_input(input_string) #Split commands string into an array of commands
 	return process_commands(commands_array)
 
@@ -77,6 +82,7 @@ func split_commands_input(input_string: String) -> PackedStringArray:
 func process_commands(commands_array: Array[String]) -> bool:
 	var regex_selector: RegEx = RegEx.new()
 	regex_selector.compile("^[a-zA-Z0-9_\\-\\+]*")
+	current_recursion_depth += 1
 	for i: int in range(commands_array.size()):
 		var command_name: StringName = regex_selector.search(commands_array[i]).get_string()
 		if !self.command_list.has(command_name):
@@ -156,7 +162,12 @@ func get_all_aliases() -> Array[Alias]:
 
 func process_alias(id: StringName) -> bool:
 	var command : String = alias_list[id].command
-	return process_input(command) 
+	current_recursion_depth += 1
+	if current_recursion_depth >= 1000:
+		GSConsole.send_output_message("[color=red]ERROR: Exceeded recursion depth. Aborting. Check if alias tries to execute itself.[/color]")
+		return false
+	print(current_recursion_depth)
+	return process_input(command, true) 
 
 #endregion
 
